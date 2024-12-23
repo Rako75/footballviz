@@ -50,8 +50,8 @@ for position, metrics in categories.items():
             if col in data.columns:
                 data[col + "_normalized"] = normalize_series(data[col])
 
-# Création du pizza chart
-def create_pizzachart(player_name, data, categories):
+# Création du pizza chart avec remplissage
+def create_filled_pizzachart(player_name, data, categories):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
     position = player_data["Position"]
@@ -72,7 +72,7 @@ def create_pizzachart(player_name, data, categories):
 
     pizza_df = pd.DataFrame(pizza_data)
 
-    # Création du graphique
+    # Création du graphique avec sections remplies
     fig = px.bar_polar(
         pizza_df,
         r="Valeur",
@@ -85,6 +85,7 @@ def create_pizzachart(player_name, data, categories):
             "Defending": "orange"
         }
     )
+    fig.update_traces(opacity=0.8)  # Ajouter de l'opacité pour l'effet visuel
     fig.update_layout(
         title=f"Pizza Chart de {player_name} ({position})",
         polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
@@ -92,6 +93,7 @@ def create_pizzachart(player_name, data, categories):
     )
 
     return fig
+
 
 # Interface utilisateur Streamlit
 st.title("Pizza Chart interactif des joueurs de football - Big 5")
