@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Radarchart interactif des joueurs de football - Big 5
+Radarchart interactif des joueurs de football - Big 5 avec PyPizza
 """
 
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import streamlit as st
 from mplsoccer import PyPizza
+import matplotlib.pyplot as plt
 
 # Chargement des données depuis le fichier CSV
 @st.cache_data
@@ -52,24 +52,7 @@ criteria_by_position = {
     "Défenseur": ['Buts par 90 minutes', 'Tacles reussis', 'Interceptions', 'Buts + Passes decisives par 90 minutes']
 }
 
-# Fonction pour le radar Plotly
-def create_radarchart(player_name, data, valid_criteria_by_position):
-    player_data = data[data['Joueur'] == player_name]
-    position = player_data['Position'].iloc[0]
-    criteria = valid_criteria_by_position.get(position, [])
-    radar_values = player_data[[f'{c}_normalized' for c in criteria]].iloc[0].values
-
-    radar_data = pd.DataFrame({
-        "Critères": criteria,
-        "Valeurs": radar_values
-    })
-
-    fig = px.line_polar(radar_data, r="Valeurs", theta="Critères", line_close=True)
-    fig.update_traces(fill="toself")
-    fig.update_layout(title=f"Radarchart de {player_name} ({position})", polar=dict(radialaxis=dict(visible=True)))
-    return fig
-
-# Fonction pour le radar avec PyPizza
+# Fonction pour le radar PyPizza
 def create_pizza_chart(player_name, data, valid_criteria_by_position):
     player_data = data[data['Joueur'] == player_name]
     position = player_data['Position'].iloc[0]
@@ -101,12 +84,8 @@ st.dataframe(data.head())
 # Sélection du joueur
 player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
-# Génération du radar Plotly
+# Génération du radar PyPizza
 if player_name:
-    st.subheader("Visualisation Radar avec Plotly")
-    radar_fig = create_radarchart(player_name, data, criteria_by_position)
-    st.plotly_chart(radar_fig)
-
     st.subheader("Visualisation Radar avec PyPizza")
     pizza_fig = create_pizza_chart(player_name, data, criteria_by_position)
     st.pyplot(pizza_fig)
