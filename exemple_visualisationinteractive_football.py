@@ -59,7 +59,7 @@ def create_radarchart(player_name, data, criteria):
 st.title("Radarchart interactif des joueurs de football")
 
 # Menu déroulant pour choisir un joueur
-player_name = st.selectbox("Choisissez un joueur :", data["Player"].unique())
+player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
 # Génération du radar pour le joueur sélectionné
 if player_name:
