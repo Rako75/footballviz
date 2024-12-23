@@ -1,15 +1,15 @@
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import streamlit as st
 
-# Chargement des données
+# Charger les données
 @st.cache_data
 def load_data():
-    # Remplacez 'df_Big5.csv' par le chemin de votre fichier
-    df = pd.read_csv('df_Big5.csv')
+    # Charger le fichier CSV
+    df = pd.read_csv('df_Big5.csv')  # Remplacez par le chemin correct vers votre fichier CSV
     return df
 
+# Charger les données
 data = load_data()
 
 # Traduction des positions en français
@@ -21,36 +21,31 @@ positions_fr = {
 }
 data['Position'] = data['Position'].map(positions_fr)
 
-# Catégories et critères par position
+# Catégories et critères pour le Pizza Chart
 categories = {
     "Attaquant": {
-        "Attacking": ["Buts", "Passes decisives", "Buts + Passes decisives", "Tirs"],
-        "Possession": ["Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
-        "Defending": []
+        "Attacking": ["Buts", "Passes décisives", "Buts + Passes décisives", "Tirs"],
+        "Possession": ["Passes progressives", "Courses progressives", "Touches dans la surface adverse"],
     },
     "Milieu": {
-        "Attacking": ["Passes dans la surface adverse", "xAG"],
-        "Possession": ["Passes progressives", "Passes vers le dernier tiers", "Touches"],
-        "Defending": ["Interceptions", "Tacles reussis"]
+        "Possession": ["Passes progressives", "Passes vers le dernier tiers", "Passes dans la surface adverse"],
+        "Defending": ["Interceptions", "Tacles réussis"],
     },
     "Défenseur": {
-        "Attacking": [],
-        "Possession": ["Passes progressives", "Touches dans le tiers défensif", "Passes longues reussies"],
-        "Defending": ["Interceptions", "Tacles reussis", "Pourcentage de duels aériens gagnés"]
+        "Defending": ["Interceptions", "Tacles réussis", "Pourcentage de duels aériens gagnés"],
+        "Possession": ["Passes progressives", "Passes longues réussies"],
     }
 }
 
-# Normalisation des données
-def normalize_series(series):
-    return (series - series.min()) / (series.max() - series.min()) if series.max() > series.min() else series
+# Normalisation des données pour chaque critère
+for position, metrics_by_category in categories.items():
+    for category, metrics in metrics_by_category.items():
+        for metric in metrics:
+            if metric in data.columns:
+                normalized_col = metric + "_normalized"
+                data[normalized_col] = data[metric] / data[metric].max()
 
-for position, metrics in categories.items():
-    for category, criteria in metrics.items():
-        for col in criteria:
-            if col in data.columns:
-                data[col + "_normalized"] = normalize_series(data[col])
-
-# Création du pizza chart avec remplissage
+# Création du Pizza Chart avec remplissage
 def create_filled_pizzachart(player_name, data, categories):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
@@ -94,18 +89,17 @@ def create_filled_pizzachart(player_name, data, categories):
 
     return fig
 
-
 # Interface utilisateur Streamlit
 st.title("Pizza Chart interactif des joueurs de football - Big 5")
 
 # Aperçu des données
-st.write("Aperçu des données :")
-st.dataframe(data.head())
+st.subheader("Aperçu des données :")
+st.dataframe(data[["Joueur", "Age", "Position", "Ligue", "Equipe", "Matchs joues", "Titularisations"]].head())
 
-# Menu déroulant pour choisir un joueur
+# Menu déroulant pour sélectionner un joueur
 player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
-# Génération du pizza chart pour le joueur sélectionné
+# Génération du graphique Pizza Chart pour le joueur sélectionné
 if player_name:
-    fig = create_pizzachart(player_name, data, categories)
+    fig = create_filled_pizzachart(player_name, data, categories)
     st.plotly_chart(fig)
