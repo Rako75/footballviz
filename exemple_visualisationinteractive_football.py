@@ -59,6 +59,11 @@ def create_pizza_chart(player_name, data, valid_criteria_by_position):
     position = player_data['Position'].iloc[0]
     criteria = valid_criteria_by_position.get(position, [])
     
+    # Vérifiez si la liste des critères est vide
+    if not criteria:
+        st.error(f"Aucun critère disponible pour le joueur {player_name} à la position {position}.")
+        return None
+
     # Vérifiez que le joueur a des données pour les critères
     if not all([f'{c}_normalized' in player_data.columns for c in criteria]):
         st.error(f"Le joueur {player_name} n'a pas toutes les données nécessaires pour le radar.")
