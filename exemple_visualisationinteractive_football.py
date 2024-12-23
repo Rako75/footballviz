@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Radarchart interactif des joueurs de football - Big 5 avec PyPizza
-"""
-
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -55,8 +50,20 @@ criteria_by_position = {
 # Fonction pour le radar PyPizza
 def create_pizza_chart(player_name, data, valid_criteria_by_position):
     player_data = data[data['Joueur'] == player_name]
+    
+    # Assurez-vous que le joueur existe dans les données
+    if player_data.empty:
+        st.error(f"Le joueur {player_name} n'est pas trouvé dans les données.")
+        return None
+
     position = player_data['Position'].iloc[0]
     criteria = valid_criteria_by_position.get(position, [])
+    
+    # Vérifiez que le joueur a des données pour les critères
+    if not all([f'{c}_normalized' in player_data.columns for c in criteria]):
+        st.error(f"Le joueur {player_name} n'a pas toutes les données nécessaires pour le radar.")
+        return None
+    
     radar_values = player_data[[f'{c}_normalized' for c in criteria]].iloc[0].values
 
     # Création du plot
@@ -88,4 +95,5 @@ player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 if player_name:
     st.subheader("Visualisation Radar avec PyPizza")
     pizza_fig = create_pizza_chart(player_name, data, criteria_by_position)
-    st.pyplot(pizza_fig)
+    if pizza_fig is not None:
+        st.pyplot(pizza_fig)
