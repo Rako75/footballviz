@@ -31,24 +31,35 @@ criteria_by_position = {
                   "Passes longues reussies", "Pourcentage de duels aériens gagnés"]
 }
 
+# Vérification des colonnes disponibles
+available_columns = data.columns
+valid_criteria_by_position = {}
+
+for position, criteria_list in criteria_by_position.items():
+    valid_criteria = [col for col in criteria_list if col in available_columns]
+    valid_criteria_by_position[position] = valid_criteria
+
 # Normalisation des colonnes pertinentes
 def normalize_series(series):
-    return (series - series.min()) / (series.max() - series.min())
+    return (series - series.min()) / (series.max() - series.min()) if series.max() > series.min() else series
 
-for criteria_list in criteria_by_position.values():
+for criteria_list in valid_criteria_by_position.values():
     for col in criteria_list:
         if col in data.columns:
             data[col + "_normalized"] = normalize_series(data[col])
 
 # Création de la fonction pour le radarchart
-def create_radarchart(player_name, data, criteria_by_position):
+def create_radarchart(player_name, data, valid_criteria_by_position):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
     position = player_data["Position"]
 
     # Critères pertinents pour la position
-    criteria = criteria_by_position.get(position, [])
+    criteria = valid_criteria_by_position.get(position, [])
     criteria_normalized = [col + "_normalized" for col in criteria]
+
+    # Vérification que les critères normalisés existent
+    criteria_normalized = [col for col in criteria_normalized if col in data.columns]
 
     # Extraire les valeurs et les critères
     stats = player_data[criteria_normalized].values
@@ -76,5 +87,5 @@ player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
 # Génération du radar pour le joueur sélectionné
 if player_name:
-    fig = create_radarchart(player_name, data, criteria_by_position)
+    fig = create_radarchart(player_name, data, valid_criteria_by_position)
     st.plotly_chart(fig)
