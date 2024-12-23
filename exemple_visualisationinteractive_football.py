@@ -48,8 +48,8 @@ for criteria_list in valid_criteria_by_position.values():
         if col in data.columns:
             data[col + "_normalized"] = normalize_series(data[col])
 
-# Création de la fonction pour le radarchart
-def create_radarchart(player_name, data, valid_criteria_by_position):
+# Création de la fonction pour le pizza chart
+def create_pizzachart(player_name, data, valid_criteria_by_position):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
     position = player_data["Position"]
@@ -63,20 +63,30 @@ def create_radarchart(player_name, data, valid_criteria_by_position):
 
     # Extraire les valeurs et les critères
     stats = player_data[criteria_normalized].values
-    radar_data = pd.DataFrame({
+    pizza_data = pd.DataFrame({
         "Critères": criteria,
         "Valeurs": stats
     })
 
-    # Création du radar avec Plotly
-    fig = px.line_polar(radar_data, r="Valeurs", theta="Critères", line_close=True)
-    fig.update_traces(fill="toself")
-    fig.update_layout(title=f"Radarchart de {player_name} ({position})", polar=dict(radialaxis=dict(visible=True)))
+    # Création du pizza chart avec Plotly
+    fig = px.bar_polar(
+        pizza_data,
+        r="Valeurs",
+        theta="Critères",
+        color="Critères",
+        template="plotly_dark",
+        color_discrete_sequence=px.colors.sequential.Plasma_r
+    )
+    fig.update_layout(
+        title=f"Pizza Chart de {player_name} ({position})",
+        polar=dict(radialaxis=dict(visible=True)),
+        showlegend=False
+    )
 
     return fig
 
 # Interface utilisateur Streamlit
-st.title("Radarchart interactif des joueurs de football - Big 5")
+st.title("Pizza Chart interactif des joueurs de football - Big 5")
 
 # Aperçu des données
 st.write("Aperçu des données :")
@@ -85,7 +95,7 @@ st.dataframe(data.head())
 # Menu déroulant pour choisir un joueur
 player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
-# Génération du radar pour le joueur sélectionné
+# Génération du pizza chart pour le joueur sélectionné
 if player_name:
-    fig = create_radarchart(player_name, data, valid_criteria_by_position)
+    fig = create_pizzachart(player_name, data, valid_criteria_by_position)
     st.plotly_chart(fig)
