@@ -21,66 +21,74 @@ positions_fr = {
 }
 data['Position'] = data['Position'].map(positions_fr)
 
-# Critères pertinents par position
-criteria_by_position = {
-    "Attaquant": ["Buts", "Passes decisives", "Buts + Passes decisives", "Buts hors penalty", 
-                  "Tirs", "Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
-    "Milieu": ["Passes progressives", "Passes vers le dernier tiers", "Passes dans la surface adverse", 
-               "Touches", "Interceptions", "Tacles reussis", "Touches dans le tiers défensif"],
-    "Défenseur": ["Interceptions", "Tacles reussis", "Passes progressives", "Touches dans le tiers défensif",
-                  "Passes longues reussies", "Pourcentage de duels aériens gagnés"]
+# Catégories et critères par position
+categories = {
+    "Attaquant": {
+        "Attacking": ["Buts", "Passes decisives", "Buts + Passes decisives", "Tirs"],
+        "Possession": ["Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
+        "Defending": []
+    },
+    "Milieu": {
+        "Attacking": ["Passes dans la surface adverse", "xAG"],
+        "Possession": ["Passes progressives", "Passes vers le dernier tiers", "Touches"],
+        "Defending": ["Interceptions", "Tacles reussis"]
+    },
+    "Défenseur": {
+        "Attacking": [],
+        "Possession": ["Passes progressives", "Touches dans le tiers défensif", "Passes longues reussies"],
+        "Defending": ["Interceptions", "Tacles reussis", "Pourcentage de duels aériens gagnés"]
+    }
 }
 
-# Vérification des colonnes disponibles
-available_columns = data.columns
-valid_criteria_by_position = {}
-
-for position, criteria_list in criteria_by_position.items():
-    valid_criteria = [col for col in criteria_list if col in available_columns]
-    valid_criteria_by_position[position] = valid_criteria
-
-# Normalisation des colonnes pertinentes
+# Normalisation des données
 def normalize_series(series):
     return (series - series.min()) / (series.max() - series.min()) if series.max() > series.min() else series
 
-for criteria_list in valid_criteria_by_position.values():
-    for col in criteria_list:
-        if col in data.columns:
-            data[col + "_normalized"] = normalize_series(data[col])
+for position, metrics in categories.items():
+    for category, criteria in metrics.items():
+        for col in criteria:
+            if col in data.columns:
+                data[col + "_normalized"] = normalize_series(data[col])
 
-# Création de la fonction pour le pizza chart
-def create_pizzachart(player_name, data, valid_criteria_by_position):
+# Création du pizza chart
+def create_pizzachart(player_name, data, categories):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
     position = player_data["Position"]
 
-    # Critères pertinents pour la position
-    criteria = valid_criteria_by_position.get(position, [])
-    criteria_normalized = [col + "_normalized" for col in criteria]
+    # Critères et catégories pour la position
+    metrics_by_category = categories.get(position, {})
+    pizza_data = []
 
-    # Vérification que les critères normalisés existent
-    criteria_normalized = [col for col in criteria_normalized if col in data.columns]
+    for category, metrics in metrics_by_category.items():
+        for metric in metrics:
+            normalized_col = metric + "_normalized"
+            if normalized_col in player_data:
+                pizza_data.append({
+                    "Critère": metric,
+                    "Valeur": player_data[normalized_col],
+                    "Catégorie": category
+                })
 
-    # Extraire les valeurs et les critères
-    stats = player_data[criteria_normalized].values
-    pizza_data = pd.DataFrame({
-        "Critères": criteria,
-        "Valeurs": stats
-    })
+    pizza_df = pd.DataFrame(pizza_data)
 
-    # Création du pizza chart avec Plotly
+    # Création du graphique
     fig = px.bar_polar(
-        pizza_data,
-        r="Valeurs",
-        theta="Critères",
-        color="Critères",
-        template="plotly_dark",
-        color_discrete_sequence=px.colors.sequential.Plasma_r
+        pizza_df,
+        r="Valeur",
+        theta="Critère",
+        color="Catégorie",
+        template="plotly_white",
+        color_discrete_map={
+            "Attacking": "blue",
+            "Possession": "red",
+            "Defending": "orange"
+        }
     )
     fig.update_layout(
         title=f"Pizza Chart de {player_name} ({position})",
-        polar=dict(radialaxis=dict(visible=True)),
-        showlegend=False
+        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+        showlegend=True
     )
 
     return fig
@@ -97,5 +105,5 @@ player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
 # Génération du pizza chart pour le joueur sélectionné
 if player_name:
-    fig = create_pizzachart(player_name, data, valid_criteria_by_position)
+    fig = create_pizzachart(player_name, data, categories)
     st.plotly_chart(fig)
