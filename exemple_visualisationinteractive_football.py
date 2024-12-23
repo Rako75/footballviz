@@ -4,7 +4,7 @@ import plotly.express as px
 import streamlit as st
 
 # Chargement des données
-@st.cache
+@st.cache_data
 def load_data():
     # Remplacez 'df_Big5.csv' par le chemin de votre fichier
     df = pd.read_csv('df_Big5.csv')
@@ -21,7 +21,7 @@ positions_fr = {
 }
 data['Position'] = data['Position'].map(positions_fr)
 
-# Critères pertinents par position (sans xG ni xAG)
+# Critères pertinents par position
 criteria_by_position = {
     "Attaquant": ["Buts", "Passes decisives", "Buts + Passes decisives", "Buts hors penalty", 
                   "Tirs", "Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
