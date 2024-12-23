@@ -6,7 +6,7 @@ import streamlit as st
 # Chargement des données
 @st.cache
 def load_data():
-    # Remplacez 'df_Big5.csv' par votre fichier de données
+    # Remplacez 'df_Big5.csv' par le chemin de votre fichier
     df = pd.read_csv('df_Big5.csv')
     return df
 
@@ -21,31 +21,40 @@ positions_fr = {
 }
 data['Position'] = data['Position'].map(positions_fr)
 
-# Critères par position
-criteria = {
+# Critères pertinents par position (sans xG ni xAG)
+criteria_by_position = {
     "Attaquant": ["Buts", "Passes decisives", "Buts + Passes decisives", "Buts hors penalty", 
-                  "xG", "xAG", "Tirs", "Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
+                  "Tirs", "Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
     "Milieu": ["Passes progressives", "Passes vers le dernier tiers", "Passes dans la surface adverse", 
-               "xAG", "Touches", "Interceptions", "Tacles reussis", "Touches dans le tiers defensif"],
-    "Défenseur": ["Interceptions", "Tacles reussis", "Pourcentage de duels aeriens gagnes", 
-                  "Passes progressives", "Passes longues reussies", "Touches dans le tiers defensif"]
+               "Touches", "Interceptions", "Tacles reussis", "Touches dans le tiers défensif"],
+    "Défenseur": ["Interceptions", "Tacles reussis", "Passes progressives", "Touches dans le tiers défensif",
+                  "Passes longues reussies", "Pourcentage de duels aériens gagnés"]
 }
 
+# Normalisation des colonnes pertinentes
+def normalize_series(series):
+    return (series - series.min()) / (series.max() - series.min())
+
+for criteria_list in criteria_by_position.values():
+    for col in criteria_list:
+        if col in data.columns:
+            data[col + "_normalized"] = normalize_series(data[col])
+
 # Création de la fonction pour le radarchart
-def create_radarchart(player_name, data, criteria):
+def create_radarchart(player_name, data, criteria_by_position):
     # Filtrer les données pour le joueur sélectionné
     player_data = data[data["Joueur"] == player_name].iloc[0]
     position = player_data["Position"]
 
-    # Sélection des critères pour la position
-    selected_criteria = criteria[position]
-    stats = player_data[selected_criteria].values
-    normalized_stats = stats / max(stats)  # Normalisation entre 0 et 1
+    # Critères pertinents pour la position
+    criteria = criteria_by_position.get(position, [])
+    criteria_normalized = [col + "_normalized" for col in criteria]
 
-    # Création du DataFrame pour le radar
+    # Extraire les valeurs et les critères
+    stats = player_data[criteria_normalized].values
     radar_data = pd.DataFrame({
-        "Critères": selected_criteria,
-        "Valeurs": normalized_stats
+        "Critères": criteria,
+        "Valeurs": stats
     })
 
     # Création du radar avec Plotly
@@ -56,12 +65,16 @@ def create_radarchart(player_name, data, criteria):
     return fig
 
 # Interface utilisateur Streamlit
-st.title("Radarchart interactif des joueurs de football")
+st.title("Radarchart interactif des joueurs de football - Big 5")
+
+# Aperçu des données
+st.write("Aperçu des données :")
+st.dataframe(data.head())
 
 # Menu déroulant pour choisir un joueur
 player_name = st.selectbox("Choisissez un joueur :", data["Joueur"].unique())
 
 # Génération du radar pour le joueur sélectionné
 if player_name:
-    fig = create_radarchart(player_name, data, criteria)
+    fig = create_radarchart(player_name, data, criteria_by_position)
     st.plotly_chart(fig)
