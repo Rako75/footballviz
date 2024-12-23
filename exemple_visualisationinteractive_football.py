@@ -27,7 +27,7 @@ criteria = {
                   "xG", "xAG", "Tirs", "Touches dans la surface adverse", "Passes progressives", "Courses progressives"],
     "Milieu": ["Passes progressives", "Passes vers le dernier tiers", "Passes dans la surface adverse", 
                "xAG", "Touches", "Interceptions", "Tacles reussis", "Touches dans le tiers defensif"],
-    "Défenseur": ["Interceptions", "Tacles reussis", "Dégagements", "Duels aériens gagnés (%)", 
+    "Défenseur": ["Interceptions", "Tacles reussis", "Pourcentage de duels aeriens gagnes", 
                   "Passes progressives", "Passes longues reussies", "Touches dans le tiers defensif"]
 }
 
