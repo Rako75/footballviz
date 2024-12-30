@@ -26,37 +26,44 @@ columns_to_plot = [
     'xG par 90 minutes', 'xAG par 90 minutes'
 ]
 
-# Définir la fonction de génération du graphique radar
+# Définir la fonction de génération du graphique radar avec les nouvelles méthodes
 def generate_combined_radar(player1_data, player2_data, player1_name, player2_name):
-    radar = Radar(
-        params=columns_to_plot,
-        min_range=[0 for _ in columns_to_plot],
-        max_range=[100 for _ in columns_to_plot]
+    # Définir les plages pour les paramètres
+    ranges = [
+        (0.15, 0.35), (1.00, 3.00), (1.50, 3.00), (0.50, 1.00), (10.0, 25.0), (5.00, 15.00),
+        (2.50, 5.00), (0.0, 1.00), (30.0, 50.00), (5.00, 6.00),
+        (40.00, 55.00), (0.70, 1.00)
+    ]
+    
+    # Valeurs des deux joueurs pour la comparaison
+    val_comp = player1_data[columns_to_plot].values.flatten(), player2_data[columns_to_plot].values.flatten()
+    
+    # Paramètres (colonnes)
+    params = columns_to_plot
+    
+    # Titres et couleurs pour les joueurs
+    title_comp = dict(
+        title_name=player1_name,
+        title_color='#D00027',
+        subtitle_name='Premier League',
+        subtitle_color='#000000',
+        title_name_2=player2_name,
+        title_color_2='#00A398',
+        subtitle_name_2='Premier League',
+        subtitle_color_2='#000000',
+        title_fontsize=18,
+        subtitle_fontsize=15,
     )
-
-    values1 = list(player1_data[columns_to_plot].values.flatten())
-    values2 = list(player2_data[columns_to_plot].values.flatten())
-
-    # Créer le graphique radar
-    fig, ax = radar.draw_radar(
-        values=[values1, values2],
-        titles=[player1_name, player2_name],
-        colors=["#C8102E", "#005BAC"],
-        figsize=(8, 8),
-        alpha_fill=0.2
+    
+    # Initialiser le radar
+    radar = Radar()
+    
+    # Tracer le graphique radar avec les deux joueurs
+    fig, ax = radar.plot_radar(
+        ranges=ranges, params=params, values=val_comp, radar_color=['#D00027', '#00A398'], 
+        title=title_comp, compare=True
     )
-
-    # Ajouter une légende et un titre
-    ax[0].legend(
-        [player1_name, player2_name],
-        loc="upper right", bbox_to_anchor=(1.3, 1), fontsize=10
-    )
-    ax[0].set_title(
-        f"Comparaison entre {player1_name} et {player2_name}",
-        fontsize=16,
-        color="black",
-        pad=20
-    )
+    
     return fig
 
 # Application Streamlit
