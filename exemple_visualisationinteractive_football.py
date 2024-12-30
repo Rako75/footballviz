@@ -139,5 +139,16 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
+# Ajouter les valeurs sur le radar
+for i, param in enumerate(params):
+    for j, player_data in enumerate([player1_data, player2_data]):
+        ax.text(
+            player_data[i] * np.cos(np.radians(360 * i / len(params))),  # X position (utiliser la trigonométrie pour les positions)
+            player_data[i] * np.sin(np.radians(360 * i / len(params))),  # Y position
+            f'{player_data[i]}',  # Valeur à afficher
+            horizontalalignment='center', verticalalignment='center', 
+            fontsize=10, color='white'
+        )
+
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
