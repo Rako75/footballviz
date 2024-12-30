@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# Exemple avec Streamlit et soccerplots pour comparer deux joueurs
-
 import pandas as pd
 import numpy as np
 import streamlit as st
