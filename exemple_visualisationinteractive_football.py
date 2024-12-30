@@ -142,9 +142,9 @@ fig, ax = radar.plot_radar(
 # Ajouter les valeurs sur le radar à l'intérieur du graphique
 for i, param in enumerate(params):
     for j, player_data in enumerate([player1_data, player2_data]):
-        # Normaliser les coordonnées pour être à l'intérieur du radar (0.9 fois la valeur)
+        # Normaliser les coordonnées pour être à l'intérieur du radar (0.8 fois la valeur)
         value = player_data[i] / max_values[param]  # Valeur normalisée
-        radius = value * 0.9  # Ajuster la distance pour que les textes restent à l'intérieur
+        radius = value * 0.8  # Ajuster la distance pour que les textes restent à l'intérieur
         angle = np.radians(360 * i / len(params))  # Calculer l'angle pour chaque paramètre
         
         # Calcul des coordonnées X et Y à partir de l'angle et du rayon
