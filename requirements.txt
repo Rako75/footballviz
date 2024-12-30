@@ -3,3 +3,4 @@ mplsoccer
 pandas
 matplotlib
 Radar
+PyPizza
