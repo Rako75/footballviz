@@ -60,7 +60,7 @@ title = dict(
 )
 
 # Note de bas de page (ajout du nom de l'auteur ici)
-endnote = "Source : FBref | Visualisation générée avec soccerplots. Auteur : Alex Rakotomalala"
+endnote = "Source : FBref | Visualisation générée avec soccerplots. Author : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
