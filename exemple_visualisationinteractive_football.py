@@ -47,11 +47,20 @@ if joueur1 and joueur2:
 
     # Création du graphique radar
     fig, ax = radar.setup_axis(figsize=(8, 8))
-    radar.draw_radar(stats_joueur1, ax=ax, kwargs_radar={'color': 'blue', 'alpha': 0.6}, label=joueur1)
-    radar.draw_radar(stats_joueur2, ax=ax, kwargs_radar={'color': 'red', 'alpha': 0.6}, label=joueur2)
+    radar.draw_radar(stats_joueur1, ax=ax, kwargs_radar={'color': 'blue', 'alpha': 0.6})
+    radar.draw_radar(stats_joueur2, ax=ax, kwargs_radar={'color': 'red', 'alpha': 0.6})
     radar.draw_range_labels(ax=ax, fontsize=12)
     radar.draw_param_labels(ax=ax, fontsize=12)
-    ax.legend(loc='upper right', fontsize=12)
+
+    # Ajout manuel de la légende
+    ax.legend(
+        handles=[
+            plt.Line2D([0], [0], color='blue', lw=2, label=joueur1),
+            plt.Line2D([0], [0], color='red', lw=2, label=joueur2)
+        ],
+        loc='upper right',
+        fontsize=12
+    )
 
     # Affichage du graphique
     st.pyplot(fig)
