@@ -1,8 +1,5 @@
+streamlit
 pandas
 numpy
-streamlit
-mplsoccer
 matplotlib
-scipy
-plotly
-seaborn
+soccerplots
