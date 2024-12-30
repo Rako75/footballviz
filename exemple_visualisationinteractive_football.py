@@ -62,23 +62,19 @@ title = dict(
     subtitle_fontsize=15,
 )
 
-# Note de bas de page
-endnote = "Source : FBref | Visualisation générée avec soccerplots"
+## endnote 
+endnote = "Visualization made by: Anmol Durgapal(@slothfulwave612)\nAll units are in per90"
 
-# Instanciation de l'objet Radar
-radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
+## instantiate object 
+radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0",
+              range_color="#F0FFF0")
+              
+## plot radar              
+fig, ax = radar.plot_radar(ranges=ranges, params=params, values=values, 
+                           radar_color=['#9B3647', '#3282b8'], 
+                           title=title, endnote="",  # Suppression du texte indésirable
+                           alphas=[0.55, 0.5], compare=True)
 
-# Tracé du radar
-fig, ax = radar.plot_radar(
-    ranges=ranges,
-    params=params,
-    values=[player1_data, player2_data],
-    radar_color=['#9B3647', '#3282b8'],
-    title=title,
-    endnote=endnote,
-    alphas=[0.55, 0.5],
-    compare=True
-)
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
