@@ -139,15 +139,22 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajouter les valeurs sur le radar
+# Ajouter les valeurs sur le radar à l'intérieur du graphique
 for i, param in enumerate(params):
     for j, player_data in enumerate([player1_data, player2_data]):
+        # Normaliser les coordonnées pour être à l'intérieur du radar (0.9 fois la valeur)
+        value = player_data[i] / max_values[param]  # Valeur normalisée
+        radius = value * 0.9  # Ajuster la distance pour que les textes restent à l'intérieur
+        angle = np.radians(360 * i / len(params))  # Calculer l'angle pour chaque paramètre
+        
+        # Calcul des coordonnées X et Y à partir de l'angle et du rayon
+        x = radius * np.cos(angle)
+        y = radius * np.sin(angle)
+        
+        # Ajouter la valeur comme annotation dans le graphique
         ax.text(
-            player_data[i] * np.cos(np.radians(360 * i / len(params))),  # X position (utiliser la trigonométrie pour les positions)
-            player_data[i] * np.sin(np.radians(360 * i / len(params))),  # Y position
-            f'{player_data[i]}',  # Valeur à afficher
-            horizontalalignment='center', verticalalignment='center', 
-            fontsize=10, color='white'
+            x, y, f'{player_data[i]}', horizontalalignment='center',
+            verticalalignment='center', fontsize=10, color='white'
         )
 
 # Affichage du radar dans Streamlit
