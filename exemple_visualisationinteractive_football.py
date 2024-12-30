@@ -59,7 +59,7 @@ title = dict(
     subtitle_fontsize=15,
 )
 
-# Note de bas de page (ajout du nom de l'auteur ici)
+# Note de bas de page
 endnote = "Source : FBref | Visualisation générée avec soccerplots. Author : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
