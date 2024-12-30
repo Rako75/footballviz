@@ -59,9 +59,8 @@ title = dict(
     subtitle_fontsize=15,
 )
 
-# Note de bas de page (ajout du nom de l'auteur ici)
-endnote = "Source : FBref | Visualisation générée avec soccerplots."
-author = "Auteur : VOTRE NOM"
+# Note de bas de page
+endnote = "Source : FBref | Auteur : Alex Rakotomalala
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
@@ -78,16 +77,5 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajout du nom de l'auteur dans le bas de page
-fig.text(0.99, 0.01, author, ha='right', va='center', fontsize=10, color='#FFFFFF')
-
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
-
-# Ajout d'une note de bas de page supplémentaire pour plus de détails
-st.markdown(
-    """
-    **Source des données :** FBref.  
-    Cette application permet de visualiser et comparer les performances des attaquants ayant joué au moins 10 matchs en Premier League.
-    """
-)
