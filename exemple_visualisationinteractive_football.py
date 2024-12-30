@@ -56,9 +56,12 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
     radar = Radar(params=params, min_range=min_range, max_range=max_range)
     
     # Tracer le graphique radar avec les deux joueurs
-    fig, ax = radar.plot_radar(
-        ranges=[min_range, max_range], params=params, values=val_comp, radar_color=['#D00027', '#00A398'], 
-        title=title_comp, compare=True
+    fig, ax = radar.draw_radar(
+        values=[val_comp[0], val_comp[1]],
+        titles=[player1_name, player2_name],
+        colors=['#D00027', '#00A398'],
+        alpha_fill=0.2,
+        figsize=(8, 8)
     )
     
     return fig
