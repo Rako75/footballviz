@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# Exemple avec Streamlit pour comparer deux joueurs
+# Exemple avec Streamlit pour comparer deux joueurs sur un même graphique radar
 
 import pandas as pd
 import numpy as np
 import streamlit as st
 from mplsoccer import Radar
-from mplsoccer import PyPizza
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 
@@ -39,31 +38,25 @@ columns_to_plot = [
 ]
 radar = Radar(params=columns_to_plot, min_range=[0] * len(columns_to_plot), max_range=[100] * len(columns_to_plot))
 
-# Fonction pour tracer un radar pour un joueur
-def plot_radar(player_data, player_name, color):
-    pizza = PyPizza(
-        params=columns_to_plot,
-        background_color='#1A1A1D',
-        straight_line_color='white',
-        straight_line_lw=1,
-        last_circle_lw=0,
-        other_circle_color='white',
-        other_circle_ls='-',
-        other_circle_lw=1
-    )
-    fig, ax = pizza.make_pizza(
+# Fonction pour tracer un radar comparatif
+def plot_combined_radar(player1_data, player2_data, player1_name, player2_name, color1, color2):
+    fig, ax = radar.plot_radar(
+        values=player1_data[columns_to_plot].values.flatten(),
+        compare_values=player2_data[columns_to_plot].values.flatten(),
+        radar_color=color1,
+        compare_radar_color=color2,
         figsize=(8, 8),
-        values=list(player_data[columns_to_plot].values.flatten()),
-        kwargs_values=dict(color='#FFFFFF', fontsize=9, bbox={
-            'edgecolor': 'black',
-            'facecolor': color,
-            "boxstyle": 'round, pad= .2',
-            "lw": 1
-        }),
-        kwargs_slices=dict(facecolor=color, edgecolor="black", linewidth=1),
-        kwargs_params=dict(color='#FFFFFF', fontsize=10, fontproperties='monospace')
+        kwargs_radar={'alpha': 0.6},  # Transparence pour les zones
+        kwargs_compare={'alpha': 0.4},  # Transparence pour les zones comparées
     )
-    ax.text(x=0.5, y=1.1, s=player_name, fontsize=20, c=color, ha='center', va='center', transform=ax.transAxes)
+    ax.legend(
+        labels=[player1_name, player2_name],
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.2),
+        ncol=2,
+        fontsize=12,
+        frameon=False,
+    )
     return fig
 
 # Streamlit application
@@ -77,20 +70,10 @@ player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data['Joueur
 player1_data = data[data['Joueur'] == player1]
 player2_data = data[data['Joueur'] == player2]
 
-# Affichage des radars
+# Affichage du radar comparatif
 st.subheader(f"Comparaison entre {player1} et {player2}")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.write(f"Radar de {player1}")
-    fig1 = plot_radar(player1_data, player1, color="#C8102E")
-    st.pyplot(fig1)
-
-with col2:
-    st.write(f"Radar de {player2}")
-    fig2 = plot_radar(player2_data, player2, color="#00B2A9")
-    st.pyplot(fig2)
+fig = plot_combined_radar(player1_data, player2_data, player1, player2, color1="#C8102E", color2="#00B2A9")
+st.pyplot(fig)
 
 # Ajout d'une note de bas de page
 st.markdown(
