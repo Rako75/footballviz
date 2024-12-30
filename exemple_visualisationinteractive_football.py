@@ -60,7 +60,7 @@ title = dict(
 )
 
 # Note de bas de page
-endnote = "Source : FBref | Auteur : Alex Rakotomalala
+endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
