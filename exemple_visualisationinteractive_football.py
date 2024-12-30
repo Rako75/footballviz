@@ -36,23 +36,29 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
     values1 = list(player1_data[columns_to_plot].values.flatten())
     values2 = list(player2_data[columns_to_plot].values.flatten())
 
-    # Créer le graphique radar
+    # Créer le graphique radar sans passer 'colors' directement
     fig, ax = radar.draw_radar(
         values=[values1, values2],
-        colors=["#C8102E", "#005BAC"],
         figsize=(8, 8),
         alpha_fill=0.2
     )
 
-    # Ajouter une légende
+    # Ajouter la légende
     ax.legend(
         [player1_name, player2_name],
         loc="upper right", bbox_to_anchor=(1.3, 1), fontsize=10
     )
 
-    # Ajouter le titre à l'aide de text()
+    # Ajouter le titre
     ax.text(0.5, 1.1, f"Comparaison entre {player1_name} et {player2_name}",
             ha='center', va='center', fontsize=16, color="black", transform=ax.transAxes)
+
+    # Personnalisation des couleurs après le dessin du radar
+    for i, line in enumerate(ax.lines):
+        if i == 0:  # Premier joueur (rouge)
+            line.set_color("#C8102E")
+        else:  # Deuxième joueur (bleu)
+            line.set_color("#005BAC")
 
     return fig
 
