@@ -59,8 +59,9 @@ title = dict(
     subtitle_fontsize=15,
 )
 
-# Note de bas de page
-endnote = "Source : FBref | Visualisation générée avec soccerplots. Author : Alex Rakotomalala"
+# Note de bas de page (ajout du nom de l'auteur ici)
+endnote = "Source : FBref | Visualisation générée avec soccerplots."
+author = "Auteur : VOTRE NOM"
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
@@ -76,6 +77,9 @@ fig, ax = radar.plot_radar(
     alphas=[0.55, 0.5],
     compare=True
 )
+
+# Ajout du nom de l'auteur dans le bas de page
+fig.text(0.99, 0.01, author, ha='right', va='center', fontsize=10, color='#FFFFFF')
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
