@@ -26,7 +26,6 @@ columns_to_plot = [
     'xG par 90 minutes', 'xAG par 90 minutes'
 ]
 
-# Définir la fonction de génération du graphique radar
 def generate_combined_radar(player1_data, player2_data, player1_name, player2_name):
     radar = Radar(
         params=columns_to_plot,
@@ -40,7 +39,6 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
     # Créer le graphique radar
     fig, ax = radar.draw_radar(
         values=[values1, values2],
-        titles=[player1_name, player2_name],
         colors=["#C8102E", "#005BAC"],
         figsize=(8, 8),
         alpha_fill=0.2
@@ -51,13 +49,13 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
         [player1_name, player2_name],
         loc="upper right", bbox_to_anchor=(1.3, 1), fontsize=10
     )
-    ax[0].set_title(
-        f"Comparaison entre {player1_name} et {player2_name}",
-        fontsize=16,
-        color="black",
-        pad=20
-    )
+
+    # Ajouter les titres à la main
+    ax[0].text(0.5, 1.1, f"Comparaison entre {player1_name} et {player2_name}",
+               ha='center', va='center', fontsize=16, color="black", transform=ax[0].transAxes)
+
     return fig
+
 
 # Application Streamlit
 st.title("Comparaison de joueurs - Premier League")
