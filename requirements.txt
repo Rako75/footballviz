@@ -2,3 +2,4 @@ streamlit
 mplsoccer
 pandas
 matplotlib
+Radar
