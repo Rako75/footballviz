@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from mplsoccer import Radar
-from mplsoccer import PyPizza
 import matplotlib.pyplot as plt
 
 # Charger les données
@@ -38,19 +37,19 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
     values1 = list(player1_data[columns_to_plot].values.flatten())
     values2 = list(player2_data[columns_to_plot].values.flatten())
 
-    fig, ax = radar.plot_radar(
-        values=[values1, values2],
-        labels=[player1_name, player2_name],
-        colors=["#C8102E", "#005BAC"],
-        alpha=[0.6, 0.6],
-        figsize=(8, 8),
-        show=False
-    )
+    # Créer le graphique radar
+    fig, ax = radar.setup_axis(figsize=(8, 8))
+    radar.plot(values1, ax=ax, label=player1_name, color="#C8102E", alpha=0.6)
+    radar.plot(values2, ax=ax, label=player2_name, color="#005BAC", alpha=0.6)
+    radar.fill(values1, ax=ax, color="#C8102E", alpha=0.2)
+    radar.fill(values2, ax=ax, color="#005BAC", alpha=0.2)
 
+    # Ajouter des labels et une légende
+    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1))
     ax.set_title(
         f"Comparaison entre {player1_name} et {player2_name}",
         fontsize=16,
-        color="white",
+        color="black",
         pad=20
     )
     return fig
