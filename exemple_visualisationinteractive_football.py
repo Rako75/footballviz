@@ -36,13 +36,20 @@ laliga_data = preprocess_data(laliga_data)
 ligue1_data = preprocess_data(ligue1_data)
 seriea_data = preprocess_data(seriea_data)
 
-# Paramètres du radar
+# Liste des paramètres
 params = [
     'Buts par 90 minutes', 'Passes decisives par 90 minutes',
     'Buts + Passes decisives par 90 minutes', 'Distance progressive',
     'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes'
 ]
-ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
+
+# Calcul des valeurs maximales pour chaque paramètre parmi toutes les ligues
+def calculate_max_values():
+    all_data = pd.concat([pl_data, bundesliga_data, laliga_data, ligue1_data, seriea_data], axis=0)
+    max_values = {param: all_data[param].max() for param in params}
+    return max_values
+
+max_values = calculate_max_values()
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
@@ -116,6 +123,9 @@ endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
+
+# Ajustement des plages pour chaque axe en fonction des valeurs maximales
+ranges = [(0, max_values[param]) for param in params]
 
 # Tracé du radar
 fig, ax = radar.plot_radar(
