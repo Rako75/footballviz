@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from mplsoccer import Radar
+from mplsoccer import PyPizza
 import matplotlib.pyplot as plt
 
 # Charger les données
@@ -27,30 +28,38 @@ columns_to_plot = [
 ]
 
 # Définir la fonction de génération du graphique radar
-def generate_combined_radar(player1_data, player2_data, player1_name, player2_name):
-    radar = Radar(
+def generate_radar(player_data, player_name, title_color):
+    radar = PyPizza(
         params=columns_to_plot,
-        min_range=[0 for _ in columns_to_plot],
-        max_range=[100 for _ in columns_to_plot]
+        background_color='#1A1A1D',
+        straight_line_color='white',
+        straight_line_lw=1,
+        last_circle_lw=0,
+        other_circle_color='white',
+        other_circle_ls='-',
+        other_circle_lw=1
+    )
+    
+    values = list(player_data[columns_to_plot].values.flatten())
+    fig, ax = radar.make_pizza(
+        figsize=(8, 8),
+        values=values,
+        kwargs_values=dict(
+            color='#FFFFFF', fontsize=9,
+            bbox={
+                'edgecolor': 'black', 'facecolor': '#00B2A9', "boxstyle": 'round, pad= .2', "lw": 1
+            }
+        ),
+        kwargs_slices=dict(facecolor="#C8102E", edgecolor="black", linewidth=1),
+        kwargs_params=dict(color='#FFFFFF', fontsize=10)
     )
 
-    values1 = list(player1_data[columns_to_plot].values.flatten())
-    values2 = list(player2_data[columns_to_plot].values.flatten())
-
-    # Créer le graphique radar
-    fig, ax = radar.setup_axis(figsize=(8, 8))
-    radar.plot(values1, ax=ax, label=player1_name, color="#C8102E", alpha=0.6)
-    radar.plot(values2, ax=ax, label=player2_name, color="#005BAC", alpha=0.6)
-    radar.fill(values1, ax=ax, color="#C8102E", alpha=0.2)
-    radar.fill(values2, ax=ax, color="#005BAC", alpha=0.2)
-
-    # Ajouter des labels et une légende
-    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1))
-    ax.set_title(
-        f"Comparaison entre {player1_name} et {player2_name}",
-        fontsize=16,
-        color="black",
-        pad=20
+    ax.text(
+        x=.5, y=1.1,
+        s=player_name,
+        fontsize=20,
+        c=title_color,
+        ha='center', va='center', transform=ax.transAxes
     )
     return fig
 
@@ -69,9 +78,14 @@ if player1 != player2:
 
     st.subheader(f"Comparaison entre {player1} et {player2}")
 
-    # Générer le radar combiné
-    fig = generate_combined_radar(player1_data, player2_data, player1, player2)
-    st.pyplot(fig)
+    # Générer les radars
+    st.write(f"**{player1}**")
+    fig1 = generate_radar(player1_data, player1, title_color="#C8102E")
+    st.pyplot(fig1)
+
+    st.write(f"**{player2}**")
+    fig2 = generate_radar(player2_data, player2, title_color="#005BAC")
+    st.pyplot(fig2)
 
 else:
     st.warning("Veuillez choisir deux joueurs différents pour effectuer la comparaison.")
