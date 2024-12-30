@@ -36,20 +36,13 @@ laliga_data = preprocess_data(laliga_data)
 ligue1_data = preprocess_data(ligue1_data)
 seriea_data = preprocess_data(seriea_data)
 
-# Liste des paramètres
+# Paramètres du radar
 params = [
     'Buts par 90 minutes', 'Passes decisives par 90 minutes',
     'Buts + Passes decisives par 90 minutes', 'Distance progressive',
     'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes'
 ]
-
-# Calcul des valeurs maximales pour chaque paramètre parmi toutes les ligues
-def calculate_max_values():
-    all_data = pd.concat([pl_data, bundesliga_data, laliga_data, ligue1_data, seriea_data], axis=0)
-    max_values = {param: all_data[param].max() for param in params}
-    return max_values
-
-max_values = calculate_max_values()
+ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
@@ -124,9 +117,6 @@ endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
 
-# Ajustement des plages pour chaque axe en fonction des valeurs maximales
-ranges = [(0, max_values[param]) for param in params]
-
 # Tracé du radar
 fig, ax = radar.plot_radar(
     ranges=ranges,
@@ -138,24 +128,6 @@ fig, ax = radar.plot_radar(
     alphas=[0.55, 0.5],
     compare=True
 )
-
-# Ajouter les valeurs sur le radar à l'extérieur des axes
-for i, param in enumerate(params):
-    for j, player_data in enumerate([player1_data, player2_data]):
-        # Normaliser les coordonnées pour être sur le bord du radar
-        value = player_data[i] / max_values[param]  # Valeur normalisée
-        radius = value  # Placer sur le bord du radar
-        angle = np.radians(360 * i / len(params))  # Calculer l'angle pour chaque paramètre
-        
-        # Calcul des coordonnées X et Y à partir de l'angle et du rayon
-        x = radius * np.cos(angle)
-        y = radius * np.sin(angle)
-        
-        # Ajouter la valeur comme annotation dans le graphique
-        ax.text(
-            x, y, f'{player_data[i]}', horizontalalignment='center',
-            verticalalignment='center', fontsize=10, color='white'
-        )
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
