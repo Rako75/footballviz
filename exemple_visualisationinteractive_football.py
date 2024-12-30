@@ -37,8 +37,8 @@ columns_to_plot = [
 ]
 radar = Radar(params=columns_to_plot, min_range=[0] * len(columns_to_plot), max_range=[100] * len(columns_to_plot))
 
-# Configuration de la police
-font_path = 'https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf'
+# Configuration de la police locale
+font_path = 'Arvo-Regular.ttf'
 font_manager = FontManager(font_path)
 
 # Fonction pour tracer un radar comparatif
@@ -51,6 +51,10 @@ def plot_combined_radar(player1_data, player2_data, player1_name, player2_name, 
                      kwargs_radar={'facecolor': color1, 'alpha': 0.6}, label=player1_name)
     radar.draw_radar(player2_data[columns_to_plot].values.flatten(), ax=ax,
                      kwargs_radar={'facecolor': color2, 'alpha': 0.4}, label=player2_name)
+
+    # Ajout des étiquettes des axes
+    radar.draw_range_labels(ax=ax, fontsize=10, color="#FFFFFF", fontproperties=font_manager.prop)
+    radar.draw_param_labels(ax=ax, fontsize=12, color="#FFFFFF", fontproperties=font_manager.prop)
 
     # Ajout de la légende
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=2, fontsize=12, frameon=False)
