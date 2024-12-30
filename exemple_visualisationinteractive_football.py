@@ -1,4 +1,4 @@
-# pip install streamlit mplsoccer pandas numpy matplotlib seaborn plotly
+# pip install streamlit mplsoccer pandas numpy matplotlib
 
 import streamlit as st
 import pandas as pd
@@ -45,15 +45,13 @@ if joueur1 and joueur2:
     stats_joueur1 = data[data['Joueur'] == joueur1][columns_to_plot].values.flatten()
     stats_joueur2 = data[data['Joueur'] == joueur2][columns_to_plot].values.flatten()
 
-    # Création des graphiques radar
-    fig, ax = radar.plot(
-        values=[stats_joueur1, stats_joueur2],
-        labels=[joueur1, joueur2],
-        cmap='coolwarm',
-        alpha=0.6,
-        figsize=(8, 8)
-    )
-    ax.set_title(f"Comparaison : {joueur1} vs {joueur2}", fontsize=16)
+    # Création du graphique radar
+    fig, ax = radar.setup_axis(figsize=(8, 8))
+    radar.draw_radar(stats_joueur1, ax=ax, kwargs_radar={'color': 'blue', 'alpha': 0.6}, label=joueur1)
+    radar.draw_radar(stats_joueur2, ax=ax, kwargs_radar={'color': 'red', 'alpha': 0.6}, label=joueur2)
+    radar.draw_range_labels(ax=ax, fontsize=12)
+    radar.draw_param_labels(ax=ax, fontsize=12)
+    ax.legend(loc='upper right', fontsize=12)
 
     # Affichage du graphique
     st.pyplot(fig)
