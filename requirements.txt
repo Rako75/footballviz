@@ -1,7 +1,5 @@
-streamlit
-mplsoccer
 pandas
 numpy
+streamlit
+mplsoccer
 matplotlib
-seaborn
-plotly
