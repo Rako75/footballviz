@@ -1,5 +1,8 @@
-streamlit
 pandas
 numpy
-matplotlib
+streamlit
 mplsoccer
+matplotlib
+scipy
+plotly
+seaborn
