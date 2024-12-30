@@ -36,12 +36,14 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
     values1 = list(player1_data[columns_to_plot].values.flatten())
     values2 = list(player2_data[columns_to_plot].values.flatten())
 
-    # Créer le graphique radar sans passer 'colors' directement
+    # Créer le graphique radar sans passer 'figsize'
     fig, ax = radar.draw_radar(
         values=[values1, values2],
-        figsize=(8, 8),
         alpha_fill=0.2
     )
+
+    # Ajuster la taille de la figure après création
+    fig.set_size_inches(8, 8)
 
     # Ajouter la légende
     ax.legend(
