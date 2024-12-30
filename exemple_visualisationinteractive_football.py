@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-# Exemple avec Streamlit pour comparer deux joueurs sur un même graphique radar
+# Exemple avec Streamlit et soccerplots pour comparer deux joueurs
 
 import pandas as pd
 import numpy as np
 import streamlit as st
-from mplsoccer import Radar
-import matplotlib.pyplot as plt
-from matplotlib import font_manager
+from soccerplots.radar_chart import Radar
 
 # Importation des données
 data = pd.read_csv('Premier_League_Attaquant.csv')
@@ -31,35 +29,13 @@ for col in percentile_cols:
     data[col] = (data[col].rank(pct=True) * 100).astype(int)
 
 # Paramètres du radar
-columns_to_plot = [
+params = [
     'Buts par 90 minutes', 'Passes decisives par 90 minutes',
     'Buts + Passes decisives par 90 minutes', 'Distance progressive',
     'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes'
 ]
-radar = Radar(params=columns_to_plot, min_range=[0] * len(columns_to_plot), max_range=[100] * len(columns_to_plot))
 
-# Chargement de la police locale
-font_path = 'Arvo-Regular.ttf'
-custom_font = font_manager.FontProperties(fname=font_path)
-
-# Fonction pour tracer un radar comparatif
-def plot_combined_radar(player1_data, player2_data, player1_name, player2_name, color1, color2):
-    # Création de la figure et des axes
-    fig, ax = radar.setup_axis(figsize=(8, 8))
-
-    # Tracer les radars pour chaque joueur
-    radar.draw_radar(player1_data[columns_to_plot].values.flatten(), ax=ax,
-                     kwargs_radar={'facecolor': color1, 'alpha': 0.6}, label=player1_name)
-    radar.draw_radar(player2_data[columns_to_plot].values.flatten(), ax=ax,
-                     kwargs_radar={'facecolor': color2, 'alpha': 0.4}, label=player2_name)
-
-    # Ajout des étiquettes des axes
-    radar.draw_range_labels(ax=ax, fontsize=10, color="#FFFFFF", fontproperties=custom_font)
-    radar.draw_param_labels(ax=ax, fontsize=12, color="#FFFFFF", fontproperties=custom_font)
-
-    # Ajout de la légende
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=2, fontsize=12, frameon=False)
-    return fig
+ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Premier League 2023")
@@ -69,12 +45,42 @@ player1 = st.selectbox("Sélectionnez le premier joueur", options=data['Joueur']
 player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data['Joueur'].unique())
 
 # Données des joueurs sélectionnés
-player1_data = data[data['Joueur'] == player1]
-player2_data = data[data['Joueur'] == player2]
+player1_data = data[data['Joueur'] == player1].iloc[0][params].tolist()
+player2_data = data[data['Joueur'] == player2].iloc[0][params].tolist()
 
-# Affichage du radar comparatif
-st.subheader(f"Comparaison entre {player1} et {player2}")
-fig = plot_combined_radar(player1_data, player2_data, player1, player2, color1="#C8102E", color2="#00B2A9")
+# Configuration des titres
+title = dict(
+    title_name=player1,
+    title_color='#9B3647',
+    subtitle_name='Premier League',
+    subtitle_color='#ABCDEF',
+    title_name_2=player2,
+    title_color_2='#3282b8',
+    subtitle_name_2='Premier League',
+    subtitle_color_2='#ABCDEF',
+    title_fontsize=18,
+    subtitle_fontsize=15,
+)
+
+# Note de bas de page
+endnote = "Source : FBref | Visualisation générée avec soccerplots"
+
+# Instanciation de l'objet Radar
+radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
+
+# Tracé du radar
+fig, ax = radar.plot_radar(
+    ranges=ranges,
+    params=params,
+    values=[player1_data, player2_data],
+    radar_color=['#9B3647', '#3282b8'],
+    title=title,
+    endnote=endnote,
+    alphas=[0.55, 0.5],
+    compare=True
+)
+
+# Affichage du radar dans Streamlit
 st.pyplot(fig)
 
 # Ajout d'une note de bas de page
