@@ -129,26 +129,5 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Affichage des valeurs sans virgules
-for i, param in enumerate(params):
-    for j, player_data in enumerate([player1_data, player2_data]):
-        # Normaliser les coordonnées pour être proches du sommet des axes (1.1 fois la valeur)
-        value = player_data[i] / 100  # Valeur normalisée (0-1)
-        radius = value * 1.1  # Ajuster la distance pour que les textes soient proches du sommet
-        angle = np.radians(360 * i / len(params))  # Calculer l'angle pour chaque paramètre
-        
-        # Calcul des coordonnées X et Y à partir de l'angle et du rayon
-        x = radius * np.cos(angle)
-        y = radius * np.sin(angle)
-        
-        # Formatage des chiffres pour les afficher sans décimales
-        formatted_value = int(player_data[i])  # Convertir la valeur en entier
-        
-        # Ajouter la valeur comme annotation dans le graphique
-        ax.text(
-            x, y, f'{formatted_value}', horizontalalignment='center',
-            verticalalignment='center', fontsize=10, color='white'
-        )
-
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
