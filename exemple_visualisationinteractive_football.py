@@ -28,12 +28,9 @@ columns_to_plot = [
 
 # Définir la fonction de génération du graphique radar avec les nouvelles méthodes
 def generate_combined_radar(player1_data, player2_data, player1_name, player2_name):
-    # Définir les plages pour les paramètres
-    ranges = [
-        (0.15, 0.35), (1.00, 3.00), (1.50, 3.00), (0.50, 1.00), (10.0, 25.0), (5.00, 15.00),
-        (2.50, 5.00), (0.0, 1.00), (30.0, 50.00), (5.00, 6.00),
-        (40.00, 55.00), (0.70, 1.00)
-    ]
+    # Définir les plages pour les paramètres (min et max)
+    min_range = [0 for _ in columns_to_plot]  # Valeur minimale pour chaque paramètre
+    max_range = [100 for _ in columns_to_plot]  # Valeur maximale pour chaque paramètre
     
     # Valeurs des deux joueurs pour la comparaison
     val_comp = player1_data[columns_to_plot].values.flatten(), player2_data[columns_to_plot].values.flatten()
@@ -55,12 +52,12 @@ def generate_combined_radar(player1_data, player2_data, player1_name, player2_na
         subtitle_fontsize=15,
     )
     
-    # Initialiser le radar
-    radar = Radar()
+    # Initialiser le radar avec les bons paramètres
+    radar = Radar(params=params, min_range=min_range, max_range=max_range)
     
     # Tracer le graphique radar avec les deux joueurs
     fig, ax = radar.plot_radar(
-        ranges=ranges, params=params, values=val_comp, radar_color=['#D00027', '#00A398'], 
+        ranges=[min_range, max_range], params=params, values=val_comp, radar_color=['#D00027', '#00A398'], 
         title=title_comp, compare=True
     )
     
