@@ -5,5 +5,3 @@ numpy
 matplotlib
 seaborn
 plotly
-Radar
-PyPizza
