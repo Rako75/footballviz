@@ -129,25 +129,20 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajouter les points et les valeurs
+# Ajouter les points et les valeurs directement sur le graphique
 for i, param in enumerate(params):
+    # Calcul des positions cartésiennes des points
+    x1 = player1_data[i] * np.cos(np.deg2rad(i * 360 / len(params)))
+    y1 = player1_data[i] * np.sin(np.deg2rad(i * 360 / len(params)))
+    x2 = player2_data[i] * np.cos(np.deg2rad(i * 360 / len(params)))
+    y2 = player2_data[i] * np.sin(np.deg2rad(i * 360 / len(params)))
+
+    # Ajouter les annotations pour chaque joueur
     ax.text(
-        player1_data[i] * np.cos(np.deg2rad(i * 360 / len(params))),
-        player1_data[i] * np.sin(np.deg2rad(i * 360 / len(params))),
-        f"{player1_data[i]}",
-        color="#9B3647",
-        fontsize=12,
-        ha='center',
-        va='center'
+        x1, y1, f"{player1_data[i]}", color="#9B3647", fontsize=12, ha='center', va='center'
     )
     ax.text(
-        player2_data[i] * np.cos(np.deg2rad(i * 360 / len(params))),
-        player2_data[i] * np.sin(np.deg2rad(i * 360 / len(params))),
-        f"{player2_data[i]}",
-        color="#3282b8",
-        fontsize=12,
-        ha='center',
-        va='center'
+        x2, y2, f"{player2_data[i]}", color="#3282b8", fontsize=12, ha='center', va='center'
     )
 
 # Affichage du radar dans Streamlit
