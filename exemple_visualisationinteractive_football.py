@@ -63,15 +63,24 @@ league_files = {
     },
 }
 
-# Ajouter un fond personnalisé depuis GitHub
+# Personnaliser le thème de l'application Streamlit
+st.set_page_config(page_title="Comparaison de Joueurs", page_icon="⚽", layout="wide")
+
+# Application de styles CSS personnalisés
 st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("https://raw.githubusercontent.com/Rako75/footballviz/fb5a03683bf8a158475070c0d0dfdd04169c980a/PSG.jpg");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+        background-color: #121212;  /* Fond noir */
+        color: #f0f0f0;  /* Texte en couleur claire */
+    }
+    .css-1v3fvcr {
+        background-color: #1e1e1e;  /* Couleur de fond des blocs */
+        color: #ffffff;  /* Texte en couleur claire dans les widgets */
+    }
+    .stSelectbox, .stTextInput, .stButton {
+        background-color: #2a2a2a;  /* Fond des boutons et des selectbox */
+        color: #ffffff;
     }
     </style>
     """, unsafe_allow_html=True
