@@ -3,43 +3,6 @@ import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
 
-# Personnalisation du thème via CSS pour donner un look football
-st.markdown("""
-    <style>
-    .stApp {
-        background-color: #006400;  /* Vert du terrain de football */
-        color: #FFFFFF;  /* Texte en blanc */
-    }
-    .stButton>button {
-        background-color: #FF4500;  /* Couleur des boutons (Rouge intense) */
-        color: white;
-        border-radius: 10px;
-        padding: 10px;
-        border: none;
-    }
-    .stButton>button:hover {
-        background-color: #FF6347;  /* Changement de couleur au survol (Rouge clair) */
-    }
-    .stSelectbox, .stRadio, .stTextInput {
-        background-color: #282828;  /* Arrière-plan des entrées */
-        color: white;  /* Texte en blanc */
-    }
-    .stTitle, .stHeader {
-        font-family: 'Arial', sans-serif;
-        font-size: 36px;
-        color: #FFD700;  /* Couleur or pour le titre */
-    }
-    .stSubheader {
-        font-family: 'Arial', sans-serif;
-        font-size: 24px;
-        color: #FFD700;  /* Couleur or pour les sous-titres */
-    }
-    .stMarkdown {
-        font-size: 16px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
     data = pd.read_csv(file_path)
@@ -128,11 +91,11 @@ age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 # Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
-    title_color='#FFD700',  # Or, couleur liée au football
+    title_color='#9B3647',
     subtitle_name=f"{club1}, {age1} ans",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
-    title_color_2='#FFD700',  # Or pour le deuxième joueur
+    title_color_2='#3282b8',
     subtitle_name_2=f"{club2}, {age2} ans",
     subtitle_color_2='#ABCDEF',
     title_fontsize=18,
@@ -143,14 +106,14 @@ title = dict(
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
-radar = Radar(background_color="#006400", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
+radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
 
 # Tracé du radar
 fig, ax = radar.plot_radar(
     ranges=[(0, 100)] * len(params1),  # Les valeurs sont des pourcentages (0 à 100)
     params=params1,
     values=[player1_data, player2_data],
-    radar_color=['#FFD700', '#FF4500'],  # Or et Rouge intense
+    radar_color=['#9B3647', '#3282b8'],
     title=title,
     endnote=endnote,
     alphas=[0.55, 0.5],
