@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
+import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import requests
+from io import BytesIO
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
@@ -33,6 +37,15 @@ def load_and_preprocess_data(file_path, position):
             data[col] = (data[col].rank(pct=True) * 100).astype(int)
 
     return data, stats_cols
+
+# Fonction pour ajouter un logo à partir d'une URL
+def add_logo_from_url(ax, logo_url, x, y, zoom=0.1):
+    """Ajoute un logo au graphique à partir d'une URL."""
+    response = requests.get(logo_url)
+    image = plt.imread(BytesIO(response.content), format='png')
+    image_box = OffsetImage(image, zoom=zoom)
+    ab = AnnotationBbox(image_box, (x, y), frameon=False, box_alignment=(0.5, 0.5))
+    ax.add_artist(ab)
 
 # Dictionnaire des fichiers par ligue et position
 league_files = {
@@ -88,6 +101,10 @@ club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
+# URL des logos des clubs
+club1_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club1}.png"
+club2_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club2}.png"
+
 # Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
@@ -119,6 +136,10 @@ fig, ax = radar.plot_radar(
     alphas=[0.55, 0.5],
     compare=True
 )
+
+# Ajout des logos
+add_logo_from_url(ax, club1_logo_url, -1.2, 1.0, zoom=0.1)  # Logo du premier club
+add_logo_from_url(ax, club2_logo_url, 1.2, 1.0, zoom=0.1)   # Logo du deuxième club
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
