@@ -139,15 +139,15 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajout des logos avec les clubs et âges
-# Logo du club 1
+# Ajout des logos des clubs
+# Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=0.2)
-annotation_box1 = AnnotationBbox(image1, (-1.4, 1.1), frameon=False)
+annotation_box1 = AnnotationBbox(image1, (-2.0, 1.5), frameon=False)  # Position en haut à gauche
 ax.add_artist(annotation_box1)
 
-# Logo du club 2
+# Logo du club 2 (haut droite)
 image2 = OffsetImage(club2_logo, zoom=0.2)
-annotation_box2 = AnnotationBbox(image2, (1.4, 1.1), frameon=False)
+annotation_box2 = AnnotationBbox(image2, (2.0, 1.5), frameon=False)  # Position en haut à droite
 ax.add_artist(annotation_box2)
 
 # Affichage du radar dans Streamlit
