@@ -38,14 +38,12 @@ def load_and_preprocess_data(file_path, position):
 
     return data, stats_cols
 
-# Fonction pour ajouter un logo à partir d'une URL
-def add_logo_from_url(ax, logo_url, x, y, zoom=0.1):
-    """Ajoute un logo au graphique à partir d'une URL."""
+# Fonction pour charger un logo à partir d'une URL
+def load_logo(logo_url):
+    """Charge un logo depuis une URL."""
     response = requests.get(logo_url)
     image = plt.imread(BytesIO(response.content), format='png')
-    image_box = OffsetImage(image, zoom=zoom)
-    ab = AnnotationBbox(image_box, (x, y), frameon=False, box_alignment=(0.5, 0.5))
-    ax.add_artist(ab)
+    return image
 
 # Dictionnaire des fichiers par ligue et position
 league_files = {
@@ -105,15 +103,19 @@ age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 club1_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club1}.png"
 club2_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club2}.png"
 
+# Charger les logos
+club1_logo = load_logo(club1_logo_url)
+club2_logo = load_logo(club2_logo_url)
+
 # Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
-    subtitle_name=f"{club1}, {age1} ans",
+    subtitle_name=f"{club1} ({age1} ans)",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
     title_color_2='#3282b8',
-    subtitle_name_2=f"{club2}, {age2} ans",
+    subtitle_name_2=f"{club2} ({age2} ans)",
     subtitle_color_2='#ABCDEF',
     title_fontsize=18,
     subtitle_fontsize=15,
@@ -137,9 +139,9 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajout des logos
-add_logo_from_url(ax, club1_logo_url, -1.2, 1.0, zoom=0.1)  # Logo du premier club
-add_logo_from_url(ax, club2_logo_url, 1.2, 1.0, zoom=0.1)   # Logo du deuxième club
+# Ajout des logos à côté des noms des clubs
+ax.imshow(club1_logo, aspect='auto', extent=(-1.4, -1.2, 1.0, 1.2), zorder=10)  # Logo 1
+ax.imshow(club2_logo, aspect='auto', extent=(1.2, 1.4, 1.0, 1.2), zorder=10)    # Logo 2
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
