@@ -144,12 +144,12 @@ zoom_factor = 0.2  # Facteur de zoom constant
 
 # Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-2.0, 1.5), frameon=False)  # Position en haut à gauche
+annotation_box1 = AnnotationBbox(image1, (-10, 1.5), frameon=False)  # Position en haut à gauche
 ax.add_artist(annotation_box1)
 
 # Logo du club 2 (haut droite)
 image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (2.0, 1.5), frameon=False)  # Position en haut à droite
+annotation_box2 = AnnotationBbox(image2, (10, 1.5), frameon=False)  # Position en haut à droite
 ax.add_artist(annotation_box2)
 
 # Affichage du radar dans Streamlit
