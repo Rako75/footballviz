@@ -14,13 +14,14 @@ seriea_data = pd.read_csv('Serie_A_Attaquant.csv')
 def preprocess_data(data):
     data = data[data['Matchs joues'].astype(int) > 10]
     data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive'})
-    cols_to_int = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
+    cols_to_int = ['Passes cles', 'Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes', 'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
     data[cols_to_int] = data[cols_to_int].astype(int)
     
-    for col in ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']:
+    for col in ['Passes cles','Passes vers le dernier tiers','Passes progressives','Courses progressives']:
         data[col] = data[col] / data['Matches equivalents 90 minutes']
 
-    percentile_cols = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
+    percentile_cols = ['Passes cles','Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes',
+    'Passes vers le dernier tiers','Passes progressives','Courses progressives']
     for col in percentile_cols:
       data[col] = (data[col].rank(pct=True) * 100).astype(int)
     return data
@@ -33,8 +34,9 @@ ligue1_data = preprocess_data(ligue1_data)
 seriea_data = preprocess_data(seriea_data)
 
 # Paramètres du radar
-params = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
-ranges = [(0, 100)] * len(params)
+params = ['Passes cles', 'Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes',
+          'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
+ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
