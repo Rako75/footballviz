@@ -178,7 +178,7 @@ def show_radar_chart(position, league, team_name):
     data, stats_cols = load_and_preprocess_data(file_path, position)
     
     # Sélectionner les joueurs correspondant à l'équipe spécifiée
-    team_data = data[data['Club'] == team_name]
+    team_data = data[data['Equipe'] == team_name]
     if team_data.empty:
         st.write(f"Pas de données disponibles pour {team_name} dans cette position.")
         return
