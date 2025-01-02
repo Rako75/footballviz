@@ -83,8 +83,8 @@ player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
 player2_data = data2[data2['Joueur'] == player2].iloc[0][params2].tolist()
 
 # Extraction du club et de l'âge des joueurs
-club1 = data1[data1['Joueur'] == player1].iloc[0]['Club']
-club2 = data2[data2['Joueur'] == player2].iloc[0]['Club']
+club1 = data1[data1['Joueur'] == player1].iloc[0]['Equipe']
+club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
@@ -92,11 +92,11 @@ age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
-    subtitle_name=f"{club1}, Âge: {age1}",
+    subtitle_name=f"{club1}, Age: {age1}",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
     title_color_2='#3282b8',
-    subtitle_name_2=f"{club2}, Âge: {age2}",
+    subtitle_name_2=f"{club2}, Age: {age2}",
     subtitle_color_2='#ABCDEF',
     title_fontsize=18,
     subtitle_fontsize=15,
