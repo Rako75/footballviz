@@ -107,15 +107,15 @@ club2_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Pre
 club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
-# Configuration des titres avec club et âge sous le nom du joueur
+# Configuration des titres avec club, logo et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
-    subtitle_name=f"{club1} ({age1} ans)",
+    subtitle_name=f"{club1}, {age1} ans",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
     title_color_2='#3282b8',
-    subtitle_name_2=f"{club2} ({age2} ans)",
+    subtitle_name_2=f"{club2}, {age2} ans",
     subtitle_color_2='#ABCDEF',
     title_fontsize=18,
     subtitle_fontsize=15,
@@ -139,9 +139,16 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Ajout des logos à côté des noms des clubs
-ax.imshow(club1_logo, aspect='auto', extent=(-1.4, -1.2, 1.0, 1.2), zorder=10)  # Logo 1
-ax.imshow(club2_logo, aspect='auto', extent=(1.2, 1.4, 1.0, 1.2), zorder=10)    # Logo 2
+# Ajout des logos avec les clubs et âges
+# Logo du club 1
+image1 = OffsetImage(club1_logo, zoom=0.2)
+annotation_box1 = AnnotationBbox(image1, (-1.4, 1.1), frameon=False)
+ax.add_artist(annotation_box1)
+
+# Logo du club 2
+image2 = OffsetImage(club2_logo, zoom=0.2)
+annotation_box2 = AnnotationBbox(image2, (1.4, 1.1), frameon=False)
+ax.add_artist(annotation_box2)
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
