@@ -88,6 +88,14 @@ club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
+# Dictionnaire des logos des clubs (exemple avec quelques logos fictifs)
+club_logos = {
+    "Manchester United": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Manchester_United_FC_crest.svg",
+    "Liverpool": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Liverpool_FC_logo.png",
+    "FC Barcelona": "https://upload.wikimedia.org/wikipedia/commons/4/47/FC_Barcelona_logo_%282019%29.png",
+    # Ajouter d'autres clubs et leurs liens de logo ici
+}
+
 # Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
@@ -101,6 +109,9 @@ title = dict(
     title_fontsize=18,
     subtitle_fontsize=15,
 )
+
+# Affichage des logos des clubs
+st.image([club_logos.get(club1, ''), club_logos.get(club2, '')], width=50)
 
 # Note de bas de page
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
