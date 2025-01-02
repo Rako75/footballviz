@@ -171,30 +171,28 @@ club_logos = {
     'Heidenheim': 'https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos/Heidenheim.png',
     'Gladbach': 'https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos/Gladbach.png',
 }
-
 # Interface Streamlit pour afficher les résultats
-def show_radar_chart(position, league, team_name):
+def show_radar_chart(position, league):
+    # Sélectionner le fichier de données correspondant à la ligue et à la position
     file_path = league_files[league][position]
     data, stats_cols = load_and_preprocess_data(file_path, position)
     
-    # Sélectionner les joueurs correspondant à l'équipe spécifiée
-    team_data = data[data['Equipe'] == team_name]
-    if team_data.empty:
-        st.write(f"Pas de données disponibles pour {team_name} dans cette position.")
-        return
-    
     # Sélectionner le joueur avec les meilleures statistiques
-    best_player = team_data.loc[team_data[stats_cols[0]].idxmax()]
+    best_player = data.loc[data[stats_cols[0]].idxmax()]
     
-    # Charger les logos
+    # Identifier l'équipe du joueur
+    team_name = best_player['Equipe']
+    
+    # Charger le logo de l'équipe
     logo_url = club_logos.get(team_name, None)
     
     # Créer et afficher le radar
     radar = Radar(stats=stats_cols, stats_order=stats_cols)
     fig = radar.plot(best_player[stats_cols], color='blue', label=best_player['Player'])
     
+    # Afficher le logo à côté du joueur
     if logo_url:
-        st.image(logo_url, width=50)
+        st.image(logo_url, width=50, caption=f"Logo de {team_name}")
     
     st.pyplot(fig)
 
@@ -202,6 +200,5 @@ def show_radar_chart(position, league, team_name):
 st.title("Football Radar")
 position = st.selectbox("Sélectionnez la position", ["Attaquant", "Milieu", "Défenseur"])
 league = st.selectbox("Sélectionnez la ligue", ["Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"])
-team_name = st.selectbox("Sélectionnez l'équipe", list(club_logos.keys()))
 
-show_radar_chart(position, league, team_name)
+show_radar_chart(position, league)
