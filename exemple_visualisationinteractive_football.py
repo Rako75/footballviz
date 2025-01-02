@@ -92,11 +92,11 @@ age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
-    subtitle_name=f"{club1}, Age: {age1}",
+    subtitle_name=f"{club1}, {age1} ans",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
     title_color_2='#3282b8',
-    subtitle_name_2=f"{club2}, Age: {age2}",
+    subtitle_name_2=f"{club2}, {age2} ans",
     subtitle_color_2='#ABCDEF',
     title_fontsize=18,
     subtitle_fontsize=15,
