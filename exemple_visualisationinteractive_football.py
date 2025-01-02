@@ -82,13 +82,20 @@ player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueu
 player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
 player2_data = data2[data2['Joueur'] == player2].iloc[0][params2].tolist()
 
+# Récupérer l'équipe et l'âge des joueurs (Age converti en int)
+team1 = data1[data1['Joueur'] == player1]['Equipe'].iloc[0]
+team2 = data2[data2['Joueur'] == player2]['Equipe'].iloc[0]
+
+age1 = int(data1[data1['Joueur'] == player1]['Age'].iloc[0])
+age2 = int(data2[data2['Joueur'] == player2]['Age'].iloc[0])
+
 # Configuration des titres
 title = dict(
-    title_name=player1,
+    title_name=f"{player1} ({team1}, {age1} ans)",
     title_color='#9B3647',
     subtitle_name=league1,
     subtitle_color='#ABCDEF',
-    title_name_2=player2,
+    title_name_2=f"{player2} ({team2}, {age2} ans)",
     title_color_2='#3282b8',
     subtitle_name_2=league2,
     subtitle_color_2='#ABCDEF',
