@@ -3,93 +3,84 @@ import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
 
-# Importation des données des ligues
-pl_data = pd.read_csv('Premier_League_Attaquant.csv')
-bundesliga_data = pd.read_csv('Bundesliga_Attaquant.csv')
-laliga_data = pd.read_csv('La_Liga_Attaquant.csv')
-ligue1_data = pd.read_csv('Ligue_1_Attaquant.csv')
-seriea_data = pd.read_csv('Serie_A_Attaquant.csv')
-
-# Filtrer les données pour les joueurs ayant joué plus de 10 matchs
-def preprocess_data(data):
+# Fonction pour charger et prétraiter les données
+def load_and_preprocess_data(file_path, position):
+    data = pd.read_csv(file_path)
     data = data[data['Matchs joues'].astype(int) > 10]
-    data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive'})
-    cols_to_int = ['Passes cles', 'Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes', 'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
-    data[cols_to_int] = data[cols_to_int].astype(int)
     
-    for col in ['Passes cles','Passes vers le dernier tiers','Passes progressives','Courses progressives']:
-        data[col] = data[col] / data['Matches equivalents 90 minutes']
+    # Normalisation des colonnes en fonction de la position
+    if position == "Attaquant":
+        stats_cols = ['Buts par 90 minutes', 'Passes decisives par 90 minutes',
+                      'Buts + Passes decisives par 90 minutes', 'Distance progressive',
+                      'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes']
+    elif position == "Défenseur":
+        stats_cols = ['Interceptions', 'Tacles', 'Degagements',
+                      'Duels aeriens gagnes', 'Passes progressives', 'Contres']
+    elif position == "Milieu":
+        stats_cols = ['Passes cles', 'Actions menant a un tir par 90 minutes', 
+                      'xG + xAG par 90 minutes', 'Passes vers le dernier tiers',
+                      'Passes progressives', 'Courses progressives']
+    else:
+        raise ValueError("Position non reconnue")
+    
+    data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive'})
+    for col in stats_cols:
+        if col in data.columns:
+            data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
 
-    percentile_cols = ['Passes cles','Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes',
-    'Passes vers le dernier tiers','Passes progressives','Courses progressives']
-    for col in percentile_cols:
-      data[col] = (data[col].rank(pct=True) * 100).astype(int)
-    return data
+    for col in stats_cols:
+        if col in data.columns:
+            data[col] = (data[col].rank(pct=True) * 100).astype(int)
 
-# Prétraiter les données de chaque ligue
-pl_data = preprocess_data(pl_data)
-bundesliga_data = preprocess_data(bundesliga_data)
-laliga_data = preprocess_data(laliga_data)
-ligue1_data = preprocess_data(ligue1_data)
-seriea_data = preprocess_data(seriea_data)
+    return data, stats_cols
 
-# Paramètres du radar
-params = ['Passes cles', 'Actions menant a un tir par 90 minutes', 'xG + xAG par 90 minutes',
-          'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
-ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
+# Dictionnaire des fichiers par ligue et position
+league_files = {
+    "Premier League": {
+        "Attaquant": "Premier_League_Attaquant.csv",
+        "Défenseur": "Premier_League_Défenseur.csv",
+        "Milieu": "Premier_League_Milieu.csv",
+    },
+    "Bundesliga": {
+        "Attaquant": "Bundesliga_Attaquant.csv",
+        "Défenseur": "Bundesliga_Défenseur.csv",
+        "Milieu": "Bundesliga_Milieu.csv",
+    },
+    "La Liga": {
+        "Attaquant": "La_Liga_Attaquant.csv",
+        "Défenseur": "La_Liga_Défenseur.csv",
+        "Milieu": "La_Liga_Milieu.csv",
+    },
+    "Ligue 1": {
+        "Attaquant": "Ligue_1_Attaquant.csv",
+        "Défenseur": "Ligue_1_Défenseur.csv",
+        "Milieu": "Ligue_1_Milieu.csv",
+    },
+    "Serie A": {
+        "Attaquant": "Serie_A_Attaquant.csv",
+        "Défenseur": "Serie_A_Défenseur.csv",
+        "Milieu": "Serie_A_Milieu.csv",
+    },
+}
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
 
-# Sélection de la ligue et des joueurs
-league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=["Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"])
-league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=["Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"])
+# Sélection des paramètres
+selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
+league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
+league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()))
 
-# Sélection des joueurs en fonction de la ligue
-if league1 == "Premier League":
-    player1 = st.selectbox("Sélectionnez le premier joueur", options=pl_data['Joueur'].unique())
-elif league1 == "Bundesliga":
-    player1 = st.selectbox("Sélectionnez le premier joueur", options=bundesliga_data['Joueur'].unique())
-elif league1 == "La Liga":
-    player1 = st.selectbox("Sélectionnez le premier joueur", options=laliga_data['Joueur'].unique())
-elif league1 == "Ligue 1":
-    player1 = st.selectbox("Sélectionnez le premier joueur", options=ligue1_data['Joueur'].unique())
-else:
-    player1 = st.selectbox("Sélectionnez le premier joueur", options=seriea_data['Joueur'].unique())
+# Chargement des données et des joueurs
+data1, params1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position)
+data2, params2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position)
 
-if league2 == "Premier League":
-    player2 = st.selectbox("Sélectionnez le deuxième joueur", options=pl_data['Joueur'].unique())
-elif league2 == "Bundesliga":
-    player2 = st.selectbox("Sélectionnez le deuxième joueur", options=bundesliga_data['Joueur'].unique())
-elif league2 == "La Liga":
-    player2 = st.selectbox("Sélectionnez le deuxième joueur", options=laliga_data['Joueur'].unique())
-elif league2 == "Ligue 1":
-    player2 = st.selectbox("Sélectionnez le deuxième joueur", options=ligue1_data['Joueur'].unique())
-else:
-    player2 = st.selectbox("Sélectionnez le deuxième joueur", options=seriea_data['Joueur'].unique())
+player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
+player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
 
-# Données des joueurs sélectionnés
-if league1 == "Premier League":
-    player1_data = pl_data[pl_data['Joueur'] == player1].iloc[0][params].tolist()
-elif league1 == "Bundesliga":
-    player1_data = bundesliga_data[bundesliga_data['Joueur'] == player1].iloc[0][params].tolist()
-elif league1 == "La Liga":
-    player1_data = laliga_data[laliga_data['Joueur'] == player1].iloc[0][params].tolist()
-elif league1 == "Ligue 1":
-    player1_data = ligue1_data[ligue1_data['Joueur'] == player1].iloc[0][params].tolist()
-else:
-    player1_data = seriea_data[seriea_data['Joueur'] == player1].iloc[0][params].tolist()
-
-if league2 == "Premier League":
-    player2_data = pl_data[pl_data['Joueur'] == player2].iloc[0][params].tolist()
-elif league2 == "Bundesliga":
-    player2_data = bundesliga_data[bundesliga_data['Joueur'] == player2].iloc[0][params].tolist()
-elif league2 == "La Liga":
-    player2_data = laliga_data[laliga_data['Joueur'] == player2].iloc[0][params].tolist()
-elif league2 == "Ligue 1":
-    player2_data = ligue1_data[ligue1_data['Joueur'] == player2].iloc[0][params].tolist()
-else:
-    player2_data = seriea_data[seriea_data['Joueur'] == player2].iloc[0][params].tolist()
+# Extraction des données des joueurs
+player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
+player2_data = data2[data2['Joueur'] == player2].iloc[0][params2].tolist()
 
 # Configuration des titres
 title = dict(
@@ -113,8 +104,8 @@ radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F
 
 # Tracé du radar
 fig, ax = radar.plot_radar(
-    ranges=ranges,
-    params=params,
+    ranges=[(0, 100)] * len(params1),  # Les valeurs sont des pourcentages (0 à 100)
+    params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
     title=title,
