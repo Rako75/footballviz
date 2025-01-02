@@ -144,7 +144,7 @@ zoom_factor = 0.2  # Facteur de zoom constant
 
 # Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-20, 1.5), frameon=False)  # Position en haut à gauche
+annotation_box1 = AnnotationBbox(image1, (-20, -10), frameon=False)  # Position en haut à gauche
 ax.add_artist(annotation_box1)
 
 # Logo du club 2 (haut droite)
