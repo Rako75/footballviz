@@ -14,19 +14,15 @@ seriea_data = pd.read_csv('Serie_A_Attaquant.csv')
 def preprocess_data(data):
     data = data[data['Matchs joues'].astype(int) > 10]
     data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive'})
-    cols_to_int = ['Buts', 'Passes decisives', 'Buts + Passes decisives', 'Distance progressive', 'Passes progressives', 'Receptions progressives']
+    cols_to_int = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
     data[cols_to_int] = data[cols_to_int].astype(int)
     
-    for col in ['Distance progressive', 'Passes progressives', 'Receptions progressives']:
+    for col in ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']:
         data[col] = data[col] / data['Matches equivalents 90 minutes']
 
-    percentile_cols = [
-        'Buts par 90 minutes', 'Passes decisives par 90 minutes',
-        'Buts + Passes decisives par 90 minutes', 'Distance progressive',
-        'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes'
-    ]
+    percentile_cols = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
     for col in percentile_cols:
-        data[col] = (data[col].rank(pct=True) * 100).astype(int)
+      data[col] = (data[col].rank(pct=True) * 100).astype(int)
     return data
 
 # Prétraiter les données de chaque ligue
@@ -37,12 +33,8 @@ ligue1_data = preprocess_data(ligue1_data)
 seriea_data = preprocess_data(seriea_data)
 
 # Paramètres du radar
-params = [
-    'Buts par 90 minutes', 'Passes decisives par 90 minutes',
-    'Buts + Passes decisives par 90 minutes', 'Distance progressive',
-    'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes'
-]
-ranges = [(0, 100)] * len(params)  # Les valeurs sont des pourcentages (0 à 100)
+params = ['Interceptions', 'Tacles', 'Degagements', 'Duels aeriens gagnes', 'Passes progressives', 'Contres']
+ranges = [(0, 100)] * len(params)
 
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
