@@ -63,6 +63,20 @@ league_files = {
     },
 }
 
+# Ajouter un fond personnalisé depuis GitHub
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image: url("https://github.com/Rako75/footballviz/blob/fb5a03683bf8a158475070c0d0dfdd04169c980a/PSG.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
 # Streamlit application
 st.title("Comparaison de Joueurs - Football 2023")
 
