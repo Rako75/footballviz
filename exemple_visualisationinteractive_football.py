@@ -81,7 +81,7 @@ league_files = {
 }
 
 # Streamlit application
-st.title("Comparaison de Joueurs - Football 2023")
+st.title("Comparaison de joueurs - Saison 23/24")
 
 # Sélection des paramètres
 selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
