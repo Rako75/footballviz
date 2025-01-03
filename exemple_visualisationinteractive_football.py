@@ -14,7 +14,7 @@ def load_and_preprocess_data(file_path, position):
     
     # Normalisation des colonnes en fonction de la position
     if position == "Attaquant":
-        stats_cols = ['Buts par 90 minutes', 'Passes déc. p/90 min',
+        stats_cols = ['Buts p/90 min', 'Passes déc. p/90 min',
                       'Buts + passes déc. p/90min', 'Distance progressive',
                       'Passes progressives', 'Receptions progressives', 'xG p/90 min', 'xAG p/90 min']
     elif position == "Défenseur":
