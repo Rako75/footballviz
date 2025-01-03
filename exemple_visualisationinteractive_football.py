@@ -14,23 +14,26 @@ def load_and_preprocess_data(file_path, position):
     
     # Normalisation des colonnes en fonction de la position
     if position == "Attaquant":
-        stats_cols = ['Buts par 90 minutes', 'Passes decisives par 90 minutes',
-                      'Buts + Passes decisives par 90 minutes', 'Distance progressive',
-                      'Passes progressives', 'Receptions progressives', 'xG par 90 minutes', 'xAG par 90 minutes']
+        stats_cols = ['Buts par 90 minutes', 'Passes déc. p/90 min',
+                      'Buts + passes déc. p/90min', 'Distance progressive',
+                      'Passes progressives', 'Receptions progressives', 'xG p/90 min', 'xAG p/90 min']
     elif position == "Défenseur":
         stats_cols = ['Interceptions', 'Tacles', 'Degagements',
                       'Duels aeriens gagnes', 'Passes progressives', 'Contres']
     elif position == "Milieu":
-        stats_cols = ['Passes cles', 'Actions menant a un tir par 90 minutes', 
-                      'xG + xAG par 90 minutes', 'Passes vers le dernier tiers',
+        stats_cols = ['Passes cles', 'Actions créant un tir p/90 min', 
+                      'xG + xAG p/90 min', 'Passes vers le dernier tiers',
                       'Passes progressives', 'Courses progressives']
     else:
         raise ValueError("Position non reconnue")
     
     data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive',
+                                'Buts par 90 minutes':'Buts p/90 min',
                                'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
                                'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
-                               'xG par 90 minutes': 'xG p/90 min','xAG par 90 minutes': 'xAG p/90 min'})
+                               'xG par 90 minutes': 'xG p/90 min','xAG par 90 minutes': 'xAG p/90 min',
+                               'Actions menant a un tir par 90 minutes':'Actions créant un tir p/90 min',
+                               'xG + xAG par 90 minutes':'xG + xAG p/90 min'})
     for col in stats_cols:
         if col in data.columns:
             data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
