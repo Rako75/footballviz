@@ -111,7 +111,7 @@ club2_logo = load_logo(club2_logo_url)
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
-    subtitle_name=f"{club1},{club1_logo}, {age1} ans",
+    subtitle_name=f"{club1}, {age1} ans",
     subtitle_color='#ABCDEF',
     title_name_2=f"{player2}",
     title_color_2='#3282b8',
@@ -140,7 +140,7 @@ fig, ax = radar.plot_radar(
 )
 
 # Ajout des logos des clubs avec taille ajustée
-zoom_factor = 0.015  # Réduction du zoom pour une taille appropriée
+zoom_factor = 0.15  # Réduction du zoom pour une taille appropriée
 
 # Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=zoom_factor)
