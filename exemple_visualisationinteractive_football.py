@@ -27,7 +27,10 @@ def load_and_preprocess_data(file_path, position):
     else:
         raise ValueError("Position non reconnue")
     
-    data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive'})
+    data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive',
+                               'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
+                               'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
+                               'xG par 90 minutes': 'xG p/90 min','xAG par 90 minutes': 'xAG p/90 min'})
     for col in stats_cols:
         if col in data.columns:
             data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
