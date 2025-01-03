@@ -27,13 +27,16 @@ def load_and_preprocess_data(file_path, position):
     else:
         raise ValueError("Position non reconnue")
     
-    data = data.rename(columns={'Distance progressive parcourue avec le ballon': 'Distance progressive',
-                                'Buts par 90 minutes':'Buts p/90 min',
-                               'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
-                               'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
-                               'xG par 90 minutes': 'xG p/90 min','xAG par 90 minutes': 'xAG p/90 min',
-                               'Actions menant a un tir par 90 minutes':'Actions créant un tir p/90 min',
-                               'xG + xAG par 90 minutes':'xG + xAG p/90 min'})
+    data = data.rename(columns={
+        'Distance progressive parcourue avec le ballon': 'Distance progressive',
+        'Buts par 90 minutes':'Buts p/90 min',
+        'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
+        'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
+        'xG par 90 minutes': 'xG p/90 min',
+        'xAG par 90 minutes': 'xAG p/90 min',
+        'Actions menant a un tir par 90 minutes':'Actions créant un tir p/90 min',
+        'xG + xAG par 90 minutes':'xG + xAG p/90 min'
+    })
     for col in stats_cols:
         if col in data.columns:
             data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
@@ -80,6 +83,15 @@ league_files = {
     },
 }
 
+# URL des répertoires de logos par ligue
+logo_directories = {
+    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
+    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
+    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
+    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
+    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
+}
+
 # Streamlit application
 st.title("Comparaison de joueurs - Saison 23/24")
 
@@ -105,9 +117,9 @@ club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
-# URL des logos des clubs
-club1_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club1}.png"
-club2_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos/{club2}.png"
+# Génération des URL des logos des clubs
+club1_logo_url = f"{logo_directories[league1]}/{club1}.png"
+club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
 
 # Charger les logos
 club1_logo = load_logo(club1_logo_url)
