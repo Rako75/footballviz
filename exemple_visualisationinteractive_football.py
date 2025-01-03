@@ -140,7 +140,7 @@ fig, ax = radar.plot_radar(
 )
 
 # Ajout des logos des clubs avec taille ajustée
-zoom_factor = 0.09  # Réduction du zoom pour une taille appropriée
+zoom_factor = 0.07  # Réduction du zoom pour une taille appropriée
 
 # Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=zoom_factor)
