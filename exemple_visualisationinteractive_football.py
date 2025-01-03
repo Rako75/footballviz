@@ -149,7 +149,7 @@ ax.add_artist(annotation_box1)
 
 # Logo du club 2 (haut droite)
 image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (2.5, 2.0), frameon=False)  # Ajustement de la position
+annotation_box2 = AnnotationBbox(image2, (19, 17), frameon=False)  # Ajustement de la position
 ax.add_artist(annotation_box2)
 
 # Affichage du radar dans Streamlit
