@@ -6,14 +6,12 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from io import BytesIO
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics.pairwise import cosine_similarity
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
     data = pd.read_csv(file_path)
     data = data[data['Matchs joues'].astype(int) > 10]
-    
+
     # Normalisation des colonnes en fonction de la position
     if position == "Attaquant":
         stats_cols = ['Buts p/90 min', 'Passes déc. p/90 min',
@@ -28,7 +26,7 @@ def load_and_preprocess_data(file_path, position):
                       'Passes progressives', 'Courses progressives']
     else:
         raise ValueError("Position non reconnue")
-    
+
     data = data.rename(columns={
         'Distance progressive parcourue avec le ballon': 'Distance progressive',
         'Buts par 90 minutes':'Buts p/90 min',
@@ -56,32 +54,7 @@ def load_logo(logo_url):
     image = plt.imread(BytesIO(response.content), format='png')
     return image
 
-# Fonction pour trouver les joueurs similaires
-def similar_players(player_name, df_filtered, similarity_index, top_n=5):
-    # Vérifier si le joueur existe dans le DataFrame filtré
-    if player_name not in df_filtered['Joueur'].values:
-        return []
-    
-    # Trouver l'index du joueur cible dans le DataFrame filtré
-    player_index = df_filtered[df_filtered['Joueur'] == player_name].index[0]
-    
-    # Récupérer les similarités pour ce joueur
-    similarities = similarity_index[player_index].copy()  # Copie pour éviter de modifier l'original
-    
-    # Exclure le joueur lui-même en supprimant son index des calculs
-    indices = list(range(len(similarities)))
-    indices.remove(player_index)  # Enlever l'index du joueur cible
-    
-    # Trier les indices restants par similarité décroissante
-    sorted_indices = sorted(indices, key=lambda i: similarities[i], reverse=True)[:top_n]
-    
-    # Extraire les noms et scores des joueurs similaires
-    similar_players = df_filtered.iloc[sorted_indices][['Joueur', 'Equipe']].copy()
-    similar_players['Similarity'] = [similarities[i] for i in sorted_indices]
-    
-    return similar_players
-
-# Charger les fichiers des ligues et positions
+# Dictionnaire des fichiers par ligue et position
 league_files = {
     "Premier League": {
         "Attaquant": "Premier_League_Attaquant.csv",
@@ -110,6 +83,7 @@ league_files = {
     },
 }
 
+# URL des répertoires de logos par ligue
 logo_directories = {
     "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
     "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
@@ -151,24 +125,6 @@ club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
 club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
-# Calcul des similarités cosinus
-df_combined = pd.concat([data1, data2])
-scaler = MinMaxScaler()
-scaled_data = scaler.fit_transform(df_combined[params1])
-similarity = cosine_similarity(scaled_data)
-similarity_index = (similarity + 1) * 50  # Transformation sur 100
-
-# Trouver les joueurs similaires
-similar_players_1 = similar_players(player1, df_combined, similarity_index, top_n=5)
-similar_players_2 = similar_players(player2, df_combined, similarity_index, top_n=5)
-
-# Affichage des joueurs similaires
-st.subheader(f"Joueurs similaires à {player1} :")
-st.write(similar_players_1[['Joueur', 'Similarity']])
-
-st.subheader(f"Joueurs similaires à {player2} :")
-st.write(similar_players_2[['Joueur', 'Similarity']])
-
 # Configuration des titres avec club, logo et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
@@ -201,5 +157,15 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
+# Ajout des logos des clubs avec taille ajustée
+zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
+# Logo du club 1 (haut gauche)
+image1 = OffsetImage(club1_logo, zoom=zoom_factor)
+annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
+ax.add_artist(annotation_box1)
+# Logo du club 2 (haut droite)
+image2 = OffsetImage(club2_logo, zoom=zoom_factor)
+annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
+ax.add_artist(annotation_box2)
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
