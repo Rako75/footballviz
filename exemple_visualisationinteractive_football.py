@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from io import BytesIO
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics.pairwise import cosine_similarity
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
@@ -51,17 +49,10 @@ def load_and_preprocess_data(file_path, position):
 
 # Fonction pour charger un logo à partir d'une URL
 def load_logo(logo_url):
+    """Charge un logo depuis une URL."""
     response = requests.get(logo_url)
     image = plt.imread(BytesIO(response.content), format='png')
     return image
-
-# Fonction pour trouver des joueurs similaires
-def find_similar_players(data, player_data, selected_features, top_n=5):
-    feature_data = data[selected_features]
-    similarity = cosine_similarity(feature_data, [player_data])
-    similarity_scores = pd.Series(similarity.flatten(), index=data['Joueur'])
-    similar_players = similarity_scores.sort_values(ascending=False)[:top_n]
-    return list(zip(similar_players.index, similar_players.values))
 
 # Dictionnaire des fichiers par ligue et position
 league_files = {
@@ -102,36 +93,39 @@ logo_directories = {
 }
 
 # Streamlit application
-st.title("Analyse et Recherche de Joueurs - Saison 23/24")
+st.title("Comparaison de joueurs - Saison 23/24")
 
-# --- Radar Chart et Comparaison ---
-st.header("Radar Chart : Comparaison de Joueurs")
-
-# Sélection des paramètres pour le radar
+# Sélection des paramètres
 selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
 league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
 league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()))
 
+# Chargement des données et des joueurs
 data1, params1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position)
 data2, params2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position)
 
 player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
 player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
 
+# Extraction des données des joueurs
 player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
 player2_data = data2[data2['Joueur'] == player2].iloc[0][params2].tolist()
 
+# Extraction du club et de l'âge des joueurs
 club1 = data1[data1['Joueur'] == player1].iloc[0]['Equipe']
 club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
+# Génération des URL des logos des clubs
 club1_logo_url = f"{logo_directories[league1]}/{club1}.png"
 club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
 
+# Charger les logos
 club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
+# Configuration des titres avec club, logo et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
@@ -145,12 +139,15 @@ title = dict(
     subtitle_fontsize=15,
 )
 
+# Note de bas de page
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 
+# Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
 
+# Tracé du radar
 fig, ax = radar.plot_radar(
-    ranges=[(0, 100)] * len(params1),
+    ranges=[(0, 100)] * len(params1),  # Les valeurs sont des pourcentages (0 à 100)
     params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
@@ -160,28 +157,15 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-zoom_factor = 0.03
+# Ajout des logos des clubs avec taille ajustée
+zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
+# Logo du club 1 (haut gauche)
 image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)
+annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
 ax.add_artist(annotation_box1)
-
+# Logo du club 2 (haut droite)
 image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)
+annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
 ax.add_artist(annotation_box2)
-
+# Affichage du radar dans Streamlit
 st.pyplot(fig)
-
-# --- Recherche de Joueurs Similaires ---
-st.header("Recherche de Joueurs Similaires")
-
-comparison_league = st.selectbox("Choisissez la ligue pour la recherche", options=list(league_files.keys()))
-comparison_data, comparison_features = load_and_preprocess_data(league_files[comparison_league][selected_position], selected_position)
-
-player_base = st.selectbox("Choisissez le joueur de référence", options=data1['Joueur'].unique())
-player_base_data = data1[data1['Joueur'] == player_base][params1].iloc[0].tolist()
-
-similar_players = find_similar_players(comparison_data, player_base_data, comparison_features)
-
-st.write(f"Joueurs similaires à **{player_base}** dans **{comparison_league}** :")
-for player, score in similar_players:
-    st.write(f"- {player}: {score:.2f}")
