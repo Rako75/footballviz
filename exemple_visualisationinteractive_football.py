@@ -169,3 +169,49 @@ annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement 
 ax.add_artist(annotation_box2)
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
+
+
+
+
+# Streamlit application
+st.title("Comparaison de joueurs et recherche de similitudes")
+
+# Sélection des paramètres
+selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
+base_league = st.selectbox("Choisissez la ligue du joueur de base", options=list(league_files.keys()))
+comparison_league = st.selectbox("Choisissez la ligue pour trouver des joueurs similaires", options=list(league_files.keys()))
+
+# Caractéristiques sélectionnées
+selected_features = [
+    "Buts", "Passes décisives", "Tirs cadrés", "Dribbles réussis", "Interceptions",
+    "Duels gagnés", "Passes clés", "Centres réussis"
+]
+
+# Chargement des données
+base_data = load_and_preprocess_data(league_files[base_league][selected_position], selected_features)
+comparison_data = load_and_preprocess_data(league_files[comparison_league][selected_position], selected_features)
+
+# Sélection du joueur de base
+player_base = st.selectbox("Choisissez le joueur de base", options=base_data['Joueur'].unique())
+
+# Extraction des données du joueur de base
+player_base_data = base_data[base_data['Joueur'] == player_base][selected_features].iloc[0].tolist()
+
+# Recherche de joueurs similaires
+similar_players = find_similar_players(comparison_data, player_base_data, selected_features)
+
+# Affichage des joueurs similaires
+st.write(f"Joueurs similaires à **{player_base}** dans **{comparison_league} - {selected_position}** :")
+for player, score in similar_players:
+    st.write(f"- {player}: {score:.2f}")
+
+# Sélection d'un joueur pour le radar chart
+player_to_compare = st.selectbox("Choisissez un joueur à comparer", options=comparison_data['Joueur'].unique())
+
+# Extraction des données pour le radar chart
+player_to_compare_data = comparison_data[comparison_data['Joueur'] == player_to_compare][selected_features].iloc[0].tolist()
+
+# Tracé du radar chart
+st.write("**Radar Chart Comparatif :**")
+fig = create_radar_chart(player_base_data, player_to_compare_data, selected_features, player_base, player_to_compare)
+st.pyplot(fig)
