@@ -1,13 +1,17 @@
+import pandas as pd
+import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from io import BytesIO
+
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
     data = pd.read_csv(file_path)
     data = data[data['Matchs joues'].astype(int) > 10]
+
     # Normalisation des colonnes en fonction de la position
     if position == "Attaquant":
         stats_cols = ['Buts p/90 min', 'Passes déc. p/90 min',
@@ -22,6 +26,7 @@ def load_and_preprocess_data(file_path, position):
                       'Passes progressives', 'Courses progressives']
     else:
         raise ValueError("Position non reconnue")
+
     data = data.rename(columns={
         'Distance progressive parcourue avec le ballon': 'Distance progressive',
         'Buts par 90 minutes':'Buts p/90 min',
@@ -35,10 +40,13 @@ def load_and_preprocess_data(file_path, position):
     for col in stats_cols:
         if col in data.columns:
             data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
+
     for col in stats_cols:
         if col in data.columns:
             data[col] = (data[col].rank(pct=True) * 100).astype(int)
+
     return data, stats_cols
+
 # Fonction pour charger un logo à partir d'une URL
 def load_logo(logo_url):
     """Charge un logo depuis une URL."""
@@ -48,7 +56,30 @@ def load_logo(logo_url):
 
 # Dictionnaire des fichiers par ligue et position
 league_files = {
-@@ -83,89 +35,84 @@ def load_logo(logo_url):
+    "Premier League": {
+        "Attaquant": "Premier_League_Attaquant.csv",
+        "Défenseur": "Premier_League_Défenseur.csv",
+        "Milieu": "Premier_League_Milieu.csv",
+    },
+    "Bundesliga": {
+        "Attaquant": "Bundesliga_Attaquant.csv",
+        "Défenseur": "Bundesliga_Défenseur.csv",
+        "Milieu": "Bundesliga_Milieu.csv",
+    },
+    "La Liga": {
+        "Attaquant": "La_Liga_Attaquant.csv",
+        "Défenseur": "La_Liga_Défenseur.csv",
+        "Milieu": "La_Liga_Milieu.csv",
+    },
+    "Ligue 1": {
+        "Attaquant": "Ligue_1_Attaquant.csv",
+        "Défenseur": "Ligue_1_Défenseur.csv",
+        "Milieu": "Ligue_1_Milieu.csv",
+    },
+    "Serie A": {
+        "Attaquant": "Serie_A_Attaquant.csv",
+        "Défenseur": "Serie_A_Défenseur.csv",
+        "Milieu": "Serie_A_Milieu.csv",
     },
 }
 
@@ -68,9 +99,11 @@ st.title("Comparaison de joueurs - Saison 23/24")
 selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
 league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
 league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()))
+
 # Chargement des données et des joueurs
 data1, params1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position)
 data2, params2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position)
+
 player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
 player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
 
