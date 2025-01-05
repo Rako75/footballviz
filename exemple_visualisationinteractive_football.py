@@ -29,13 +29,13 @@ def load_and_preprocess_data(file_path, position):
 
     data = data.rename(columns={
         'Distance progressive parcourue avec le ballon': 'Distance progressive',
-        'Buts par 90 minutes':'Buts p/90 min',
+        'Buts par 90 minutes': 'Buts p/90 min',
         'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
         'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
         'xG par 90 minutes': 'xG p/90 min',
         'xAG par 90 minutes': 'xAG p/90 min',
-        'Actions menant a un tir par 90 minutes':'Actions créant un tir p/90 min',
-        'xG + xAG par 90 minutes':'xG + xAG p/90 min'
+        'Actions menant a un tir par 90 minutes': 'Actions créant un tir p/90 min',
+        'xG + xAG par 90 minutes': 'xG + xAG p/90 min'
     })
     for col in stats_cols:
         if col in data.columns:
@@ -95,17 +95,17 @@ logo_directories = {
 # Streamlit application
 st.title("Comparaison de joueurs - Saison 23/24")
 
-# Sélection des paramètres
-selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
-league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
-league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()))
+# Sélection des paramètres avec des clés uniques
+selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"], key="select_position_main")
+league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()), key="league1_select")
+league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()), key="league2_select")
 
 # Chargement des données et des joueurs
 data1, params1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position)
 data2, params2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position)
 
-player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
-player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
+player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique(), key="player1_select")
+player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique(), key="player2_select")
 
 # Extraction des données des joueurs
 player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
@@ -167,84 +167,6 @@ ax.add_artist(annotation_box1)
 image2 = OffsetImage(club2_logo, zoom=zoom_factor)
 annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
 ax.add_artist(annotation_box2)
+
 # Affichage du radar dans Streamlit
-st.pyplot(fig)
-
-
-
-
-# Streamlit application
-st.title("Comparaison de joueurs et recherche de similitudes")
-
-# Sélection des paramètres
-selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
-base_league = st.selectbox("Choisissez la ligue du joueur de base", options=list(league_files.keys()))
-comparison_league = st.selectbox("Choisissez la ligue pour trouver des joueurs similaires", options=list(league_files.keys()))
-
-# Caractéristiques sélectionnées
-selected_features = [
-    'Matchs joues', 'Titularisations', 'Minutes jouees', 'Matches equivalents 90 minutes', 'Buts', 
-    'Passes decisives', 'Buts + Passes decisives', 'Buts hors penalty', 'Penalty marques', 'Penalty tentes', 
-    'Cartons jaunes', 'Cartons rouges', 'Buts attendus (xG)', 'Buts attendus hors penalty (npxG)', 
-    'Passes decisives attendues (xAG)', 'xG + xAG hors penalty', 'Passes progressives', 'Courses progressives', 
-    'Receptions progressives', 'Buts par 90 minutes', 'Passes decisives par 90 minutes', 'Buts + Passes decisives par 90 minutes', 
-    'Buts hors penalty par 90 minutes', 'Buts + Passes decisives hors penalty par 90 min', 'xG par 90 minutes', 'xAG par 90 minutes', 
-    'xG + xAG par 90 minutes', 'npxG par 90 minutes', 'npxG + xAG par 90 minutes', 'Actions menant a un tir', 
-    'Actions menant a un tir par 90 minutes', 'Passes vivantes menant a un tir', 'Passes arretees menant a un tir', 
-    'Ballons perdus menant a un tir', 'Tirs menant a un tir', 'Fautes subies menant a un tir', 'Actions defensives menant a un tir', 
-    'Actions menant a un but', 'Actions menant a un but par 90 minutes', 'Passes vivantes menant a un but', 
-    'Passes arretees menant a un but', 'Ballons perdus menant a un but', 'Tirs menant a un but', 'Fautes subies menant a un but', 
-    'Actions defensives menant a un but', 'Passes reussies totales', 'Passes tentees totales', 
-    'Pourcentage de reussite des passes', 'Distance totale des passes', 'Distance progressive des passes', 
-    'Passes courtes reussies', 'Passes courtes tentees', 'Pourcentage de reussite des passes courtes', 
-    'Passes moyennes reussies', 'Passes moyennes tentees', 'Pourcentage de reussite des passes moyennes', 
-    'Passes longues reussies', 'Passes longues tentees', 'Pourcentage de reussite des passes longues', 'Passes attendues', 
-    'Difference entre passes attendues et xAG', 'Passes cles', 'Passes vers le dernier tiers', 'Passes dans la surface adverse', 
-    'Centres dans la surface adverse', 'Deuxieme carton jaune', 'Fautes commises', 'Fautes subies', 'Hors-jeux', 'Centres',
-    'Tacles reussis', 'Penalty obtenus', 'Penalty concedes', 'Buts contre son camp', 
-    'Ballons recuperes', 'Duels aeriens gagnes', 'Duels aeriens perdus', 'Pourcentage de duels aeriens gagnes', 'Tirs', 
-    'Tirs cadres', 'Pourcentage de tirs cadres', 'Tirs par 90 minutes', 'Tirs cadres par 90 minutes', 'Buts par tir', 
-    'Buts par tir cadre', 'Distance moyenne des tirs', 'Coups francs', 'npxG par tir', 'Difference entre buts reels et xG', 
-    'Difference entre buts reels hors penalty et npxG', 'Tacles', 'Tacles dans le tiers defensif', 'Tacles dans le tiers median', 
-    'Tacles dans le tiers offensif', 'Tacles dans les duels', 'Duels tentes', 'Pourcentage de tacles reussis Tkl%', 'Duels perdus', 
-    'Contres', 'Tirs contres', 'Passes contrees', 'Interceptions', 'Tacles + Interceptions', 'Degagements', 
-    'Erreurs ayant conduit a un tir adverse', 'Minutes par match', 'Pourcentage de minutes jouees', 'Minutes par titularisation ', 
-    'Matches completes', 'Remplacants', 'Minutes par entree', 'Matches non remplace', 'Points par match', 'Buts marques avec le joueur', 
-    'Buts encaisses avec le joueur', 'Difference de buts avec le joueur', 'Difference de buts par 90 minutes', 
-    'Difference avec/sans le joueur', 'xG marques avec le joueur ', 'xG encaisses avec le joueur', 'Difference de xG avec le joueur', 
-    'Difference de xG par 90 minutes', 'Difference de xG avec/sans le joueur', 'Touches', 'Touches dans la surface defensive', 
-    'Touches dans le tiers defensif', 'Touches dans le tier median', 'Touches dans le tiers offensif', 
-    'Touches dans la surface offensive', 'Ballons en jeu', 'Dribbles tentes', 'Dribbles reussis', 'Pourcentage de dribbles reussis', 
-    'Ballons perdus apres dribble', 'Pourcentage de ballons perdus apres dribble', 'Portees de balle', 
-    'Distance totale parcourue avec le ballon', 'Distance progressive parcourue avec le ballon', 
-    'Courses vers le dernier tiers', 'Courses dans la surface adverse'
-]
-
-# Chargement des données
-base_data = load_and_preprocess_data(league_files[base_league][selected_position], selected_features)
-comparison_data = load_and_preprocess_data(league_files[comparison_league][selected_position], selected_features)
-
-# Sélection du joueur de base
-player_base = st.selectbox("Choisissez le joueur de base", options=base_data['Joueur'].unique())
-
-# Extraction des données du joueur de base
-player_base_data = base_data[base_data['Joueur'] == player_base][selected_features].iloc[0].tolist()
-
-# Recherche de joueurs similaires
-similar_players = find_similar_players(comparison_data, player_base_data, selected_features)
-
-# Affichage des joueurs similaires
-st.write(f"Joueurs similaires à **{player_base}** dans **{comparison_league} - {selected_position}** :")
-for player, score in similar_players:
-    st.write(f"- {player}: {score:.2f}")
-
-# Sélection d'un joueur pour le radar chart
-player_to_compare = st.selectbox("Choisissez un joueur à comparer", options=comparison_data['Joueur'].unique())
-
-# Extraction des données pour le radar chart
-player_to_compare_data = comparison_data[comparison_data['Joueur'] == player_to_compare][selected_features].iloc[0].tolist()
-
-# Tracé du radar chart
-st.write("**Radar Chart Comparatif :**")
-fig = create_radar_chart(player_base_data, player_to_compare_data, selected_features, player_base, player_to_compare)
 st.pyplot(fig)
