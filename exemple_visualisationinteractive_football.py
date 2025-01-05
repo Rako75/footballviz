@@ -183,8 +183,41 @@ comparison_league = st.selectbox("Choisissez la ligue pour trouver des joueurs s
 
 # Caractéristiques sélectionnées
 selected_features = [
-    "Buts", "Passes décisives", "Tirs cadrés", "Dribbles réussis", "Interceptions",
-    "Duels gagnés", "Passes clés", "Centres réussis"
+    'Matchs joues', 'Titularisations', 'Minutes jouees', 'Matches equivalents 90 minutes', 'Buts', 
+    'Passes decisives', 'Buts + Passes decisives', 'Buts hors penalty', 'Penalty marques', 'Penalty tentes', 
+    'Cartons jaunes', 'Cartons rouges', 'Buts attendus (xG)', 'Buts attendus hors penalty (npxG)', 
+    'Passes decisives attendues (xAG)', 'xG + xAG hors penalty', 'Passes progressives', 'Courses progressives', 
+    'Receptions progressives', 'Buts par 90 minutes', 'Passes decisives par 90 minutes', 'Buts + Passes decisives par 90 minutes', 
+    'Buts hors penalty par 90 minutes', 'Buts + Passes decisives hors penalty par 90 min', 'xG par 90 minutes', 'xAG par 90 minutes', 
+    'xG + xAG par 90 minutes', 'npxG par 90 minutes', 'npxG + xAG par 90 minutes', 'Actions menant a un tir', 
+    'Actions menant a un tir par 90 minutes', 'Passes vivantes menant a un tir', 'Passes arretees menant a un tir', 
+    'Ballons perdus menant a un tir', 'Tirs menant a un tir', 'Fautes subies menant a un tir', 'Actions defensives menant a un tir', 
+    'Actions menant a un but', 'Actions menant a un but par 90 minutes', 'Passes vivantes menant a un but', 
+    'Passes arretees menant a un but', 'Ballons perdus menant a un but', 'Tirs menant a un but', 'Fautes subies menant a un but', 
+    'Actions defensives menant a un but', 'Passes reussies totales', 'Passes tentees totales', 
+    'Pourcentage de reussite des passes', 'Distance totale des passes', 'Distance progressive des passes', 
+    'Passes courtes reussies', 'Passes courtes tentees', 'Pourcentage de reussite des passes courtes', 
+    'Passes moyennes reussies', 'Passes moyennes tentees', 'Pourcentage de reussite des passes moyennes', 
+    'Passes longues reussies', 'Passes longues tentees', 'Pourcentage de reussite des passes longues', 'Passes attendues', 
+    'Difference entre passes attendues et xAG', 'Passes cles', 'Passes vers le dernier tiers', 'Passes dans la surface adverse', 
+    'Centres dans la surface adverse', 'Deuxieme carton jaune', 'Fautes commises', 'Fautes subies', 'Hors-jeux', 'Centres',
+    'Tacles reussis', 'Penalty obtenus', 'Penalty concedes', 'Buts contre son camp', 
+    'Ballons recuperes', 'Duels aeriens gagnes', 'Duels aeriens perdus', 'Pourcentage de duels aeriens gagnes', 'Tirs', 
+    'Tirs cadres', 'Pourcentage de tirs cadres', 'Tirs par 90 minutes', 'Tirs cadres par 90 minutes', 'Buts par tir', 
+    'Buts par tir cadre', 'Distance moyenne des tirs', 'Coups francs', 'npxG par tir', 'Difference entre buts reels et xG', 
+    'Difference entre buts reels hors penalty et npxG', 'Tacles', 'Tacles dans le tiers defensif', 'Tacles dans le tiers median', 
+    'Tacles dans le tiers offensif', 'Tacles dans les duels', 'Duels tentes', 'Pourcentage de tacles reussis Tkl%', 'Duels perdus', 
+    'Contres', 'Tirs contres', 'Passes contrees', 'Interceptions', 'Tacles + Interceptions', 'Degagements', 
+    'Erreurs ayant conduit a un tir adverse', 'Minutes par match', 'Pourcentage de minutes jouees', 'Minutes par titularisation ', 
+    'Matches completes', 'Remplacants', 'Minutes par entree', 'Matches non remplace', 'Points par match', 'Buts marques avec le joueur', 
+    'Buts encaisses avec le joueur', 'Difference de buts avec le joueur', 'Difference de buts par 90 minutes', 
+    'Difference avec/sans le joueur', 'xG marques avec le joueur ', 'xG encaisses avec le joueur', 'Difference de xG avec le joueur', 
+    'Difference de xG par 90 minutes', 'Difference de xG avec/sans le joueur', 'Touches', 'Touches dans la surface defensive', 
+    'Touches dans le tiers defensif', 'Touches dans le tier median', 'Touches dans le tiers offensif', 
+    'Touches dans la surface offensive', 'Ballons en jeu', 'Dribbles tentes', 'Dribbles reussis', 'Pourcentage de dribbles reussis', 
+    'Ballons perdus apres dribble', 'Pourcentage de ballons perdus apres dribble', 'Portees de balle', 
+    'Distance totale parcourue avec le ballon', 'Distance progressive parcourue avec le ballon', 
+    'Courses vers le dernier tiers', 'Courses dans la surface adverse'
 ]
 
 # Chargement des données
