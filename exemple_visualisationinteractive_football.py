@@ -5,8 +5,6 @@ from soccerplots.radar_chart import Radar
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
-import requests
-from io import BytesIO
 
 # Dictionnaire des fichiers par ligue et position
 league_files = {
@@ -38,9 +36,9 @@ league_files = {
 }
 
 # Fonction pour charger et prétraiter les données
-def load_and_preprocess_data(file_path, position, selected_features):
+def load_and_preprocess_data(file_path, selected_features):
     data = pd.read_csv(file_path)
-    data = data[data['Matchs joues'].astype(int) > 10]
+    data = data[data['Matchs joues'].astype(int) > 10]  # Minimum de 10 matchs joués
     data = data.drop(['Matches (equivalents 90 minutes)', 'Performance Interceptions '], axis=1, errors='ignore')
     data = data.loc[:, ~data.columns.str.contains(r"\.1")]
     data = data.dropna(subset=selected_features)
@@ -49,32 +47,28 @@ def load_and_preprocess_data(file_path, position, selected_features):
     return data
 
 # Fonction pour trouver les joueurs similaires
-def find_similar_players(data, player_name, selected_features, top_n=5):
-    if player_name not in data['Joueur'].values:
-        return []
+def find_similar_players(data, player_data, selected_features, top_n=5):
     feature_data = data[selected_features]
-    similarity = cosine_similarity(feature_data)
-    similarity_index = pd.DataFrame(similarity, index=data['Joueur'], columns=data['Joueur'])
-    similar_players = similarity_index[player_name].sort_values(ascending=False)[1:top_n+1]
+    similarity = cosine_similarity(feature_data, [player_data])
+    similarity_scores = pd.Series(similarity.flatten(), index=data['Joueur'])
+    similar_players = similarity_scores.sort_values(ascending=False)[:top_n]
     return list(zip(similar_players.index, similar_players.values))
 
-# Fonction pour créer un radar chart
+# Fonction pour créer un radar chart (inchangé par rapport à l'original)
 def create_radar_chart(player1_data, player2_data, features, player1_name, player2_name):
-    radar = Radar(background_color="white", patch_color="#d3d3d3", label_fontsize=10, range_fontsize=8)
+    radar = Radar()
     ranges = [(0, 1)] * len(features)
     fig, ax = radar.plot_radar(
         ranges=ranges,
         params=features,
         values=[player1_data, player2_data],
-        radar_color=["#1E90FF", "#FF6347"],
+        radar_color=["blue", "red"],
         alphas=[0.6, 0.6],
         title={
             "title_name": player1_name,
-            "title_color": "#1E90FF",
+            "title_color": "blue",
             "subtitle_name": player2_name,
-            "subtitle_color": "#FF6347",
-            "title_fontsize": 16,
-            "subtitle_fontsize": 12,
+            "subtitle_color": "red",
         },
         compare=True,
     )
@@ -85,12 +79,11 @@ st.title("Comparaison de joueurs et recherche de similitudes")
 
 # Sélection des paramètres
 selected_position = st.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
-league1 = st.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
-league2 = st.selectbox("Sélectionnez la ligue du deuxième joueur", options=list(league_files.keys()))
+base_league = st.selectbox("Choisissez la ligue du joueur de base", options=list(league_files.keys()))
+comparison_league = st.selectbox("Choisissez la ligue pour trouver des joueurs similaires", options=list(league_files.keys()))
 
-# Caractéristiques communes (mettre les bonnes colonnes ici)
-# Liste des features sélectionnées (déjà définie dans votre code)
-selected_features = [
+# Caractéristiques sélectionnées
+selected_features = selected_features = [
     'Matchs joues', 'Titularisations', 'Minutes jouees', 'Matches equivalents 90 minutes', 'Buts', 
     'Passes decisives', 'Buts + Passes decisives', 'Buts hors penalty', 'Penalty marques', 'Penalty tentes', 
     'Cartons jaunes', 'Cartons rouges', 'Buts attendus (xG)', 'Buts attendus hors penalty (npxG)', 
@@ -127,31 +120,31 @@ selected_features = [
     'Distance totale parcourue avec le ballon', 'Distance progressive parcourue avec le ballon', 
     'Courses vers le dernier tiers', 'Courses dans la surface adverse'
 ]
+# Chargement des données
+base_data = load_and_preprocess_data(league_files[base_league][selected_position], selected_features)
+comparison_data = load_and_preprocess_data(league_files[comparison_league][selected_position], selected_features)
 
-data1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position, selected_features)
-data2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position, selected_features)
+# Sélection du joueur de base
+player_base = st.selectbox("Choisissez le joueur de base", options=base_data['Joueur'].unique())
 
-player1 = st.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
-player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
+# Extraction des données du joueur de base
+player_base_data = base_data[base_data['Joueur'] == player_base][selected_features].iloc[0].tolist()
 
 # Recherche de joueurs similaires
-similar1 = find_similar_players(data1, player1, selected_features)
-similar2 = find_similar_players(data2, player2, selected_features)
+similar_players = find_similar_players(comparison_data, player_base_data, selected_features)
 
 # Affichage des joueurs similaires
-st.write(f"Joueurs similaires à {player1} ({league1} - {selected_position}) :")
-for p, score in similar1:
-    st.write(f"- {p}: {score:.2f}")
+st.write(f"Joueurs similaires à **{player_base}** dans **{comparison_league} - {selected_position}** :")
+for player, score in similar_players:
+    st.write(f"- {player}: {score:.2f}")
 
-st.write(f"Joueurs similaires à {player2} ({league2} - {selected_position}) :")
-for p, score in similar2:
-    st.write(f"- {p}: {score:.2f}")
+# Sélection d'un joueur pour le radar chart
+player_to_compare = st.selectbox("Choisissez un joueur à comparer", options=comparison_data['Joueur'].unique())
 
-# Extraction des données des joueurs pour le radar chart
-player1_data = data1[data1['Joueur'] == player1][selected_features].iloc[0].tolist()
-player2_data = data2[data2['Joueur'] == player2][selected_features].iloc[0].tolist()
+# Extraction des données pour le radar chart
+player_to_compare_data = comparison_data[comparison_data['Joueur'] == player_to_compare][selected_features].iloc[0].tolist()
 
 # Tracé du radar chart
-st.write("**Comparaison via radar chart :**")
-fig = create_radar_chart(player1_data, player2_data, selected_features, player1, player2)
+st.write("**Radar Chart Comparatif :**")
+fig = create_radar_chart(player_base_data, player_to_compare_data, selected_features, player_base, player_to_compare)
 st.pyplot(fig)
