@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from io import BytesIO
+from scipy.spatial.distance import euclidean
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
@@ -117,6 +118,10 @@ club2 = data2[data2['Joueur'] == player2].iloc[0]['Equipe']
 age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Age'])
 age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Age'])
 
+# Calcul de la distance euclidienne entre les joueurs
+similarity_score = euclidean(player1_data, player2_data)
+similarity_percentage = max(0, 100 - similarity_score)  # Un score de similarité entre 0 et 100
+
 # Génération des URL des logos des clubs
 club1_logo_url = f"{logo_directories[league1]}/{club1}.png"
 club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
@@ -160,13 +165,16 @@ fig, ax = radar.plot_radar(
 # Ajout des logos des clubs avec taille ajustée
 zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
 # Logo du club 1 (haut gauche)
-image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
-ax.add_artist(annotation_box1)
-# Logo du club 2 (haut droite)
-image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
-ax.add_artist(annotation_box2)
+image1box = OffsetImage(club1_logo, zoom=zoom_factor)
+ab1 = AnnotationBbox(image1box, (0.25, 1), frameon=False, xycoords='axes fraction', boxcoords="axes fraction")
+ax.add_artist(ab1)
+# Logo du club 2 (haut droit)
+image2box = OffsetImage(club2_logo, zoom=zoom_factor)
+ab2 = AnnotationBbox(image2box, (0.75, 1), frameon=False, xycoords='axes fraction', boxcoords="axes fraction")
+ax.add_artist(ab2)
 
-# Affichage du radar dans Streamlit
+# Affichage de la similarité entre les joueurs
+st.write(f"La similarité entre {player1} et {player2} est de {similarity_percentage:.2f}%.")
+
+# Affichage du graphique
 st.pyplot(fig)
