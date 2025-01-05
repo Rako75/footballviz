@@ -4,3 +4,4 @@ numpy
 matplotlib
 soccerplots
 requests
+scikit-learn
