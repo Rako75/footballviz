@@ -13,7 +13,7 @@ def load_data():
 df = load_data()
 
 # Vérification des colonnes nécessaires
-required_columns = ['Joueur', 'Ligue', 'Equipe'] 
+required_columns = ['Joueur', 'Ligue', 'Equipe']
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
@@ -101,15 +101,26 @@ def find_similar_players(player_name, league, top_n=10):
     # Tri par score décroissant
     sorted_similar_players = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
 
+    # Dictionnaire des liens vers les logos
+    league_logos = {
+        'Premier League': 'Premier%20League%20Logos',
+        'Bundesliga': 'Bundesliga%20Logos',
+        'La Liga': 'La%20Liga%20Logos',
+        'Ligue 1': 'Ligue%201%20Logos',
+        'Serie A': 'Serie%20A%20Logos'
+    }
+
     # Récupération des joueurs similaires
     similar_players = []
     for i, (index, score) in enumerate(sorted_similar_players[:top_n]):
         player = filtered_df.loc[index, 'Joueur']
         equipe = filtered_df.loc[index, 'Equipe']
-        
-        # Construire l'URL du logo
-        logo_url = f"https://github.com/Rako75/footballviz/blob/main/Premier%20League%20Logos/{equipe.replace(' ', '%20')}.png?raw=true"
-        
+        league = filtered_df.loc[index, 'Ligue']
+
+        # Déterminer la ligue et construire l'URL du logo
+        league_name = league_logos.get(league, 'Premier%20League%20Logos')  # Valeur par défaut pour la Premier League
+        logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{equipe.replace(' ', '%20')}.png?raw=true"
+
         # Ajouter les informations du joueur avec l'URL de son logo
         similar_players.append((player, score, logo_url))
 
