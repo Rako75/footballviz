@@ -74,7 +74,7 @@ df[selected_features] = scaler.fit_transform(df[selected_features])
 similarity_matrix = cosine_similarity(df[selected_features])
 
 # Fonction pour générer l'URL du logo avec encodage des caractères spéciaux
-def get_logo_url(club, league):
+def get_logo_url(equipe, league):
     league_logos = {
         'Premier League': 'Premier%20League%20Logos',
         'Bundesliga': 'Bundesliga%20Logos',
@@ -84,10 +84,10 @@ def get_logo_url(club, league):
     }
 
     # Encoder le nom du club pour s'assurer que les caractères spéciaux (comme les apostrophes) sont correctement gérés
-    encoded_club = urllib.parse.quote(club)
+    encoded_equipe= urllib.parse.quote(equipe)
     league_name = league_logos.get(league, 'Premier%20League%20Logos')  # Valeur par défaut pour la Premier League
 
-    logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{encoded_club}.png?raw=true"
+    logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{encoded_equipe}.png?raw=true"
     return logo_url
 
 # Fonction pour trouver les joueurs similaires
@@ -127,7 +127,7 @@ def find_similar_players(player_name, league, top_n=10):
         league = filtered_df.loc[index, 'Ligue']
 
         # Obtenir l'URL du logo avec gestion des caractères spéciaux
-        logo_url = get_logo_url(club, league)
+        logo_url = get_logo_url(equipe, league)
 
         # Ajouter les informations du joueur avec l'URL de son logo
         similar_players.append((player, score, logo_url))
