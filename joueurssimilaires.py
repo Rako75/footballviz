@@ -123,6 +123,11 @@ def find_similar_players(player_name, league, top_n=10):
     similar_players = []
     for i, (index, score) in enumerate(sorted_similar_players[:top_n]):
         player = filtered_df.loc[index, 'Joueur']
+        
+        # Exclure le joueur lui-même de la liste
+        if player == player_name:
+            continue
+
         equipe = filtered_df.loc[index, 'Equipe']
         league = filtered_df.loc[index, 'Ligue']
 
