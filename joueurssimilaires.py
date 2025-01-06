@@ -13,7 +13,7 @@ def load_data():
 df = load_data()
 
 # Vérification des colonnes nécessaires
-required_columns = ['Joueur', 'Ligue', 'Matchs joues']
+required_columns = ['Joueur', 'Ligue']
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
@@ -87,11 +87,8 @@ def find_similar_players(player_name, league, top_n=10):
     # Filtrer par ligue
     filtered_df = df[df['Ligue'] == league]
 
-    # Ajouter la condition : Joueurs ayant joué au moins 10 matchs
-    filtered_df = filtered_df[filtered_df['Matchs joues'] >= 10]
-
     if filtered_df.empty:
-        st.warning(f"Aucun joueur similaire trouvé dans la ligue '{league}' avec au moins 10 matchs.")
+        st.warning(f"Aucun joueur similaire trouvé dans la ligue '{league}'.")
         return []
 
     # Index du joueur trouvé
