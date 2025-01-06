@@ -6,10 +6,10 @@ import difflib
 import streamlit as st
 
 # Chargement des données
-@st.cache
+@st.cache_data
 def load_data():
-    df = pd.read_csv("df_Big5.csv")
-    return df
+    return pd.read_csv("df_Big5.csv")
+
 
 df = load_data()
 
