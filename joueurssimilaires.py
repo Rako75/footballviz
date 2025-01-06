@@ -13,7 +13,7 @@ def load_data():
 df = load_data()
 
 # Vérification des colonnes nécessaires
-required_columns = ['Joueur', 'Ligue', 'Equipe']
+required_columns = ['Joueur', 'Ligue', 'Equipe'] 
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
@@ -140,5 +140,5 @@ if st.button("Trouver des joueurs similaires"):
         if similar_players:
             st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
             for i, (player, score, logo_url) in enumerate(similar_players, 1):
-                # Afficher le joueur, le score et le logo sur la même ligne
-                st.markdown(f"{i}. {player} (Score: {score:.2f}) ![Logo]({logo_url})", unsafe_allow_html=True)
+                # Afficher le joueur, le score et le logo sur la même ligne avec taille ajustée
+                st.markdown(f"{i}. {player} (Score: {score:.2f}) <img src='{logo_url}' width='30' height='30'>", unsafe_allow_html=True)
