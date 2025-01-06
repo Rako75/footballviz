@@ -97,6 +97,33 @@ def find_similar_players(player_name, league=None, top_n=10):
     close_match = find_close_match[0]
     st.success(f"Joueur trouvé : {close_match.title()}")
 
+    # Trouver l'index global du joueur dans df (non filtré)
+    global_index = df[df['Joueur'].str.lower() == close_match].index[0]
+
+    # Similarités pour ce joueur
+    similarity_scores = list(enumerate(similarity_matrix[global_index]))
+
+    # Filtrer les similarités pour ne garder que les joueurs de la ligue
+    filtered_indices = filtered_df.index  # Indices du DataFrame filtré
+    filtered_scores = [(i, score) for i, score in similarity_scores if i in filtered_indices]
+
+    # Trier par score décroissant
+    sorted_similar_players = sorted(filtered_scores, key=lambda x: x[1], reverse=True)
+
+    # Construire la liste des joueurs similaires
+    similar_players = []
+    for player in sorted_similar_players[1:top_n + 1]:  # Ignorer le joueur lui-même
+        index = player[0]
+        similar_player = df.iloc[index]['Joueur']  # Utiliser le DataFrame original pour récupérer le joueur
+        score = player[1]
+        similar_players.append((similar_player, score))
+
+    return similar_players
+
+
+    close_match = find_close_match[0]
+    st.success(f"Joueur trouvé : {close_match.title()}")
+
     # Index du joueur trouvé
     player_index = filtered_df[filtered_df['Joueur'].str.lower() == close_match].index[0]
 
