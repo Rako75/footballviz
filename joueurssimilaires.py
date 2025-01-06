@@ -140,5 +140,5 @@ if st.button("Trouver des joueurs similaires"):
         if similar_players:
             st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
             for i, (player, score, logo_url) in enumerate(similar_players, 1):
-                st.image(logo_url, width=30)  # Affichage du logo
-                st.write(f"{i}. {player} (Score: {score:.2f})")
+                # Afficher le joueur, le score et le logo sur la même ligne
+                st.markdown(f"{i}. {player} (Score: {score:.2f}) ![Logo]({logo_url})", unsafe_allow_html=True)
