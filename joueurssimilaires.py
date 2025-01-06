@@ -84,7 +84,7 @@ def get_logo_url(equipe, league):
     }
 
     # Encoder le nom du club pour s'assurer que les caractères spéciaux (comme les apostrophes) sont correctement gérés
-    encoded_equipe= urllib.parse.quote(equipe)
+    encoded_equipe = urllib.parse.quote(equipe)
     league_name = league_logos.get(league, 'Premier%20League%20Logos')  # Valeur par défaut pour la Premier League
 
     logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{encoded_equipe}.png?raw=true"
@@ -159,4 +159,4 @@ if st.button("Trouver des joueurs similaires"):
         if similar_players:
             st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
             for i, (player, score, logo_url) in enumerate(similar_players, 1):
-                st.write(f"{i}. {player} (Score: {score:.2f}), ![Logo]({logo_url})")
+                st.write(f"{i}. {player} (Score: {score:.2f}), ![Logo]({logo_url}&width=50)")  # Limite la taille du logo
