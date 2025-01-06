@@ -4,6 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 import difflib
 import streamlit as st
+import urllib.parse
 
 # Chargement des données
 @st.cache_data
@@ -13,7 +14,7 @@ def load_data():
 df = load_data()
 
 # Vérification des colonnes nécessaires
-required_columns = ['Joueur', 'Ligue', 'Equipe']
+required_columns = ['Joueur', 'Ligue']
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
@@ -72,6 +73,23 @@ df[selected_features] = scaler.fit_transform(df[selected_features])
 # Calcul de la similarité cosinus
 similarity_matrix = cosine_similarity(df[selected_features])
 
+# Fonction pour générer l'URL du logo avec encodage des caractères spéciaux
+def get_logo_url(club, league):
+    league_logos = {
+        'Premier League': 'Premier%20League%20Logos',
+        'Bundesliga': 'Bundesliga%20Logos',
+        'La Liga': 'La%20Liga%20Logos',
+        'Ligue 1': 'Ligue%201%20Logos',
+        'Serie A': 'Serie%20A%20Logos'
+    }
+
+    # Encoder le nom du club pour s'assurer que les caractères spéciaux (comme les apostrophes) sont correctement gérés
+    encoded_club = urllib.parse.quote(club)
+    league_name = league_logos.get(league, 'Premier%20League%20Logos')  # Valeur par défaut pour la Premier League
+
+    logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{encoded_club}.png?raw=true"
+    return logo_url
+
 # Fonction pour trouver les joueurs similaires
 def find_similar_players(player_name, league, top_n=10):
     # Recherche des correspondances proches
@@ -101,15 +119,6 @@ def find_similar_players(player_name, league, top_n=10):
     # Tri par score décroissant
     sorted_similar_players = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
 
-    # Dictionnaire des liens vers les logos
-    league_logos = {
-        'Premier League': 'Premier%20League%20Logos',
-        'Bundesliga': 'Bundesliga%20Logos',
-        'La Liga': 'La%20Liga%20Logos',
-        'Ligue 1': 'Ligue%201%20Logos',
-        'Serie A': 'Serie%20A%20Logos'
-    }
-
     # Récupération des joueurs similaires
     similar_players = []
     for i, (index, score) in enumerate(sorted_similar_players[:top_n]):
@@ -117,9 +126,8 @@ def find_similar_players(player_name, league, top_n=10):
         equipe = filtered_df.loc[index, 'Equipe']
         league = filtered_df.loc[index, 'Ligue']
 
-        # Déterminer la ligue et construire l'URL du logo
-        league_name = league_logos.get(league, 'Premier%20League%20Logos')  # Valeur par défaut pour la Premier League
-        logo_url = f"https://github.com/Rako75/footballviz/blob/main/{league_name}/{equipe.replace(' ', '%20')}.png?raw=true"
+        # Obtenir l'URL du logo avec gestion des caractères spéciaux
+        logo_url = get_logo_url(club, league)
 
         # Ajouter les informations du joueur avec l'URL de son logo
         similar_players.append((player, score, logo_url))
@@ -151,5 +159,4 @@ if st.button("Trouver des joueurs similaires"):
         if similar_players:
             st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
             for i, (player, score, logo_url) in enumerate(similar_players, 1):
-                # Afficher le joueur, le score et le logo sur la même ligne avec taille ajustée
-                st.markdown(f"{i}. {player} (Score: {score:.2f}) <img src='{logo_url}' width='30' height='30'>", unsafe_allow_html=True)
+                st.write(f"{i}. {player} (Score: {score:.2f}), ![Logo]({logo_url})")
