@@ -6,16 +6,16 @@ import difflib
 import streamlit as st
 
 # Chargement des données
-@st.cache
+@st.cache_data
 def load_data():
-    df = pd.read_csv("df_Big5.csv")
-    return df
+    return pd.read_csv("df_Big5.csv")
 
 df = load_data()
 
 # Vérification des colonnes nécessaires
-if 'Joueur' not in df.columns or 'Position' not in df.columns or 'Ligue' not in df.columns:
-    raise ValueError("Les colonnes 'Joueur', 'Position' ou 'Ligue' sont absentes du fichier CSV.")
+required_columns = ['Joueur', 'Ligue']
+if not all(col in df.columns for col in required_columns):
+    raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
 # Liste des features sélectionnées
 selected_features = [
@@ -73,43 +73,26 @@ df[selected_features] = scaler.fit_transform(df[selected_features])
 similarity_matrix = cosine_similarity(df[selected_features])
 
 # Fonction pour trouver les joueurs similaires
-def find_similar_players(player_name, league=None, top_n=10):
-    # Filtrer par ligue si nécessaire
-    if league:
-        filtered_df = df[df['Ligue'] == league]
-    else:
-        filtered_df = df
-
-    # Vérification si la ligue contient des joueurs
-    if filtered_df.empty:
-        st.warning(f"Aucun joueur trouvé pour la ligue '{league}'.")
-        return []
-
-    # Liste des joueurs dans la ligue
-    list_of_all_players = filtered_df['Joueur'].str.lower().tolist()
-
+def find_similar_players(player_name, league, top_n=10):
     # Recherche des correspondances proches
-    find_close_match = difflib.get_close_matches(player_name.lower(), list_of_all_players, cutoff=0.4)
+    list_of_all_players = df['Joueur'].tolist()
+    find_close_match = difflib.get_close_matches(player_name.lower(), [p.lower() for p in list_of_all_players], cutoff=0.4)
     if not find_close_match:
         st.warning(f"Aucun joueur trouvé pour '{player_name}'. Veuillez vérifier l'orthographe.")
         return []
 
-    close_match = find_close_match[0]
-    st.success(f"Joueur trouvé : {close_match.title()}")
+    # Correspondance exacte (avec casse correcte)
+    close_match = next(p for p in list_of_all_players if p.lower() == find_close_match[0])
+
+    # Filtrer par ligue
+    filtered_df = df[df['Ligue'] == league]
+
+    if filtered_df.empty:
+        st.warning(f"Aucun joueur similaire trouvé dans la ligue '{league}'.")
+        return []
 
     # Index du joueur trouvé
-    player_index = df[df['Joueur'].str.lower() == close_match].index[0]
-
-    # Récupérer la position du joueur
-    player_position = df.iloc[player_index]['Position']
-
-    # Filtrer par position
-    filtered_df = filtered_df[filtered_df['Position'] == player_position]
-
-    # Vérification si la position contient des joueurs
-    if filtered_df.empty:
-        st.warning(f"Aucun joueur trouvé pour la position '{player_position}' dans la ligue '{league}'.")
-        return []
+    player_index = df[df['Joueur'] == close_match].index[0]
 
     # Calcul de la similarité pour les joueurs filtrés
     filtered_indices = filtered_df.index
@@ -118,24 +101,21 @@ def find_similar_players(player_name, league=None, top_n=10):
     # Tri par score décroissant
     sorted_similar_players = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
 
+    # Récupération des joueurs similaires
     similar_players = []
-    for player in sorted_similar_players[1:top_n + 1]:  # Ignorer le joueur lui-même
-        index = player[0]
-        similar_player = df.iloc[index]['Joueur']
-        score = player[1]
-        similar_players.append((similar_player, score))
+    for i, (index, score) in enumerate(sorted_similar_players[:top_n]):
+        similar_players.append((filtered_df.loc[index, 'Joueur'], score))
 
     return similar_players
 
 # Interface utilisateur avec Streamlit
 st.title("Recherche de joueurs similaires")
 
-# Saisie utilisateur pour le nom du joueur
-player_name = st.text_input("Entrez le nom d'un joueur :", "").strip()
+# Sélections utilisateur
+player_name = st.text_input("Entrez le nom d'un joueur :").strip()
 
 # Sélection de la ligue
 leagues = df['Ligue'].unique().tolist()
-leagues.insert(0, "Toutes")
 selected_league = st.selectbox("Choisissez une ligue :", leagues)
 
 # Sélection du nombre de joueurs similaires
@@ -145,11 +125,12 @@ top_n = st.slider("Nombre de joueurs similaires :", 1, 20, 10)
 if st.button("Trouver des joueurs similaires"):
     if not player_name:
         st.warning("Veuillez entrer un nom de joueur.")
+    elif not selected_league:
+        st.warning("Veuillez sélectionner une ligue.")
     else:
-        league = None if selected_league == "Toutes" else selected_league
-        similar_players = find_similar_players(player_name, league, top_n)
+        similar_players = find_similar_players(player_name, selected_league, top_n)
 
         if similar_players:
-            st.write(f"Joueurs similaires à **{player_name}** dans la ligue **{selected_league}** :")
-            for i, (similar_player, score) in enumerate(similar_players, start=1):
-                st.write(f"{i}. {similar_player} (Score: {score:.2f})")
+            st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
+            for i, (player, score) in enumerate(similar_players, 1):
+                st.write(f"{i}. {player} (Score: {score:.2f})")
