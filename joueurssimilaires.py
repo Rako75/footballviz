@@ -159,4 +159,4 @@ if st.button("Trouver des joueurs similaires"):
         if similar_players:
             st.subheader(f"Joueurs similaires à {player_name} dans la ligue {selected_league} :")
             for i, (player, score, logo_url) in enumerate(similar_players, 1):
-                st.write(f"{i}. {player} (Score: {score:.2f}), ![Logo]({logo_url}&width=50)")  # Limite la taille du logo
+                st.write(f"{i}. {player} (Score: {score:.2f}), ![Logo]({logo_url}&width=20)")  # Limite la taille du logo
