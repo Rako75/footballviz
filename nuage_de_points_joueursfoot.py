@@ -63,14 +63,14 @@ def plot_graph(df):
                 df["Actions menant a un tir par 90 minutes"].max() + 0.5)
 
     # Supprimer la grille
-    ax.grid(False)  # Désactive complètement la grille
+    ax.grid(False)
+
+    # Ajouter des lignes centrales
+    ax.axhline(y=0, color="black", linewidth=1, linestyle="-")  # Ligne horizontale au centre
+    ax.axvline(x=0, color="black", linewidth=1, linestyle="-")  # Ligne verticale au centre
 
     # Ajuster les couleurs des ticks
     ax.tick_params(colors="black")
-
-    # Ajouter les axes du centre
-    ax.axhline(0, color='black', linewidth=1)
-    ax.axvline(0, color='black', linewidth=1)
 
     return fig
 
