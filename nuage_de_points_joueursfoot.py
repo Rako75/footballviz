@@ -62,8 +62,10 @@ def plot_graph(df):
     ax.set_ylim(df["Actions menant a un tir par 90 minutes"].min() - 0.5,
                 df["Actions menant a un tir par 90 minutes"].max() + 0.5)
 
-    # Supprimer la grille et ajuster les couleurs des ticks
-    ax.grid(True, linestyle='-', color='gray', alpha=0.5)
+    # Supprimer la grille
+    ax.grid(False)  # Désactive complètement la grille
+
+    # Ajuster les couleurs des ticks
     ax.tick_params(colors="black")
 
     # Ajouter les axes du centre
