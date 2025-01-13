@@ -20,8 +20,8 @@ top_20_forwards = df_forwards.nlargest(20, "Création totale")
 
 # Créer le graphique avec matplotlib
 def plot_graph(df):
-    # Augmenter la taille du cadre
-    fig, ax = plt.subplots(figsize=(16, 12))
+    # Utiliser les paramètres par défaut de Matplotlib (sans style spécifique)
+    fig, ax = plt.subplots(figsize=(14, 10))
 
     # Créer le nuage de points
     scatter = ax.scatter(
@@ -55,7 +55,7 @@ def plot_graph(df):
     plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
 
     # Ajouter les étiquettes et le titre
-    ax.set_title("Création d'occasion par 90 min", fontsize=18, color="white")
+    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
     ax.set_xlabel("Passes clés", fontsize=14, color="white")
     ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=14, color="white")
 
