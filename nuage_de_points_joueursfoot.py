@@ -66,11 +66,22 @@ def plot_graph(df):
     # Ajuster les couleurs des ticks
     ax.tick_params(colors="white")
 
-    # Ajouter les axes du centre
-    ax.axhline(0, color='white', linewidth=1)
-    ax.axvline(0, color='white', linewidth=1)
+    # Ajouter les axes du centre en pointillé blanc
+    ax.axhline(
+        y=(df["Actions menant a un tir par 90 minutes"].max() + df["Actions menant a un tir par 90 minutes"].min()) / 2,
+        color='white',
+        linestyle='--',
+        linewidth=1
+    )
+    ax.axvline(
+        x=(df["Passes cles"].max() + df["Passes cles"].min()) / 2,
+        color='white',
+        linestyle='--',
+        linewidth=1
+    )
 
     return fig
+
 
 # Titre de l'application
 st.title("Analyse des attaquants - Création d'occasions")
