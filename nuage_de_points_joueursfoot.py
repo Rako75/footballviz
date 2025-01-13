@@ -20,8 +20,8 @@ top_20_forwards = df_forwards.nlargest(20, "Création totale")
 
 # Créer le graphique avec matplotlib
 def plot_graph(df):
-    # Utiliser une taille plus grande pour donner de l'espace
-    fig, ax = plt.subplots(figsize=(16, 12))  # Augmenter la taille de la figure
+    # Utiliser les paramètres par défaut de Matplotlib (sans style spécifique)
+    fig, ax = plt.subplots(figsize=(14, 10))
 
     # Créer le nuage de points
     scatter = ax.scatter(
@@ -40,7 +40,7 @@ def plot_graph(df):
             row["Passes cles"],
             row["Actions menant a un tir par 90 minutes"] + 0.1,  # Décalage pour que le texte soit au-dessus du point
             row["Joueur"],
-            fontsize=9,  # Réduire la taille de la police pour mieux s'adapter
+            fontsize=10,
             color="black",  # Nom du joueur en noir pour bien ressortir
             ha="center",  # Alignement horizontal centré par rapport au point
             va="center"   # Alignement vertical centré
@@ -53,9 +53,9 @@ def plot_graph(df):
     plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="black")
 
     # Ajouter les étiquettes et le titre
-    ax.set_title("Création d'occasion par 90 min", fontsize=18, color="black")
-    ax.set_xlabel("Passes clés", fontsize=14, color="black")
-    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=14, color="black")
+    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="black")
+    ax.set_xlabel("Passes clés", fontsize=12, color="black")
+    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="black")
 
     # Ajuster les limites des axes
     ax.set_xlim(df["Passes cles"].min() - 1, df["Passes cles"].max() + 1)
