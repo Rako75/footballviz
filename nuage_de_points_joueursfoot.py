@@ -1,27 +1,7 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import streamlit as st
-
-# Charger le fichier CSV
-df = pd.read_csv("df_Big5.csv")
-
-# Filtrer les attaquants (Position = "Forward")
-df_forwards = df[df["Position"].str.contains("Forward", case=False, na=False)]
-
-# Calculer une métrique combinée pour la création d'occasions
-df_forwards["Création totale"] = (
-    df_forwards["Passes cles"] +
-    df_forwards["Actions menant a un tir par 90 minutes"] +
-    df_forwards["Actions menant a un but par 90 minutes"]
-)
-
-# Prendre les 20 meilleurs joueurs
-top_20_forwards = df_forwards.nlargest(20, "Création totale")
-
 # Créer le graphique avec matplotlib
 def plot_graph(df):
     # Utiliser les paramètres par défaut de Matplotlib (sans style spécifique)
-    fig, ax = plt.subplots(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(16, 12))  # Augmenter la taille du graphique
 
     # Créer le nuage de points
     scatter = ax.scatter(
@@ -73,24 +53,3 @@ def plot_graph(df):
     ax.axvline(0, color='white', linewidth=1)
 
     return fig
-
-# Titre de l'application
-st.title("Analyse des attaquants - Création d'occasions")
-
-# Sélecteur de ligue
-league_option = st.selectbox(
-    "Sélectionnez une ligue:",
-    options=["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
-)
-
-# Filtrer les joueurs en fonction de la ligue choisie
-if league_option != "Toutes les ligues":
-    df_forwards = df_forwards[df_forwards["Ligue"] == league_option]
-
-# Prendre les 20 meilleurs joueurs selon la création totale
-top_20_forwards = df_forwards.nlargest(20, "Création totale")
-
-# Afficher le graphique dans Streamlit
-st.write(f"Top 20 des attaquants par création totale ({league_option})")
-fig = plot_graph(top_20_forwards)
-st.pyplot(fig)
