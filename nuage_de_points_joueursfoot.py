@@ -1,19 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from PIL import Image
-import requests
-from io import BytesIO
 import streamlit as st
-
-# Dictionnaire des répertoires de logos
-logo_directories = {
-    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
-    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
-    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
-    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
-    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
-}
 
 # Charger le fichier CSV
 df = pd.read_csv("df_Big5.csv")
@@ -28,18 +15,8 @@ df_forwards["Création totale"] = (
     df_forwards["Actions menant a un but par 90 minutes"]
 )
 
-# Fonction pour récupérer les logos des équipes depuis GitHub
-def get_team_logo(team_name, league_name):
-    base_url = logo_directories.get(league_name)
-    if base_url:
-        logo_url = f"{base_url}/{team_name}.png"
-        try:
-            response = requests.get(logo_url)
-            if response.status_code == 200:
-                return Image.open(BytesIO(response.content))
-        except Exception as e:
-            st.error(f"Erreur en récupérant le logo pour {team_name}: {e}")
-    return None
+# Prendre les 20 meilleurs joueurs
+top_20_forwards = df_forwards.nlargest(20, "Création totale")
 
 # Créer le graphique avec matplotlib
 def plot_graph(df):
@@ -57,31 +34,16 @@ def plot_graph(df):
         edgecolors="w"
     )
 
-    # Ajouter les logos des équipes et les noms des joueurs à côté
+    # Ajouter les noms des joueurs à côté des points
     for i, row in df.iterrows():
-        team_name = row["Equipe"]
-        league_name = row["Ligue"]
-        logo = get_team_logo(team_name, league_name)
-        if logo:
-            # Créer un OffsetImage avec un zoom pour ajuster la taille
-            imagebox = OffsetImage(logo, zoom=0.08)  # Ajuster la taille du logo
-            ab = AnnotationBbox(
-                imagebox,
-                (row["Passes cles"] + 0.1, row["Actions menant a un tir par 90 minutes"]),
-                frameon=False,
-                pad=0.5
-            )
-            ax.add_artist(ab)
-        
-        # Ajouter le nom du joueur à côté du logo
         ax.text(
-            row["Passes cles"] + 0.1,  # Décalage horizontal pour éviter chevauchement
-            row["Actions menant a un tir par 90 minutes"],
+            row["Passes cles"],
+            row["Actions menant a un tir par 90 minutes"] + 0.1,  # Décalage pour que le texte soit au-dessus du point
             row["Joueur"],
             fontsize=10,
             color="black",  # Nom du joueur en noir pour bien ressortir
-            ha="left",  # Alignement du texte à gauche du logo
-            va="center"  # Centrer le texte verticalement
+            ha="center",  # Alignement horizontal centré par rapport au point
+            va="center"   # Alignement vertical centré
         )
 
     # Ajouter un colorbar
