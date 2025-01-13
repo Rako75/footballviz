@@ -28,9 +28,6 @@ df_forwards["Création totale"] = (
     df_forwards["Actions menant a un but par 90 minutes"]
 )
 
-# Prendre les 20 meilleurs joueurs
-top_20_forwards = df_forwards.nlargest(20, "Création totale")
-
 # Fonction pour récupérer les logos des équipes depuis GitHub
 def get_team_logo(team_name, league_name):
     base_url = logo_directories.get(league_name)
@@ -87,7 +84,7 @@ def plot_graph(df):
 
     # Ajouter un colorbar
     cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="black")
+    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15)
     cbar.ax.yaxis.set_tick_params(color="black")
     plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="black")
 
@@ -114,7 +111,20 @@ def plot_graph(df):
 # Titre de l'application
 st.title("Analyse des attaquants - Création d'occasions")
 
+# Sélecteur de ligue
+league_option = st.selectbox(
+    "Sélectionnez une ligue:",
+    options=["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
+)
+
+# Filtrer les joueurs en fonction de la ligue choisie
+if league_option != "Toutes les ligues":
+    df_forwards = df_forwards[df_forwards["Ligue"] == league_option]
+
+# Prendre les 20 meilleurs joueurs selon la création totale
+top_20_forwards = df_forwards.nlargest(20, "Création totale")
+
 # Afficher le graphique dans Streamlit
-st.write("Top 20 des attaquants par création totale (Passes clés, Actions menant à un tir et Actions menant à un but).")
+st.write(f"Top 20 des attaquants par création totale ({league_option})")
 fig = plot_graph(top_20_forwards)
 st.pyplot(fig)
