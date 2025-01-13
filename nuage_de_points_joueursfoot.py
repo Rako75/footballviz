@@ -21,7 +21,7 @@ top_20_forwards = df_forwards.nlargest(20, "Création totale")
 # Créer le graphique avec matplotlib
 def plot_graph(df):
     # Utiliser les paramètres par défaut de Matplotlib (sans style spécifique)
-    fig, ax = plt.subplots(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(16, 10))
 
     # Créer le nuage de points
     scatter = ax.scatter(
