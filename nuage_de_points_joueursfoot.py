@@ -40,24 +40,22 @@ def plot_graph(df):
             row["Passes cles"],
             row["Actions menant a un tir par 90 minutes"] + 0.1,  # Décalage pour que le texte soit au-dessus du point
             row["Joueur"],
-            fontsize=12,  # Augmenter la taille de la police pour la lisibilité
-            color="white",  # Nom du joueur en blanc pour mieux ressortir sur un fond sombre
+            fontsize=10,
+            color="black",  # Nom du joueur en noir pour bien ressortir
             ha="center",  # Alignement horizontal centré par rapport au point
-            va="center",   # Alignement vertical centré
-            fontweight="bold",  # Texte en gras pour plus de lisibilité
-            fontname="Arial"  # Police claire et lisible
+            va="center"   # Alignement vertical centré
         )
 
     # Ajouter un colorbar
     cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
+    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15)
+    cbar.ax.yaxis.set_tick_params(color="black")
+    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="black")
 
     # Ajouter les étiquettes et le titre
-    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
-    ax.set_xlabel("Passes clés", fontsize=14, color="white")
-    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=14, color="white")
+    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="black")
+    ax.set_xlabel("Passes clés", fontsize=12, color="black")
+    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="black")
 
     # Ajuster les limites des axes
     ax.set_xlim(df["Passes cles"].min() - 1, df["Passes cles"].max() + 1)
@@ -66,11 +64,11 @@ def plot_graph(df):
 
     # Supprimer la grille et ajuster les couleurs des ticks
     ax.grid(True, linestyle='-', color='gray', alpha=0.5)
-    ax.tick_params(colors="white")
+    ax.tick_params(colors="black")
 
     # Ajouter les axes du centre
-    ax.axhline(0, color='white', linewidth=1)
-    ax.axvline(0, color='white', linewidth=1)
+    ax.axhline(0, color='black', linewidth=1)
+    ax.axvline(0, color='black', linewidth=1)
 
     return fig
 
