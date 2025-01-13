@@ -57,29 +57,31 @@ def plot_graph(df):
         edgecolors="w"
     )
 
-    # Ajouter les logos des équipes
+    # Ajouter les logos des équipes et les noms des joueurs à côté
     for i, row in df.iterrows():
         team_name = row["Equipe"]
         league_name = row["Ligue"]
         logo = get_team_logo(team_name, league_name)
         if logo:
-            # Créer un OffsetImage
-            imagebox = OffsetImage(logo, zoom=0.05)
+            # Créer un OffsetImage avec un zoom pour ajuster la taille
+            imagebox = OffsetImage(logo, zoom=0.08)  # Ajuster la taille du logo
             ab = AnnotationBbox(
                 imagebox,
-                (row["Passes cles"], row["Actions menant a un tir par 90 minutes"]),
+                (row["Passes cles"] + 0.1, row["Actions menant a un tir par 90 minutes"]),
                 frameon=False,
                 pad=0.5
             )
             ax.add_artist(ab)
-        # Ajouter les noms des joueurs juste au-dessus des points
+        
+        # Ajouter le nom du joueur à côté du logo
         ax.text(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"] + 0.1,
+            row["Passes cles"] + 0.1,  # Décalage horizontal pour éviter chevauchement
+            row["Actions menant a un tir par 90 minutes"],
             row["Joueur"],
             fontsize=10,
             color="black",  # Nom du joueur en noir pour bien ressortir
-            ha="center"
+            ha="left",  # Alignement du texte à gauche du logo
+            va="center"  # Centrer le texte verticalement
         )
 
     # Ajouter un colorbar
