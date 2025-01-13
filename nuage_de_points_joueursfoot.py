@@ -46,9 +46,7 @@ def get_team_logo(team_name, league_name):
 
 # Créer le graphique avec matplotlib
 def plot_graph(df):
-    # Utiliser un fond blanc pour le graphique
-    plt.style.use("seaborn-whitegrid")  # Un fond blanc avec une grille légère
-
+    # Utiliser les paramètres par défaut de Matplotlib (sans style spécifique)
     fig, ax = plt.subplots(figsize=(14, 10))
 
     # Créer le nuage de points
@@ -83,7 +81,7 @@ def plot_graph(df):
             row["Actions menant a un tir par 90 minutes"] + 0.1,
             row["Joueur"],
             fontsize=10,
-            color="black",  # Nom du joueur en noir pour bien ressortir sur fond blanc
+            color="black",  # Nom du joueur en noir pour bien ressortir
             ha="center"
         )
 
