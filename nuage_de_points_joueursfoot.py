@@ -17,7 +17,11 @@ df["Création totale"] = df["Création Off."]
 # Fonctions pour tracer les graphiques
 def plot_midfielders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
-
+    ax.set_facecolor("black")
+    
+    # Lignes pointillées
+    ax.grid(True, linestyle=':', color='white', alpha=0.5)
+    
     scatter = ax.scatter(
         df["Distance totale parcourue avec le ballon"],
         df["Actions Défensives"],
@@ -34,16 +38,32 @@ def plot_midfielders(df):
             row["Actions Défensives"] + 0.1,
             row["Joueur"],
             fontsize=10,
-            color="black",
-            ha="center"
+            color="white",  # Noms en blanc
+            ha="center",
+            va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
         )
 
     cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Passes progressives", rotation=270, labelpad=15)
+    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
+    cbar.ax.yaxis.set_tick_params(color="white")
+    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
 
-    ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16)
-    ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12)
-    ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12)
+    ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
+    ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
+    ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
+
+    # Personnalisation des axes (lignes pointillées)
+    ax.spines['top'].set_color('white')
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['right'].set_color('white')
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['left'].set_color('white')
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['bottom'].set_color('white')
+    ax.spines['bottom'].set_linewidth(1)
+
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
 
     return fig
 
@@ -51,6 +71,9 @@ def plot_forwards(df):
     plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
+
+    # Lignes pointillées
+    ax.grid(True, linestyle=':', color='white', alpha=0.5)
 
     scatter = ax.scatter(
         df["Passes cles"],
@@ -68,8 +91,9 @@ def plot_forwards(df):
             row["Actions menant a un tir par 90 minutes"] + 0.1,
             row["Joueur"],
             fontsize=10,
-            color="white",
-            ha="center"
+            color="white",  # Noms en blanc
+            ha="center",
+            va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
         )
 
     cbar = plt.colorbar(scatter, ax=ax)
@@ -80,6 +104,19 @@ def plot_forwards(df):
     ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
     ax.set_xlabel("Passes clés", fontsize=12, color="white")
     ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
+
+    # Personnalisation des axes (lignes pointillées)
+    ax.spines['top'].set_color('white')
+    ax.spines['top'].set_linewidth(1)
+    ax.spines['right'].set_color('white')
+    ax.spines['right'].set_linewidth(1)
+    ax.spines['left'].set_color('white')
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['bottom'].set_color('white')
+    ax.spines['bottom'].set_linewidth(1)
+
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
 
     return fig
 
