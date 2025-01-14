@@ -25,7 +25,7 @@ def plot_midfielders(df):
     scatter = ax.scatter(
         df["Distance totale parcourue avec le ballon"],
         df["Actions Défensives"],
-        s=df["Actions menant a un but"] * 10,
+        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
         c=df["Passes progressives"],
         cmap="coolwarm",
         alpha=0.7,
@@ -78,7 +78,7 @@ def plot_forwards(df):
     scatter = ax.scatter(
         df["Passes cles"],
         df["Actions menant a un tir par 90 minutes"],
-        s=df["Age"] * 10,
+        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
         c=df["Actions menant a un but par 90 minutes"],
         cmap="coolwarm",
         alpha=0.7,
