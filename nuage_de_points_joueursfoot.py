@@ -32,16 +32,21 @@ def plot_midfielders(df):
         edgecolors="w"
     )
 
+    # Ajouter des numéros aux joueurs pour éviter les chevauchements
     for i, row in df.iterrows():
         ax.text(
             row["Distance totale parcourue avec le ballon"],
             row["Actions Défensives"] + 0.1,
-            row["Joueur"],
+            str(i + 1),  # Numéro du joueur
             fontsize=10,
             color="white",  # Noms en blanc
             ha="center",
-            va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
+            va="bottom"  # Éviter le chevauchement
         )
+
+    # Ajouter une légende avec les noms des joueurs
+    legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
+    plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
 
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
@@ -85,16 +90,21 @@ def plot_forwards(df):
         edgecolors="white"
     )
 
+    # Ajouter des numéros aux joueurs pour éviter les chevauchements
     for i, row in df.iterrows():
         ax.text(
             row["Passes cles"],
             row["Actions menant a un tir par 90 minutes"] + 0.1,
-            row["Joueur"],
+            str(i + 1),  # Numéro du joueur
             fontsize=10,
             color="white",  # Noms en blanc
             ha="center",
-            va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
+            va="bottom"  # Éviter le chevauchement
         )
+
+    # Ajouter une légende avec les noms des joueurs
+    legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
+    plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
 
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
