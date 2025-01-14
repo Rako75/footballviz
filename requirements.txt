@@ -6,3 +6,4 @@ soccerplots
 requests
 scikit-learn
 pillow
+adjustText
