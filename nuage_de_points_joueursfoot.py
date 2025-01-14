@@ -20,7 +20,7 @@ def plot_midfielders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    
+
     # Points avec noms des joueurs directement affichés
     texts = []
     for i, row in df.iterrows():
@@ -42,7 +42,11 @@ def plot_midfielders(df):
         ))
     
     adjust_text(texts, ax=ax)
-    
+
+    # Ajout des axes et titres
+    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
+    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
+
     ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
     ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
     ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
@@ -58,7 +62,7 @@ def plot_forwards(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    
+
     texts = []
     for i, row in df.iterrows():
         ax.scatter(
@@ -79,7 +83,11 @@ def plot_forwards(df):
         ))
     
     adjust_text(texts, ax=ax)
-    
+
+    # Ajout des axes et titres
+    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
+    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
+
     ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
     ax.set_xlabel("Passes clés", fontsize=12, color="white")
     ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
@@ -95,7 +103,7 @@ def plot_defenders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    
+
     texts = []
     for i, row in df.iterrows():
         ax.scatter(
@@ -116,7 +124,11 @@ def plot_defenders(df):
         ))
     
     adjust_text(texts, ax=ax)
-    
+
+    # Ajout des axes et titres
+    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
+    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
+
     ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
     ax.set_xlabel("Tacles", fontsize=12, color="white")
     ax.set_ylabel("Interceptions", fontsize=12, color="white")
