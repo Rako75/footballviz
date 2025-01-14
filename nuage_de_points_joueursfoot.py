@@ -30,7 +30,7 @@ df["Création totale"] = df["Création Off."]
 def load_image(url):
     response = requests.get(url)
     img = plt.imread(BytesIO(response.content))
-    return OffsetImage(img, zoom=0.05)  # Ajuster le zoom pour redimensionner les images
+    return OffsetImage(img, zoom=0.0005)  # Ajuster le zoom pour redimensionner les images
 
 # Fonction pour tracer les graphiques avec les logos
 def plot_with_logos(df, x_col, y_col, league):
