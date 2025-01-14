@@ -144,9 +144,9 @@ if league_option != "Toutes les ligues":
     df_position = df_position[df_position["Ligue"] == league_option]
 
 # Prendre les 20 meilleurs joueurs selon la métrique sélectionnée
-top_20_players = df_position.nlargest(20, metric)
+top_20_players = df_position.nlargest(15, metric)
 
 # Afficher le graphique dans Streamlit
-st.write(f"Top 20 des {position_option.lower()}s ({league_option})")
+st.write(f"Top 15 des {position_option.lower()}s ({league_option})")
 fig = plot_function(top_20_players)
 st.pyplot(fig)
