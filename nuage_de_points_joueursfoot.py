@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
+from adjustText import adjust_text  # Pour ajuster automatiquement les noms des joueurs
 
 # Charger le fichier CSV
 df = pd.read_csv("df_Big5.csv")
@@ -19,28 +20,29 @@ def plot_midfielders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Distance totale parcourue avec le ballon"],
-        df["Actions Défensives"],
-        s=100,
-        c=df["Passes progressives"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="w"
-    )
+    
+    # Points avec noms des joueurs directement affichés
+    texts = []
     for i, row in df.iterrows():
-        ax.text(
+        ax.scatter(
             row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"] + 0.1,
-            str(i + 1),
+            row["Actions Défensives"],
+            s=100,
+            color="cyan",
+            alpha=0.7,
+            edgecolor="w"
+        )
+        texts.append(ax.text(
+            row["Distance totale parcourue avec le ballon"],
+            row["Actions Défensives"],
+            row["Joueur"],
             fontsize=10,
             color="white",
             ha="center"
-        )
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
+        ))
+    
+    adjust_text(texts, ax=ax)
+    
     ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
     ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
     ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
@@ -56,28 +58,28 @@ def plot_forwards(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Passes cles"],
-        df["Actions menant a un tir par 90 minutes"],
-        s=100,
-        c=df["Actions menant a un but par 90 minutes"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="white"
-    )
+    
+    texts = []
     for i, row in df.iterrows():
-        ax.text(
+        ax.scatter(
             row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"] + 0.1,
-            str(i + 1),
+            row["Actions menant a un tir par 90 minutes"],
+            s=100,
+            color="magenta",
+            alpha=0.7,
+            edgecolor="white"
+        )
+        texts.append(ax.text(
+            row["Passes cles"],
+            row["Actions menant a un tir par 90 minutes"],
+            row["Joueur"],
             fontsize=10,
             color="white",
             ha="center"
-        )
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
+        ))
+    
+    adjust_text(texts, ax=ax)
+    
     ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
     ax.set_xlabel("Passes clés", fontsize=12, color="white")
     ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
@@ -93,28 +95,28 @@ def plot_defenders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Tacles"],
-        df["Interceptions"],
-        s=df["Duels aeriens gagnes"] * 5,
-        c=df["Duels aeriens gagnes"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="white"
-    )
+    
+    texts = []
     for i, row in df.iterrows():
-        ax.text(
+        ax.scatter(
             row["Tacles"],
-            row["Interceptions"] + 0.1,
-            str(i + 1),
+            row["Interceptions"],
+            s=row["Duels aeriens gagnes"] * 5,
+            color="orange",
+            alpha=0.7,
+            edgecolor="white"
+        )
+        texts.append(ax.text(
+            row["Tacles"],
+            row["Interceptions"],
+            row["Joueur"],
             fontsize=10,
             color="white",
             ha="center"
-        )
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Duels aériens gagnés", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
+        ))
+    
+    adjust_text(texts, ax=ax)
+    
     ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
     ax.set_xlabel("Tacles", fontsize=12, color="white")
     ax.set_ylabel("Interceptions", fontsize=12, color="white")
