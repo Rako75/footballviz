@@ -44,9 +44,12 @@ def plot_midfielders(df):
             va="bottom"  # Éviter le chevauchement
         )
 
-    # Ajouter une légende avec les indices des joueurs
+    # Ajouter une légende personnalisée en fonction des indices des joueurs
     legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
-    plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
+    legend_text = "\n".join(legend_labels)  # Texte formaté pour chaque joueur
+    
+    # Affichage de la légende sous le graphique
+    ax.text(0.05, -0.2, legend_text, transform=ax.transAxes, color="white", fontsize=10, va='top', ha='left', wrap=True)
 
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
@@ -102,9 +105,12 @@ def plot_forwards(df):
             va="bottom"  # Éviter le chevauchement
         )
 
-    # Ajouter une légende avec les indices des joueurs
+    # Ajouter une légende personnalisée en fonction des indices des joueurs
     legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
-    plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
+    legend_text = "\n".join(legend_labels)  # Texte formaté pour chaque joueur
+    
+    # Affichage de la légende sous le graphique
+    ax.text(0.05, -0.2, legend_text, transform=ax.transAxes, color="white", fontsize=10, va='top', ha='left', wrap=True)
 
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
