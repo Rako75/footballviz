@@ -39,7 +39,7 @@ def plot_with_logos(df, x_col, y_col, league):
     
     for _, row in df.iterrows():
         # Construire l'URL du logo
-        logo_url = f"{logo_directories[league]}/{row['Club']}.png"
+        logo_url = f"{logo_directories[league]}/{row['Equipe']}.png"
         try:
             # Ajouter le logo
             image = load_image(logo_url)
