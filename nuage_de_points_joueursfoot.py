@@ -25,7 +25,7 @@ def plot_midfielders(df):
     scatter = ax.scatter(
         df["Distance totale parcourue avec le ballon"],
         df["Actions Défensives"],
-        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
+        s=100,  # Taille constante pour tous les points
         c=df["Passes progressives"],
         cmap="coolwarm",
         alpha=0.7,
@@ -44,7 +44,7 @@ def plot_midfielders(df):
             va="bottom"  # Éviter le chevauchement
         )
 
-    # Ajouter une légende avec les noms des joueurs
+    # Ajouter une légende avec les indices des joueurs
     legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
     plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
 
@@ -83,7 +83,7 @@ def plot_forwards(df):
     scatter = ax.scatter(
         df["Passes cles"],
         df["Actions menant a un tir par 90 minutes"],
-        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
+        s=100,  # Taille constante pour tous les points
         c=df["Actions menant a un but par 90 minutes"],
         cmap="coolwarm",
         alpha=0.7,
@@ -102,7 +102,7 @@ def plot_forwards(df):
             va="bottom"  # Éviter le chevauchement
         )
 
-    # Ajouter une légende avec les noms des joueurs
+    # Ajouter une légende avec les indices des joueurs
     legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
     plt.legend(legend_labels, loc='upper left', fontsize=8, title="Joueurs", title_fontsize=10)
 
