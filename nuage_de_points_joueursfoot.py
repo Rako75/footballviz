@@ -29,7 +29,8 @@ df["Création totale"] = df["Création Off."]
 # Fonction pour charger les images à partir d'URL
 def load_image(url):
     response = requests.get(url)
-    return OffsetImage(plt.imread(BytesIO(response.content)), zoom=0.1)
+    img = plt.imread(BytesIO(response.content))
+    return OffsetImage(img, zoom=0.05)  # Ajuster le zoom pour redimensionner les images
 
 # Fonction pour tracer les graphiques avec les logos
 def plot_with_logos(df, x_col, y_col, league):
@@ -39,7 +40,7 @@ def plot_with_logos(df, x_col, y_col, league):
     
     for _, row in df.iterrows():
         # Construire l'URL du logo
-        logo_url = f"{logo_directories[league]}/{row['Equipe']}.png"
+        logo_url = f"{logo_directories[league]}/{row['Club']}.png"
         try:
             # Ajouter le logo
             image = load_image(logo_url)
