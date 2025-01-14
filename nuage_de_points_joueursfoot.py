@@ -22,31 +22,17 @@ def plot_midfielders(df):
     # Lignes pointillées
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
     
-    # Afficher les meilleurs joueurs avec des points plus grands
-    top_15_midfielders = df.nlargest(15, "Actions Défensives")
-    scatter_top = ax.scatter(
-        top_15_midfielders["Distance totale parcourue avec le ballon"],
-        top_15_midfielders["Actions Défensives"],
-        s=top_15_midfielders["Age"] * 20,  # Taille des points proportionnelle à l'âge
-        c=top_15_midfielders["Passes progressives"],
+    scatter = ax.scatter(
+        df["Distance totale parcourue avec le ballon"],
+        df["Actions Défensives"],
+        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
+        c=df["Passes progressives"],
         cmap="coolwarm",
         alpha=0.7,
         edgecolors="w"
     )
 
-    # Afficher les autres joueurs avec de petits points
-    other_midfielders = df[~df["Joueur"].isin(top_15_midfielders["Joueur"])]
-    scatter_other = ax.scatter(
-        other_midfielders["Distance totale parcourue avec le ballon"],
-        other_midfielders["Actions Défensives"],
-        s=other_midfielders["Age"] * 5,  # Taille des points plus petits
-        c=other_midfielders["Passes progressives"],
-        cmap="coolwarm",
-        alpha=0.3,
-        edgecolors="w"
-    )
-
-    for i, row in top_15_midfielders.iterrows():
+    for i, row in df.iterrows():
         ax.text(
             row["Distance totale parcourue avec le ballon"],
             row["Actions Défensives"] + 0.1,
@@ -57,7 +43,7 @@ def plot_midfielders(df):
             va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
         )
 
-    cbar = plt.colorbar(scatter_top, ax=ax)
+    cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
     cbar.ax.yaxis.set_tick_params(color="white")
     plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
@@ -89,31 +75,17 @@ def plot_forwards(df):
     # Lignes pointillées
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
 
-    # Afficher les meilleurs joueurs avec des points plus grands
-    top_15_forwards = df.nlargest(15, "Création totale")
-    scatter_top = ax.scatter(
-        top_15_forwards["Passes cles"],
-        top_15_forwards["Actions menant a un tir par 90 minutes"],
-        s=top_15_forwards["Age"] * 20,  # Taille des points proportionnelle à l'âge
-        c=top_15_forwards["Actions menant a un but par 90 minutes"],
+    scatter = ax.scatter(
+        df["Passes cles"],
+        df["Actions menant a un tir par 90 minutes"],
+        s=df["Age"] * 20,  # Taille des points proportionnelle à l'âge
+        c=df["Actions menant a un but par 90 minutes"],
         cmap="coolwarm",
         alpha=0.7,
         edgecolors="white"
     )
 
-    # Afficher les autres joueurs avec de petits points
-    other_forwards = df[~df["Joueur"].isin(top_15_forwards["Joueur"])]
-    scatter_other = ax.scatter(
-        other_forwards["Passes cles"],
-        other_forwards["Actions menant a un tir par 90 minutes"],
-        s=other_forwards["Age"] * 5,  # Taille des points plus petits
-        c=other_forwards["Actions menant a un but par 90 minutes"],
-        cmap="coolwarm",
-        alpha=0.3,
-        edgecolors="w"
-    )
-
-    for i, row in top_15_forwards.iterrows():
+    for i, row in df.iterrows():
         ax.text(
             row["Passes cles"],
             row["Actions menant a un tir par 90 minutes"] + 0.1,
@@ -124,7 +96,7 @@ def plot_forwards(df):
             va="bottom"  # Éviter le chevauchement en positionnant les noms légèrement au-dessus
         )
 
-    cbar = plt.colorbar(scatter_top, ax=ax)
+    cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
     cbar.ax.yaxis.set_tick_params(color="white")
     plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
@@ -171,10 +143,10 @@ else:
 if league_option != "Toutes les ligues":
     df_position = df_position[df_position["Ligue"] == league_option]
 
-# Prendre les 100 premiers joueurs selon la métrique sélectionnée
-top_100_players = df_position.nlargest(100, metric)
+# Prendre les 20 meilleurs joueurs selon la métrique sélectionnée
+top_20_players = df_position.nlargest(20, metric)
 
 # Afficher le graphique dans Streamlit
-st.write(f"Top 100 des {position_option.lower()}s ({league_option})")
-fig = plot_function(top_100_players)
+st.write(f"Top 20 des {position_option.lower()}s ({league_option})")
+fig = plot_function(top_20_players)
 st.pyplot(fig)
