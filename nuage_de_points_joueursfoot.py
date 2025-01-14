@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
-from adjustText import adjust_text  # Pour ajuster automatiquement les noms des joueurs
 
 # Charger le fichier CSV
 df = pd.read_csv("df_Big5.csv")
@@ -19,132 +18,129 @@ df["Création totale"] = df["Création Off."]
 def plot_midfielders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-
-    # Points avec noms des joueurs directement affichés
-    texts = []
-    for i, row in df.iterrows():
-        ax.scatter(
-            row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"],
-            s=100,
-            color="cyan",
-            alpha=0.7,
-            edgecolor="w"
-        )
-        texts.append(ax.text(
-            row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"],
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center"
-        ))
     
-    adjust_text(texts, ax=ax)
+    # Lignes pointillées
+    ax.grid(True, linestyle=':', color='white', alpha=0.5)
+    
+    scatter = ax.scatter(
+        df["Distance totale parcourue avec le ballon"],
+        df["Actions Défensives"],
+        s=100,  # Taille constante pour tous les points
+        c=df["Passes progressives"],
+        cmap="coolwarm",
+        alpha=0.7,
+        edgecolors="w"
+    )
 
-    # Ajout des axes et titres
-    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
-    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
+    # Ajouter des numéros aux joueurs pour éviter les chevauchements
+    for i, row in df.iterrows():
+        ax.text(
+            row["Distance totale parcourue avec le ballon"],
+            row["Actions Défensives"] + 0.1,
+            str(i + 1),  # Numéro du joueur
+            fontsize=10,
+            color="white",  # Noms en blanc
+            ha="center",
+            va="bottom"  # Éviter le chevauchement
+        )
+
+    # Ajouter une légende personnalisée en fonction des indices des joueurs
+    legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
+    legend_text = "\n".join(legend_labels)  # Texte formaté pour chaque joueur
+    
+    # Affichage de la légende sous le graphique
+    ax.text(0.05, -0.2, legend_text, transform=ax.transAxes, color="white", fontsize=10, va='top', ha='left', wrap=True)
+
+    cbar = plt.colorbar(scatter, ax=ax)
+    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
+    cbar.ax.yaxis.set_tick_params(color="white")
+    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
 
     ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
     ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
     ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
+
+    # Personnalisation des axes (lignes pointillées)
     ax.spines['top'].set_color('white')
+    ax.spines['top'].set_linewidth(1)
     ax.spines['right'].set_color('white')
+    ax.spines['right'].set_linewidth(1)
     ax.spines['left'].set_color('white')
+    ax.spines['left'].set_linewidth(1)
     ax.spines['bottom'].set_color('white')
+    ax.spines['bottom'].set_linewidth(1)
+
     ax.tick_params(axis='x', colors='white')
     ax.tick_params(axis='y', colors='white')
+
     return fig
 
 def plot_forwards(df):
+    plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
+
+    # Lignes pointillées
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
 
-    texts = []
-    for i, row in df.iterrows():
-        ax.scatter(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"],
-            s=100,
-            color="magenta",
-            alpha=0.7,
-            edgecolor="white"
-        )
-        texts.append(ax.text(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"],
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center"
-        ))
-    
-    adjust_text(texts, ax=ax)
+    scatter = ax.scatter(
+        df["Passes cles"],
+        df["Actions menant a un tir par 90 minutes"],
+        s=100,  # Taille constante pour tous les points
+        c=df["Actions menant a un but par 90 minutes"],
+        cmap="coolwarm",
+        alpha=0.7,
+        edgecolors="white"
+    )
 
-    # Ajout des axes et titres
-    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
-    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
+    # Ajouter des numéros aux joueurs pour éviter les chevauchements
+    for i, row in df.iterrows():
+        ax.text(
+            row["Passes cles"],
+            row["Actions menant a un tir par 90 minutes"] + 0.1,
+            str(i + 1),  # Numéro du joueur
+            fontsize=10,
+            color="white",  # Noms en blanc
+            ha="center",
+            va="bottom"  # Éviter le chevauchement
+        )
+
+    # Ajouter une légende personnalisée en fonction des indices des joueurs
+    legend_labels = [f"{i + 1}: {row['Joueur']}" for i, row in df.iterrows()]
+    legend_text = "\n".join(legend_labels)  # Texte formaté pour chaque joueur
+    
+    # Affichage de la légende sous le graphique
+    ax.text(0.05, -0.2, legend_text, transform=ax.transAxes, color="white", fontsize=10, va='top', ha='left', wrap=True)
+
+    cbar = plt.colorbar(scatter, ax=ax)
+    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
+    cbar.ax.yaxis.set_tick_params(color="white")
+    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
 
     ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
     ax.set_xlabel("Passes clés", fontsize=12, color="white")
     ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
+
+    # Personnalisation des axes (lignes pointillées)
     ax.spines['top'].set_color('white')
+    ax.spines['top'].set_linewidth(1)
     ax.spines['right'].set_color('white')
+    ax.spines['right'].set_linewidth(1)
     ax.spines['left'].set_color('white')
+    ax.spines['left'].set_linewidth(1)
     ax.spines['bottom'].set_color('white')
+    ax.spines['bottom'].set_linewidth(1)
+
     ax.tick_params(axis='x', colors='white')
     ax.tick_params(axis='y', colors='white')
-    return fig
 
-def plot_defenders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-
-    texts = []
-    for i, row in df.iterrows():
-        ax.scatter(
-            row["Tacles"],
-            row["Interceptions"],
-            s=row["Duels aeriens gagnes"] * 5,
-            color="orange",
-            alpha=0.7,
-            edgecolor="white"
-        )
-        texts.append(ax.text(
-            row["Tacles"],
-            row["Interceptions"],
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center"
-        ))
-    
-    adjust_text(texts, ax=ax)
-
-    # Ajout des axes et titres
-    ax.axhline(y=0, color='white', linewidth=0.8)  # Axe horizontal
-    ax.axvline(x=0, color='white', linewidth=0.8)  # Axe vertical
-
-    ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
-    ax.set_xlabel("Tacles", fontsize=12, color="white")
-    ax.set_ylabel("Interceptions", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
     return fig
 
 # Interface utilisateur avec Streamlit
-st.title("Analyse des joueurs - Milieux, Attaquants et Défenseurs")
+st.title("Analyse des joueurs - Milieux et Attaquants")
 
 # Sélecteur de position et de ligue
-position_option = st.selectbox("Sélectionnez une position:", ["Milieu", "Attaquant", "Défenseur"])
+position_option = st.selectbox("Sélectionnez une position:", ["Milieu", "Attaquant"])
 league_option = st.selectbox(
     "Sélectionnez une ligue:",
     ["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
@@ -155,14 +151,10 @@ if position_option == "Milieu":
     df_position = df[df["Position"].str.contains("Midfielder", case=False, na=False)]
     metric = "Actions Défensives"
     plot_function = plot_midfielders
-elif position_option == "Attaquant":
+else:
     df_position = df[df["Position"].str.contains("Forward", case=False, na=False)]
     metric = "Création totale"
     plot_function = plot_forwards
-else:  # Défenseur
-    df_position = df[df["Position"].str.contains("Defender", case=False, na=False)]
-    metric = "Tacles"
-    plot_function = plot_defenders
 
 if league_option != "Toutes les ligues":
     df_position = df_position[df_position["Ligue"] == league_option]
