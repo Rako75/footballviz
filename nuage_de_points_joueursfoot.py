@@ -1,6 +1,18 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import streamlit as st
+import requests
+from io import BytesIO
+
+# Directoires des logos
+logo_directories = {
+    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
+    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
+    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
+    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
+    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
+}
 
 # Charger le fichier CSV
 df = pd.read_csv("df_Big5.csv")
@@ -8,173 +20,82 @@ df = pd.read_csv("df_Big5.csv")
 # Ajouter des colonnes pertinentes pour l'analyse
 df["Actions Défensives"] = df["Tacles"] + df["Interceptions"]
 df["Création Off."] = (
-    df["Passes cles"] +
-    df["Actions menant a un tir par 90 minutes"] +
-    df["Actions menant a un but par 90 minutes"]
+    df["Passes cles"]
+    + df["Actions menant a un tir par 90 minutes"]
+    + df["Actions menant a un but par 90 minutes"]
 )
 df["Création totale"] = df["Création Off."]
 
-# Fonctions pour tracer les graphiques
-def plot_midfielders(df):
+# Fonction pour charger les images à partir d'URL
+def load_image(url):
+    response = requests.get(url)
+    return OffsetImage(plt.imread(BytesIO(response.content)), zoom=0.1)
+
+# Fonction pour tracer les graphiques avec les logos
+def plot_with_logos(df, x_col, y_col, league):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
+    ax.grid(True, linestyle=":", color="white", alpha=0.5)
     
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Distance totale parcourue avec le ballon"],
-        df["Actions Défensives"],
-        s=df["Age"] * 20,
-        c=df["Passes progressives"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="w"
-    )
+    for _, row in df.iterrows():
+        # Construire l'URL du logo
+        logo_url = f"{logo_directories[league]}/{row['Club']}.png"
+        try:
+            # Ajouter le logo
+            image = load_image(logo_url)
+            ab = AnnotationBbox(
+                image,
+                (row[x_col], row[y_col]),
+                frameon=False,
+                pad=0.5,
+            )
+            ax.add_artist(ab)
+        except Exception:
+            # Si le logo ne peut pas être chargé, afficher un point
+            ax.scatter(row[x_col], row[y_col], s=100, c="white", edgecolors="w", alpha=0.7)
 
-    for i, row in df.iterrows():
-        ax.text(
-            row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
-    ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
-    ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
-    return fig
-
-def plot_forwards(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
+    ax.set_xlabel(x_col, fontsize=12, color="white")
+    ax.set_ylabel(y_col, fontsize=12, color="white")
+    ax.spines["top"].set_color("white")
+    ax.spines["right"].set_color("white")
+    ax.spines["left"].set_color("white")
+    ax.spines["bottom"].set_color("white")
+    ax.tick_params(axis="x", colors="white")
+    ax.tick_params(axis="y", colors="white")
     
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Passes cles"],
-        df["Actions menant a un tir par 90 minutes"],
-        s=df["Age"] * 20,
-        c=df["Actions menant a un but par 90 minutes"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="white"
-    )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
-    ax.set_xlabel("Passes clés", fontsize=12, color="white")
-    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
-    return fig
-
-def plot_defenders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Tacles"],
-        df["Interceptions"],
-        s=df["Duels aeriens gagnes"] * 10,
-        c=df["Duels aeriens gagnes"],
-        cmap="viridis",
-        alpha=0.7,
-        edgecolors="w"
-    )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Tacles"],
-            row["Interceptions"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Duels aériens gagnés", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
-    ax.set_xlabel("Tacles", fontsize=12, color="white")
-    ax.set_ylabel("Interceptions", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
+    ax.set_title(f"Analyse des joueurs : {x_col} vs {y_col}", fontsize=16, color="white")
     return fig
 
 # Interface utilisateur avec Streamlit
-st.title("Analyse des joueurs - Milieux, Attaquants et Défenseurs")
+st.title("Analyse des joueurs avec les logos des clubs")
 
 # Sélecteur de position et de ligue
 position_option = st.selectbox("Sélectionnez une position:", ["Milieu", "Attaquant", "Défenseur"])
 league_option = st.selectbox(
     "Sélectionnez une ligue:",
-    ["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
+    ["Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"],
 )
 
-# Filtrer les joueurs en fonction de la position et de la ligue
+# Filtrer les joueurs en fonction de la position
 if position_option == "Milieu":
     df_position = df[df["Position"].str.contains("Midfielder", case=False, na=False)]
-    metric = "Actions Défensives"
-    plot_function = plot_midfielders
+    x_col = "Distance totale parcourue avec le ballon"
+    y_col = "Actions Défensives"
 elif position_option == "Attaquant":
     df_position = df[df["Position"].str.contains("Forward", case=False, na=False)]
-    metric = "Création totale"
-    plot_function = plot_forwards
+    x_col = "Passes cles"
+    y_col = "Actions menant a un tir par 90 minutes"
 else:  # Défenseur
     df_position = df[df["Position"].str.contains("Defender", case=False, na=False)]
-    metric = "Tacles"
-    plot_function = plot_defenders
+    x_col = "Tacles"
+    y_col = "Interceptions"
 
-if league_option != "Toutes les ligues":
-    df_position = df_position[df_position["Ligue"] == league_option]
+# Filtrer par ligue
+df_league = df_position[df_position["Ligue"] == league_option]
 
 # Prendre les 20 meilleurs joueurs selon la métrique sélectionnée
-top_20_players = df_position.nlargest(20, metric)
+top_20_players = df_league.nlargest(20, y_col)
 
-# Afficher le graphique dans Streamlit
-st.write(f"Top 20 des {position_option.lower()}s ({league_option})")
-fig = plot_function(top_20_players)
+# Afficher le graphique avec les logos
+fig = plot_with_logos(top_20_players, x_col, y_col, league_option)
 st.pyplot(fig)
