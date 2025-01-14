@@ -34,7 +34,7 @@ def load_image(url):
 
 # Fonction pour tracer les graphiques avec les logos
 def plot_with_logos(df, x_col, y_col, league):
-    fig, ax = plt.subplots(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(10, 8))  # Taille plus petite pour réduire la complexité
     ax.set_facecolor("black")
     ax.grid(True, linestyle=":", color="white", alpha=0.5)
     
