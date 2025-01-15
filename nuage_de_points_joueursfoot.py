@@ -18,7 +18,7 @@ df["Création totale"] = df["Création Off."]
 def plot_midfielders(df):
     fig, ax = plt.subplots(figsize=(14, 10))
     ax.set_facecolor("black")
-    
+
     ax.grid(True, linestyle=':', color='white', alpha=0.5)
     scatter = ax.scatter(
         df["Distance totale parcourue avec le ballon"],
