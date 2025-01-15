@@ -7,3 +7,4 @@ requests
 scikit-learn
 pillow
 adjustText
+seaborn
