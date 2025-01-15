@@ -1,180 +1,94 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import streamlit as st
+import seaborn as sns
 
 # Charger le fichier CSV
 df = pd.read_csv("df_Big5.csv")
 
-# Ajouter des colonnes pertinentes pour l'analyse
-df["Actions Défensives"] = df["Tacles"] + df["Interceptions"]
-df["Création Off."] = (
-    df["Passes cles"] +
-    df["Actions menant a un tir par 90 minutes"] +
-    df["Actions menant a un but par 90 minutes"]
-)
-df["Création totale"] = df["Création Off."]
+# Filtrer les attaquants (Position = "Forward")
+df_forwards = df[df["Position"].str.contains("Forward", case=False, na=False)]
 
-# Fonctions pour tracer les graphiques
-def plot_midfielders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Distance totale parcourue avec le ballon"],
-        df["Actions Défensives"],
-        s=df["Age"] * 20,
-        c=df["Passes progressives"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="w"
-    )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
-    ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
-    ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
-    return fig
-
-def plot_forwards(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Passes cles"],
-        df["Actions menant a un tir par 90 minutes"],
-        s=df["Age"] * 20,
-        c=df["Actions menant a un but par 90 minutes"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="white"
-    )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
-    ax.set_xlabel("Passes clés", fontsize=12, color="white")
-    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
-    return fig
-
-def plot_defenders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Tacles"],
-        df["Interceptions"],
-        s=df["Duels aeriens gagnes"] * 10,
-        c=df["Duels aeriens gagnes"],
-        cmap="viridis",
-        alpha=0.7,
-        edgecolors="w"
-    )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Tacles"],
-            row["Interceptions"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Duels aériens gagnés", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
-    ax.set_xlabel("Tacles", fontsize=12, color="white")
-    ax.set_ylabel("Interceptions", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
-    return fig
-
-# Interface utilisateur avec Streamlit
-st.title("Analyse des joueurs - Milieux, Attaquants et Défenseurs")
-
-# Sélecteur de position et de ligue
-position_option = st.selectbox("Sélectionnez une position:", ["Milieu", "Attaquant", "Défenseur"])
-league_option = st.selectbox(
-    "Sélectionnez une ligue:",
-    ["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
+# Calculer une métrique combinée pour la création d'occasions
+df_forwards["Création totale"] = (
+    df_forwards["Passes cles"] +
+    df_forwards["Actions menant a un tir par 90 minutes"] +
+    df_forwards["Actions menant a un but par 90 minutes"]
 )
 
-# Filtrer les joueurs en fonction de la position et de la ligue
-if position_option == "Milieu":
-    df_position = df[df["Position"].str.contains("Midfielder", case=False, na=False)]
-    metric = "Actions Défensives"
-    plot_function = plot_midfielders
-elif position_option == "Attaquant":
-    df_position = df[df["Position"].str.contains("Forward", case=False, na=False)]
-    metric = "Création totale"
-    plot_function = plot_forwards
-else:  # Défenseur
-    df_position = df[df["Position"].str.contains("Defender", case=False, na=False)]
-    metric = "Tacles"
-    plot_function = plot_defenders
+top_20_forwards = df_forwards.nlargest(20, "Création totale")
 
-if league_option != "Toutes les ligues":
-    df_position = df_position[df_position["Ligue"] == league_option]
+# Extraire les métriques nécessaires
+top_20_forwards = top_20_forwards[
+    ["Joueur", "Age", "Passes cles", "Actions menant a un tir par 90 minutes", "Actions menant a un but par 90 minutes"]
+]
 
-# Prendre les 20 meilleurs joueurs selon la métrique sélectionnée
-top_20_players = df_position.nlargest(20, metric)
+# Configurer le style du graphique avec un fond noir
+sns.set_style("white")
+plt.style.use("dark_background")
 
-# Afficher le graphique dans Streamlit
-st.write(f"Top 20 des {position_option.lower()}s ({league_option})")
-fig = plot_function(top_20_players)
-st.pyplot(fig)
+# Créer le nuage de points
+plt.figure(figsize=(14, 10))
+scatter = plt.scatter(
+    top_20_forwards["Passes cles"],
+    top_20_forwards["Actions menant a un tir par 90 minutes"],
+    s=top_20_forwards["Age"] * 10,  # Taille des points (proportionnelle à l'âge)
+    c=top_20_forwards["Actions menant a un but par 90 minutes"],  # Couleur des points (actions menant à un but)
+    cmap="coolwarm",
+    alpha=0.7,
+    edgecolors="w"
+)
+
+# Ajouter un colorbar
+cbar = plt.colorbar(scatter)
+cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
+cbar.ax.yaxis.set_tick_params(color="white")
+plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
+
+# Ajouter les étiquettes et le titre
+plt.title("Création d'occasion par 90 min", fontsize=16, color="white")
+plt.xlabel("Passes clés", fontsize=12, color="white")
+plt.ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
+
+# Définir les limites des axes
+plt.xlim(top_20_forwards["Passes cles"].min() - 1, top_20_forwards["Passes cles"].max() + 1)
+plt.ylim(top_20_forwards["Actions menant a un tir par 90 minutes"].min() - 0.1,
+         top_20_forwards["Actions menant a un tir par 90 minutes"].max() + 0.1)
+
+# Ajouter les noms des joueurs juste au-dessus des points
+for i, row in top_20_forwards.iterrows():
+    plt.text(
+        row["Passes cles"],
+        row["Actions menant a un tir par 90 minutes"] + 0.05,  # Décalage vertical pour placer les noms au-dessus des points
+        row["Joueur"],
+        fontsize=10,
+        alpha=0.9,
+        color="white",
+        fontname="Arial",
+        weight="bold",
+        ha='center',
+        va='bottom'
+    )
+
+# Ajouter les lignes des axes X et Y
+plt.axhline(0, color="white", linewidth=1, linestyle="--", alpha=0.7)  # Axe X
+plt.axvline(0, color="white", linewidth=1, linestyle="--", alpha=0.7)  # Axe Y
+
+# Ajouter des lignes au centre
+x_median = (top_20_forwards["Passes cles"].min() + top_20_forwards["Passes cles"].max()) / 2
+y_median = (top_20_forwards["Actions menant a un tir par 90 minutes"].min() + top_20_forwards["Actions menant a un tir par 90 minutes"].max()) / 2
+
+plt.axvline(x_median, color="yellow", linewidth=1.5, linestyle="--", alpha=0.7)  # Ligne verticale au centre
+plt.axhline(y_median, color="yellow", linewidth=1.5, linestyle="--", alpha=0.7)  # Ligne horizontale au centre
+
+# Supprimer la grille et les bordures
+plt.grid(False)
+plt.gca().spines["top"].set_visible(False)
+plt.gca().spines["right"].set_visible(False)
+plt.gca().spines["left"].set_visible(False)
+plt.gca().spines["bottom"].set_visible(False)
+
+# Ajuster les couleurs des ticks
+plt.gca().tick_params(colors="white")
+
+plt.tight_layout()
+plt.show()
