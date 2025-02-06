@@ -9,13 +9,20 @@ df = pd.read_excel(file_path, sheet_name="Feuil1")
 df = df.sort_values("Saison")
 df["Noms"] = df["Noms"].astype(str)
 
+def get_image_url(nom):
+    formatted_name = nom.replace(" ", "%20")
+    return f"https://github.com/Rako75/footballviz/blob/main/PSG%20Buteurs/{formatted_name}.jpg?raw=true"
+
 def animate_names():
     placeholder = st.empty()
     for i in range(len(df)):
         saison = df.iloc[i]["Saison"]
         nom = df.iloc[i]["Noms"]
         buts = df.iloc[i]["Buts"]
-        placeholder.markdown(f"## {saison} : {nom} ({buts} buts)")
+        image_url = get_image_url(nom)
+        with placeholder.container():
+            st.markdown(f"## {saison} : {nom} ({buts} buts)")
+            st.image(image_url, caption=nom, use_column_width=True)
         time.sleep(1)
 
 st.title("🏆 Meilleurs Buteurs du PSG par Saison")
