@@ -4,7 +4,7 @@ import plotly.express as px
 import time
 
 # Charger les données
-file_path = "Meilleurs buteurs du PSG (1).xlsx"
+file_path = "Meilleurs buteurs du PSG.xlsx"
 df = pd.read_excel(file_path, sheet_name="Feuil1")
 
 df = df.sort_values("Saison")
