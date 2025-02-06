@@ -22,8 +22,8 @@ def animate_names():
         image_url = get_image_url(nom)
         with placeholder.container():
             st.markdown(f"## {saison} : {nom} ({buts} buts)")
-            st.image(image_url, caption=nom, use_column_width=True)
-        time.sleep(1)
+            st.image(image_url, caption=nom, use_container_width=True)
+        time.sleep(5)
 
 st.title("🏆 Meilleurs Buteurs du PSG par Saison")
 if st.button("Lancer l'animation"):
