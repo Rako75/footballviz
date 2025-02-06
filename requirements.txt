@@ -8,3 +8,5 @@ requests
 scikit-learn
 pillow
 adjustText
+openpyxl
+plotly
