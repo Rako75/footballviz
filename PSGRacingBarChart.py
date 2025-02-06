@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import time
 
 # Charger les données
@@ -10,15 +9,15 @@ df = pd.read_excel(file_path, sheet_name="Feuil1")
 df = df.sort_values("Saison")
 df["Noms"] = df["Noms"].astype(str)
 
-def animate_chart():
-    for i in range(1, len(df) + 1):
-        temp_df = df.iloc[:i]
-        fig = px.bar(temp_df, x="Saison", y="Buts", text="Noms", 
-                     title="Meilleurs buteurs du PSG par saison",
-                     animation_frame="Saison", range_y=[0, df["Buts"].max() + 5])
-        st.plotly_chart(fig)
-        time.sleep(0.5)
+def animate_names():
+    placeholder = st.empty()
+    for i in range(len(df)):
+        saison = df.iloc[i]["Saison"]
+        nom = df.iloc[i]["Noms"]
+        buts = df.iloc[i]["Buts"]
+        placeholder.markdown(f"## {saison} : {nom} ({buts} buts)")
+        time.sleep(1)
 
-st.title("🏆 Racing Bar Chart : Meilleurs Buteurs du PSG")
+st.title("🏆 Meilleurs Buteurs du PSG par Saison")
 if st.button("Lancer l'animation"):
-    animate_chart()
+    animate_names()
