@@ -32,7 +32,7 @@ st.plotly_chart(fig)
 # Ajout d'une comparaison en radar chart
 import plotly.graph_objects as go
 
-stats_comparaison = ["Buts", "Passes décisives", "xG", "Passes progressives", "Tirs"]
+stats_comparaison = ["Buts", "Passes décisives", "Buts attendus (xG)", "Passes progressives", "Tirs"]
 moyennes_attaquants = df[df["Position"] == "Attaquant Central"][stats_comparaison].mean()
 
 fig_radar = go.Figure()
