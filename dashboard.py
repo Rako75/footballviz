@@ -37,10 +37,10 @@ def plot_radar_chart(player_data, stats_cols, player_name):
     ranges=ranges,
     params=stats_cols,
     values=values,
-    title=player_name,
-    compare=False,
-    radar_color=["#1f77b4", "#ff7f0e"]  # Ajout de 2 couleurs minimum
+    title={"title": player_name, "title_color": "black", "title_size": 18},  # Correction ici
+    compare=False
 )
+
     st.pyplot(fig)
 
 
