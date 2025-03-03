@@ -21,26 +21,20 @@ def load_and_preprocess_data(position):
     return filtered_data, stats_cols
 
 def plot_radar_chart(player_data, stats_cols, player_name):
-    if player_data.empty:
-        st.error("Données du joueur introuvables.")
-        return
-
-    values = player_data[stats_cols].iloc[0].tolist()  # Extraire la première ligne sous forme de liste
-    if len(values) != len(stats_cols):
-        st.error("Les données du joueur sont incomplètes.")
-        return
-
+    values = player_data[stats_cols].values.flatten().tolist()
     ranges = [(0, 100) for _ in stats_cols]
-    radar = Radar()
-
+    
+    radar = Radar()  # Initialisation correcte
+    
     fig, ax = radar.plot_radar(
-    ranges=ranges,
-    params=stats_cols,
-    values=values,
-    title={"title": player_name, "title_color": "black", "title_size": 18},  # Correction ici
-    compare=False
-)
-
+        ranges=ranges,
+        params=stats_cols,
+        values=values,
+        title={"title": player_name, "title_color": "black", "title_size": 18},
+        compare=False,
+        radar_color=["#1f77b4", "#ff7f0e"]  # Ajout du paramètre radar_color
+    )
+    
     st.pyplot(fig)
 
 
