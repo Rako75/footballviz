@@ -37,7 +37,7 @@ st.title("Analyse des performances des joueurs de football")
 position = st.selectbox("Sélectionnez une position", data['Position'].unique())
 filtered_data, stats_cols = load_and_preprocess_data(position)
 player_name = st.selectbox("Sélectionnez un joueur", filtered_data['Joueur'].unique())
-player_data = filtered_data[filtered_data['Nom'] == player_name]
+player_data = filtered_data[filtered_data['Joueur'] == player_name]
 
 if not player_data.empty:
     st.write("### Statistiques du joueur")
