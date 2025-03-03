@@ -9,12 +9,13 @@ def load_dataset(file_path):
     return pd.read_csv(file_path)
 
 # Spécifier le chemin du fichier CSV
-file_path = "df_BIG2025.csv"
+file_path = "data/joueurs_stats.csv"
 data = load_dataset(file_path)
 
 def load_and_preprocess_data(position):
     filtered_data = data[data['Position'] == position]
-    stats_cols = ['Buts p/90 min', 'Passes déc. p/90 min', 'xG p/90 min', 'xAG p/90 min']
+    stats_cols = ['Buts par 90 minutes', 'Passes décisives par 90 minutes', 'Buts attendus par 90 minutes',
+                  'Passes décisives attendues par 90 minutes']
     for col in stats_cols:
         filtered_data[col] = (filtered_data[col].rank(pct=True) * 100).astype(int)
     return filtered_data, stats_cols
