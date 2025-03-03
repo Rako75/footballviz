@@ -34,14 +34,13 @@ def plot_radar_chart(player_data, stats_cols, player_name):
     radar = Radar()
 
     fig, ax = radar.plot_radar(
-        ranges=ranges,
-        params=stats_cols,
-        values=values,
-        title=player_name,
-        compare=False,
-        radar_color=["#1f77b4"]  # Couleur bleue pour le radar
-    )
-
+    ranges=ranges,
+    params=stats_cols,
+    values=values,
+    title=player_name,
+    compare=False,
+    radar_color=["#1f77b4", "#ff7f0e"]  # Ajout de 2 couleurs minimum
+)
     st.pyplot(fig)
 
 
