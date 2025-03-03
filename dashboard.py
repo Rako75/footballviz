@@ -24,14 +24,18 @@ def plot_radar_chart(player_data, stats_cols, player_name):
     values = player_data[stats_cols].values.flatten().tolist()
     ranges = [(0, 100) for _ in stats_cols]
     radar = Radar()
+
     fig, ax = radar.plot_radar(
         ranges=ranges,
         params=stats_cols,
         values=values,
         title=player_name,
-        compare=False
+        compare=False,
+        radar_color=["#1f77b4"]  # Bleu standard, change si besoin
     )
+
     st.pyplot(fig)
+
 
 st.title("Analyse des performances des joueurs de football")
 position = st.selectbox("Sélectionnez une position", data['Position'].unique())
