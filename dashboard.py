@@ -9,7 +9,7 @@ def load_dataset(file_path):
     return pd.read_csv(file_path)
 
 # Spécifier le chemin du fichier CSV
-file_path = "data/joueurs_stats.csv"
+file_path = "df_BIG2025.csv"
 data = load_dataset(file_path)
 
 def load_and_preprocess_data(position):
