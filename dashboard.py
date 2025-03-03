@@ -36,7 +36,7 @@ def plot_radar_chart(player_data, stats_cols, player_name):
 st.title("Analyse des performances des joueurs de football")
 position = st.selectbox("Sélectionnez une position", data['Position'].unique())
 filtered_data, stats_cols = load_and_preprocess_data(position)
-player_name = st.selectbox("Sélectionnez un joueur", filtered_data['Nom'].unique())
+player_name = st.selectbox("Sélectionnez un joueur", filtered_data['Player'].unique())
 player_data = filtered_data[filtered_data['Nom'] == player_name]
 
 if not player_data.empty:
