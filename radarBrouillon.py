@@ -28,7 +28,7 @@ def load_and_preprocess_data(file_path, competition, position):
     return data, stats_cols
 
 # Streamlit application
-st.title("Comparaison de joueurs - Saison 23/24")
+st.title("Comparaison de joueurs - Saison 24/25")
 
 # Sélection des compétitions
 competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundliga"]
