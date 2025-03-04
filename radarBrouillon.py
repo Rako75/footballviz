@@ -17,7 +17,7 @@ def load_and_preprocess_data(file_path, position):
     
     for col in stats_cols:
         if col in data.columns:
-            data[col] = data[col].astype(float) / data['Matches equivalents 90 minutes']
+            data[col] = data[col].astype(float) / data['Matchs en 90 min']
 
     for col in stats_cols:
         if col in data.columns:
