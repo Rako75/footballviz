@@ -8,7 +8,7 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 def get_player_image(player_name):
     """Récupère l'URL de l'image principale du joueur depuis Wikipedia"""
-    wiki = wikipediaapi.Wikipedia('fr', user_agent=USER_AGENT)
+    wiki = wikipediaapi.Wikipedia(language='fr')  # Définit la langue uniquement ici
     page = wiki.page(player_name)
 
     if not page.exists():
@@ -25,7 +25,7 @@ def get_player_image(player_name):
 
 def download_and_show_image(image_url):
     """Télécharge et affiche l'image du joueur"""
-    headers = {"User-Agent": USER_AGENT}  # Ajout du User-Agent pour éviter un blocage
+    headers = {"User-Agent": USER_AGENT}  # Ajout du User-Agent dans la requête
     response = requests.get(image_url, headers=headers)
     
     if response.status_code == 200:
