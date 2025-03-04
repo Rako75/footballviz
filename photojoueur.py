@@ -1,4 +1,3 @@
-pip install wikipedia-api requests Pillow
 import streamlit as st
 import wikipedia
 import requests
