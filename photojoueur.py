@@ -8,7 +8,7 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 def get_player_image(player_name):
     """Récupère l'URL de l'image principale du joueur depuis Wikipedia"""
-    wiki = wikipediaapi.Wikipedia(language='fr')  # Définit la langue uniquement ici
+    wiki = wikipediaapi.Wikipedia(user_agent=USER_AGENT, language='fr')  # Définit l'User-Agent ici
     page = wiki.page(player_name)
 
     if not page.exists():
