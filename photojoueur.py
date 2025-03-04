@@ -3,24 +3,27 @@ import requests
 from PIL import Image
 from io import BytesIO
 
+# Définition du User-Agent
+USER_AGENT = "MonApplicationFootball/1.0 (contact@email.com)"
+
 def get_player_image(player_name):
-    wiki = wikipediaapi.Wikipedia('fr')  # 'fr' pour la version française
+    wiki = wikipediaapi.Wikipedia('fr', user_agent=USER_AGENT)  # Spécification du User-Agent
     page = wiki.page(player_name)
 
     if not page.exists():
         print(f"La page Wikipedia de {player_name} n'existe pas.")
         return None
 
-    # Trouver l'URL de la première image
+    # Trouver la première image correcte (jpg ou png)
     for img in page.images:
-        if img.endswith(".jpg") or img.endswith(".png"):
-            return img  # Retourne la première image trouvée
+        if img.lower().endswith((".jpg", ".png")):
+            return img  # Retourne l'URL de l'image trouvée
 
     print(f"Aucune image trouvée pour {player_name}.")
     return None
 
 def download_and_show_image(image_url):
-    response = requests.get(image_url)
+    response = requests.get(image_url, headers={"User-Agent": USER_AGENT})  # Ajout du User-Agent ici aussi
     if response.status_code == 200:
         img = Image.open(BytesIO(response.content))
         img.show()  # Ouvre l'image
