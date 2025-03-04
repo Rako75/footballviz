@@ -10,7 +10,7 @@ from io import BytesIO
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, competition, position):
     data = pd.read_csv(file_path)
-    data = data[(data['Matchs joués'].astype(int) > 10) & (data['Compétition'] == competition)]
+    data = data[(data['Matchs joues'].astype(int) > 10) & (data['Compétition'] == competition)]
 
     def get_stats_by_position(position):
         stats_by_position = {
@@ -61,14 +61,23 @@ player1_data = data[data['Joueur'] == player1].iloc[0][params].tolist()
 player2_data = data[data['Joueur'] == player2].iloc[0][params].tolist()
 
 # Extraction du club et de l'âge des joueurs
-club1 = data[data['Joueur'] == player1].iloc[0]['Équipe']
-club2 = data[data['Joueur'] == player2].iloc[0]['Équipe']
-age1 = int(data[data['Joueur'] == player1].iloc[0]['Âge'])
-age2 = int(data[data['Joueur'] == player2].iloc[0]['Âge'])
+club1 = data[data['Joueur'] == player1].iloc[0]['Equipe']
+club2 = data[data['Joueur'] == player2].iloc[0]['Equipe']
+age1 = int(data[data['Joueur'] == player1].iloc[0]['Age'])
+age2 = int(data[data['Joueur'] == player2].iloc[0]['Age'])
+
+# URL des répertoires de logos par ligue
+logo_directories = {
+    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
+    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
+    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
+    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
+    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
+}
 
 # Génération des URL des logos des clubs
-club1_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/{club1}.png"
-club2_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/{club2}.png"
+club1_logo_url = f"{logo_directories[selected_competition]}/{club1}.png"
+club2_logo_url = f"{logo_directories[selected_competition]}/{club2}.png"
 
 # Charger les logos
 club1_logo = load_logo(club1_logo_url)
