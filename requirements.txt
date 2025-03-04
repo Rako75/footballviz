@@ -10,3 +10,4 @@ pillow
 adjustText
 openpyxl
 plotly
+wikipedia-api
