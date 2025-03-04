@@ -41,7 +41,7 @@ def load_logo(logo_url):
 st.title("Comparaison de joueurs - Saison 23/24")
 
 # Sélection de la compétition
-competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"]
+competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundliga"]
 selected_competition = st.selectbox("Choisissez la compétition", options=competitions)
 
 # Sélection des paramètres
