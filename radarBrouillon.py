@@ -28,7 +28,6 @@ def load_and_preprocess_data(file_path, position):
 # Fonction pour récupérer les statistiques par position
 def get_stats_by_position(position):
     stats_by_position = {
-        "Gardien de But": ["Arrêts (%)", "Buts encaissés par 90 min", "Arrêts sur tirs cadrés (%)", "Sorties réussies (%)", "Passes réussies (%)"],
         "Défenseur Central": ["Duels aériens gagnés (%)", "Interceptions par 90 min", "Tacles réussis (%)", "Passes progressives par 90 min", "Duels défensifs gagnés (%)"],
         "Arrière Droit": ["Centres réussis (%)", "Passes progressives par 90 min", "Tacles réussis (%)", "Courses progressives par 90 min", "Passes clés par 90 min"],
         "Arrière Gauche": ["Centres réussis (%)", "Passes progressives par 90 min", "Tacles réussis (%)", "Courses progressives par 90 min", "Passes clés par 90 min"],
