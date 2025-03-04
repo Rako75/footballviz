@@ -6,8 +6,9 @@ matplotlib
 soccerplots
 requests
 scikit-learn
-pillow
 adjustText
 openpyxl
 plotly
 wikipedia-api
+requests
+Pillow
