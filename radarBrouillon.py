@@ -10,7 +10,7 @@ from io import BytesIO
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, competition, position):
     data = pd.read_csv(file_path)
-    data = data[(data['Matchs joues'].astype(int) > 10) & (data['Compétition'] == competition)]
+    data = data[(data['Matchs joués'].astype(int) > 10) & (data['Compétition'] == competition)]
 
     def get_stats_by_position(position):
         stats_by_position = {
