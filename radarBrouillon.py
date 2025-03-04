@@ -31,7 +31,7 @@ def load_and_preprocess_data(file_path, competition, position):
 st.title("Comparaison de joueurs - Saison 23/24")
 
 # Sélection des compétitions
-competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"]
+competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundliga"]
 selected_competition1 = st.selectbox("Choisissez la compétition du premier joueur", options=competitions)
 selected_competition2 = st.selectbox("Choisissez la compétition du deuxième joueur", options=competitions)
 
