@@ -61,10 +61,10 @@ player1_data = data[data['Joueur'] == player1].iloc[0][params].tolist()
 player2_data = data[data['Joueur'] == player2].iloc[0][params].tolist()
 
 # Extraction du club et de l'âge des joueurs
-club1 = data[data['Joueur'] == player1].iloc[0]['Equipe']
-club2 = data[data['Joueur'] == player2].iloc[0]['Equipe']
-age1 = int(data[data['Joueur'] == player1].iloc[0]['Age'])
-age2 = int(data[data['Joueur'] == player2].iloc[0]['Age'])
+club1 = data[data['Joueur'] == player1].iloc[0]['Équipe']
+club2 = data[data['Joueur'] == player2].iloc[0]['Équipe']
+age1 = int(data[data['Joueur'] == player1].iloc[0]['Âge'])
+age2 = int(data[data['Joueur'] == player2].iloc[0]['Âge'])
 
 # Génération des URL des logos des clubs
 club1_logo_url = f"https://raw.githubusercontent.com/Rako75/footballviz/main/{club1}.png"
