@@ -4,7 +4,8 @@ from PIL import Image
 from io import BytesIO
 
 # Définition du User-Agent
-USER_AGENT = "MonApplicationFootball/1.0 (contact@email.com)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36
+"
 
 def get_player_image(player_name):
     wiki = wikipediaapi.Wikipedia('fr', user_agent=USER_AGENT)  # Spécification du User-Agent
