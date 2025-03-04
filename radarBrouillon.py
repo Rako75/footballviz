@@ -10,7 +10,7 @@ from io import BytesIO
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
     data = pd.read_csv(file_path)
-    data = data[data['Matchs joues'].astype(int) > 10]
+    data = data[data['Matchs joués'].astype(int) > 10]
     
     # Sélection des statistiques en fonction de la position
     stats_cols = get_stats_by_position(position)
@@ -28,16 +28,16 @@ def load_and_preprocess_data(file_path, position):
 # Fonction pour récupérer les statistiques par position
 def get_stats_by_position(position):
     stats_by_position = {
-        "Défenseur Central": ["Duels aériens gagnés (%)", "Interceptions par 90 min", "Tacles réussis (%)", "Passes progressives par 90 min", "Duels défensifs gagnés (%)"],
-        "Arrière Droit": ["Centres réussis (%)", "Passes progressives par 90 min", "Tacles réussis (%)", "Courses progressives par 90 min", "Passes clés par 90 min"],
-        "Arrière Gauche": ["Centres réussis (%)", "Passes progressives par 90 min", "Tacles réussis (%)", "Courses progressives par 90 min", "Passes clés par 90 min"],
-        "Milieu Défensif Central": ["Interceptions par 90 min", "Tacles réussis (%)", "Passes réussies (%)", "Pressing réussi (%)", "Passes progressives par 90 min"],
-        "Milieu Central": ["Passes réussies (%)", "Passes clés par 90 min", "Pressing réussi (%)", "Dribbles réussis (%)", "Ballons récupérés par 90 min"],
-        "Milieu Offensif": ["Passes clés par 90 min", "Dribbles réussis (%)", "Passes progressives par 90 min", "Buts par 90 min", "xA par 90 min"],
-        "Ailier Droit": ["Dribbles réussis (%)", "Passes clés par 90 min", "Buts par 90 min", "xA par 90 min", "Courses progressives par 90 min"],
-        "Ailier Gauche": ["Dribbles réussis (%)", "Passes clés par 90 min", "Buts par 90 min", "xA par 90 min", "Courses progressives par 90 min"],
-        "Attaquant Central": ["Buts par 90 min", "xG par 90 min", "Tirs cadrés (%)", "Duels aériens gagnés (%)", "Passes clés par 90 min"],
-        "Deuxième Attaquant": ["Buts par 90 min", "Passes clés par 90 min", "Dribbles réussis (%)", "Pressing réussi (%)", "xA par 90 min"]
+        "Défenseur Central": ["Duels aériens gagnés", "Interceptions", "Tacles réussis", "Passes progressives", "Duels défensifs gagnés"],
+        "Arrière Droit": ["Centres dans la surface", "Passes progressives", "Tacles réussis", "Courses progressives", "Passes clés"],
+        "Arrière Gauche": ["Centres dans la surface", "Passes progressives", "Tacles réussis", "Courses progressives", "Passes clés"],
+        "Milieu Défensif Central": ["Interceptions", "Tacles réussis", "Passes réussies", "Duels défensifs gagnés", "Passes progressives"],
+        "Milieu Central": ["Passes réussies", "Passes clés", "Duels défensifs gagnés", "Dribbles réussis", "Ballons récupérés"],
+        "Milieu Offensif": ["Passes clés", "Dribbles réussis", "Passes progressives", "Buts", "Passes attendues (xA)"],
+        "Ailier Droit": ["Dribbles réussis", "Passes clés", "Buts", "Passes attendues (xA)", "Courses progressives"],
+        "Ailier Gauche": ["Dribbles réussis", "Passes clés", "Buts", "Passes attendues (xA)", "Courses progressives"],
+        "Attaquant Central": ["Buts", "Buts attendus (xG)", "Tirs cadrés", "Duels aériens gagnés", "Passes clés"],
+        "Deuxième Attaquant": ["Buts", "Passes clés", "Dribbles réussis", "Duels défensifs gagnés", "Passes attendues (xA)"]
     }
     return stats_by_position.get(position, [])
 
@@ -45,7 +45,7 @@ def get_stats_by_position(position):
 st.title("Comparaison de joueurs - Saison 23/24")
 
 # Sélection de la position
-positions = ["Gardien de But", "Défenseur Central", "Arrière Droit", "Arrière Gauche", "Milieu Défensif Central", "Milieu Central", "Milieu Offensif", "Ailier Droit", "Ailier Gauche", "Attaquant Central", "Deuxième Attaquant"]
+positions = ["Défenseur Central", "Arrière Droit", "Arrière Gauche", "Milieu Défensif Central", "Milieu Central", "Milieu Offensif", "Ailier Droit", "Ailier Gauche", "Attaquant Central", "Deuxième Attaquant"]
 selected_position = st.selectbox("Choisissez la position", options=positions)
 
 # Chargement des données
