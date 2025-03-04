@@ -12,3 +12,4 @@ plotly
 wikipedia-api
 requests
 Pillow
+beautifulsoup4
