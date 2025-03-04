@@ -3,9 +3,6 @@ import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import requests
-from io import BytesIO
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, competition, position):
@@ -30,12 +27,6 @@ def load_and_preprocess_data(file_path, competition, position):
     stats_cols = get_stats_by_position(position)
 
     return data, stats_cols
-
-# Fonction pour charger un logo à partir d'une URL
-def load_logo(logo_url):
-    response = requests.get(logo_url)
-    image = plt.imread(BytesIO(response.content), format='png')
-    return image
 
 # Streamlit application
 st.title("Comparaison de joueurs - Saison 23/24")
@@ -66,24 +57,7 @@ club2 = data[data['Joueur'] == player2].iloc[0]['Équipe']
 age1 = int(data[data['Joueur'] == player1].iloc[0]['Âge'])
 age2 = int(data[data['Joueur'] == player2].iloc[0]['Âge'])
 
-# URL des répertoires de logos par ligue
-logo_directories = {
-    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
-    "Bundliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
-    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
-    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
-    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
-}
-
-# Génération des URL des logos des clubs
-club1_logo_url = f"{logo_directories[selected_competition]}/{club1}.png"
-club2_logo_url = f"{logo_directories[selected_competition]}/{club2}.png"
-
-# Charger les logos
-club1_logo = load_logo(club1_logo_url)
-club2_logo = load_logo(club2_logo_url)
-
-# Configuration des titres avec club, logo et âge sous le nom du joueur
+# Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
     title_name=f"{player1}",
     title_color='#9B3647',
@@ -114,15 +88,6 @@ fig, ax = radar.plot_radar(
     alphas=[0.55, 0.5],
     compare=True
 )
-
-# Ajout des logos des clubs
-zoom_factor = 0.03  # Taille adaptée
-image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)
-ax.add_artist(annotation_box1)
-image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)
-ax.add_artist(annotation_box2)
 
 # Affichage du radar dans Streamlit
 st.pyplot(fig)
