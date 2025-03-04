@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, competition, position):
     data = pd.read_csv(file_path)
-    data = data[(data['Matchs joués'].astype(int) > 10) & (data['Compétition'] == competition)]
+    data = data[(data['Matchs joués'].astype(int) > 10) & (data['Compétition'] == competition) & (data['Position'] == position)]
 
     def get_stats_by_position(position):
         stats_by_position = {
@@ -25,17 +25,16 @@ def load_and_preprocess_data(file_path, competition, position):
         return stats_by_position.get(position, [])
     
     stats_cols = get_stats_by_position(position)
-
     return data, stats_cols
 
 # Streamlit application
 st.title("Comparaison de joueurs - Saison 23/24")
 
 # Sélection de la compétition
-competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundliga"]
+competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"]
 selected_competition = st.selectbox("Choisissez la compétition", options=competitions)
 
-# Sélection des paramètres
+# Sélection de la position
 selected_position = st.selectbox("Choisissez la position", options=[
     "Défenseur Central", "Arrière Droit", "Arrière Gauche", "Milieu Défensif Central", "Milieu Central",
     "Milieu Offensif", "Ailier Droit", "Ailier Gauche", "Attaquant Central", "Deuxième Attaquant"
@@ -44,8 +43,10 @@ selected_position = st.selectbox("Choisissez la position", options=[
 # Chargement des données et des joueurs
 data, params = load_and_preprocess_data("df_BIG2025.csv", selected_competition, selected_position)
 
-player1 = st.selectbox("Sélectionnez le premier joueur", options=data['Joueur'].unique())
-player2 = st.selectbox("Sélectionnez le deuxième joueur", options=data['Joueur'].unique())
+# Mise à jour des choix de joueurs en fonction de la position sélectionnée
+player_options = data['Joueur'].unique()
+player1 = st.selectbox("Sélectionnez le premier joueur", options=player_options)
+player2 = st.selectbox("Sélectionnez le deuxième joueur", options=player_options)
 
 # Extraction des données des joueurs
 player1_data = data[data['Joueur'] == player1].iloc[0][params].tolist()
