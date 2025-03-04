@@ -30,9 +30,10 @@ def load_and_preprocess_data(file_path, competition, position):
 # Streamlit application
 st.title("Comparaison de joueurs - Saison 23/24")
 
-# Sélection de la compétition
+# Sélection des compétitions
 competitions = ["Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"]
-selected_competition = st.selectbox("Choisissez la compétition", options=competitions)
+selected_competition1 = st.selectbox("Choisissez la compétition du premier joueur", options=competitions)
+selected_competition2 = st.selectbox("Choisissez la compétition du deuxième joueur", options=competitions)
 
 # Sélection de la position
 selected_position = st.selectbox("Choisissez la position", options=[
@@ -41,22 +42,24 @@ selected_position = st.selectbox("Choisissez la position", options=[
 ])
 
 # Chargement des données et des joueurs
-data, params = load_and_preprocess_data("df_BIG2025.csv", selected_competition, selected_position)
+data1, params = load_and_preprocess_data("df_BIG2025.csv", selected_competition1, selected_position)
+data2, _ = load_and_preprocess_data("df_BIG2025.csv", selected_competition2, selected_position)
 
-# Mise à jour des choix de joueurs en fonction de la position sélectionnée
-player_options = data['Joueur'].unique()
-player1 = st.selectbox("Sélectionnez le premier joueur", options=player_options)
-player2 = st.selectbox("Sélectionnez le deuxième joueur", options=player_options)
+# Mise à jour des choix de joueurs en fonction de la position et de la ligue sélectionnées
+player_options1 = data1['Joueur'].unique()
+player_options2 = data2['Joueur'].unique()
+player1 = st.selectbox("Sélectionnez le premier joueur", options=player_options1)
+player2 = st.selectbox("Sélectionnez le deuxième joueur", options=player_options2)
 
 # Extraction des données des joueurs
-player1_data = data[data['Joueur'] == player1].iloc[0][params].tolist()
-player2_data = data[data['Joueur'] == player2].iloc[0][params].tolist()
+player1_data = data1[data1['Joueur'] == player1].iloc[0][params].tolist()
+player2_data = data2[data2['Joueur'] == player2].iloc[0][params].tolist()
 
 # Extraction du club et de l'âge des joueurs
-club1 = data[data['Joueur'] == player1].iloc[0]['Équipe']
-club2 = data[data['Joueur'] == player2].iloc[0]['Équipe']
-age1 = int(data[data['Joueur'] == player1].iloc[0]['Âge'])
-age2 = int(data[data['Joueur'] == player2].iloc[0]['Âge'])
+club1 = data1[data1['Joueur'] == player1].iloc[0]['Équipe']
+club2 = data2[data2['Joueur'] == player2].iloc[0]['Équipe']
+age1 = int(data1[data1['Joueur'] == player1].iloc[0]['Âge'])
+age2 = int(data2[data2['Joueur'] == player2].iloc[0]['Âge'])
 
 # Configuration des titres avec club et âge sous le nom du joueur
 title = dict(
