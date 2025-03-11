@@ -10,10 +10,10 @@ st.title("Football Statistics Dashboard")
 
 # Count the number of players based on playing positions
 position_count = df['Position'].value_counts().reset_index()
-position_count.columns = ['Playing Position', 'Count']
+position_count.columns = ['Position', 'Count']
 
 # Create a donut chart for playing positions
-fig = go.Figure(go.Pie(labels=position_count['Playing Position'], values=position_count['Count'], hole=0.3, name='Playing Positions'))
+fig = go.Figure(go.Pie(labels=position_count['Position'], values=position_count['Count'], hole=0.3, name='Playing Positions'))
 fig.update_layout(title_text=f'Donut Chart for Playing Positions', showlegend=True)
 
 
