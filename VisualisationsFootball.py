@@ -8,25 +8,17 @@ df = pd.read_csv("df_BIG2025.csv")  # Remplacez par votre fichier
 st.title("Football Statistics Dashboard")
 
 
-# Calculate the total number of yellow and red cards for each club
-discipline_by_club = df.groupby('Équipe')[['Cartons jaunes', 'Cartons rouges']].sum().reset_index()
+# Count the number of players based on playing positions
+position_count = df['Position'].value_counts().reset_index()
+position_count.columns = ['Playing Position', 'Count']
 
-# Calculate a total discipline score for each club (sum of yellow and red cards)
-discipline_by_club['DisciplineScore'] = discipline_by_club['Cartons jaunes'] + discipline_by_club['Cartons rouges']
+# Create a donut chart for playing positions
+fig = go.Figure(go.Pie(labels=position_count['Playing Position'], values=position_count['Count'], hole=0.3, name='Playing Positions'))
+fig.update_layout(title_text=f'Donut Chart for Playing Positions', showlegend=True)
 
-# Create a treemap
-fig = px.treemap(discipline_by_club, 
-                 path=['Équipe'],
-                 values='DisciplineScore',
-                 title='Club Discipline - Treemap',
-                 labels={'Équipe': 'Club', 'DisciplineScore': 'Discipline Score'})
 
-# Customize the layout for better readability
-fig.update_layout(margin=dict(l=0, r=0, b=0, t=30))
-
-# Display the treemap
+# Display the donut chart
 st.plotly_chart(fig)
-
 
 
 
