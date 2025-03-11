@@ -8,12 +8,36 @@ df = pd.read_csv("df_BIG2025.csv")  # Remplacez par votre fichier
 st.title("Football Statistics Dashboard")
 
 
-selected_league = st.selectbox("Selectionnez une ligue:", df['Compétition'].unique())
-filtered_df = df[df['Compétition'] == selected_league]
+# Calculate the total number of yellow and red cards for each club
+discipline_by_club = df.groupby('Équipe')[['Cartons jaunes', 'Cartons rouges']].sum().reset_index()
+
+# Calculate a total discipline score for each club (sum of yellow and red cards)
+discipline_by_club['DisciplineScore'] = discipline_by_club['Cartons jaunes'] + discipline_by_club['Cartons rouges']
+
+# Create a treemap
+fig = px.treemap(discipline_by_club, 
+                 path=['Équipe'],
+                 values='DisciplineScore',
+                 title='Club Discipline - Treemap',
+                 labels={'Équipe': 'Club', 'DisciplineScore': 'Discipline Score'})
+
+# Customize the layout for better readability
+fig.update_layout(margin=dict(l=0, r=0, b=0, t=30))
+
+# Display the treemap
+st.plotly_chart(fig)
 
 
-# Visualization 1: Bar graph showing highest goal scorers (top 20)
-top_scorers = filtered_df.nlargest(20, 'Buts')
-fig1 = px.bar(top_scorers, x='Joueur', y='Buts', title='Top 20 meilleurs buteurs', labels={'Buts': 'Nombre de buts'})
-fig1.update_traces(hovertemplate='Joueur: %{x}<br>Buts: %{y}')
-st.plotly_chart(fig1)
+
+
+
+
+
+
+
+
+
+
+
+
+
