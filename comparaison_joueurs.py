@@ -186,7 +186,7 @@ player1_info = data1[data1['Joueur'] == player1].iloc[0]
 player1_age = int(player1_info['Age'])
 player1_titularisations = int(player1_info['Titularisations'])
 player1_buts = int(player1_info['Buts'])  # Prend directement la valeur réelle des buts
-player1_passes = int(player1_info['Passes déc.'])  # Prend directement la valeur réelle des passes décisives
+player1_passes = int(player1_info['Passes decisives'])  # Prend directement la valeur réelle des passes décisives
 player1_stat_key = player1_info[key_stat[selected_position]]
 
 # Extraction des informations du deuxième joueur
