@@ -183,7 +183,7 @@ col1, col2, col3 = st.columns([5, 15, 5])  # Colonnes gauche, centre (radar), dr
 # Colonne 1 : Infos du joueur 1
 with col1:
     st.image(club1_logo, width=100)
-    st.subheader(f"{player1} ({'#9B3647'})")  # Ajout de la couleur entre parenthèses
+    st.subheader(f"{player1} (Rouge Bordeaux)")  # Nom de la couleur en français
     st.write(f"**Âge :** {player1_age}")
     st.write(f"**Titularisations :** {player1_titularisations}")
     st.write(f"**Buts :** {player1_buts}")
@@ -197,9 +197,10 @@ with col2:
 # Colonne 3 : Infos du joueur 2
 with col3:
     st.image(club2_logo, width=100)
-    st.subheader(f"{player2} ({'#3282b8'})")  # Ajout de la couleur entre parenthèses
+    st.subheader(f"{player2} (Bleu Clair)")  # Nom de la couleur en français
     st.write(f"**Âge :** {player2_age}")
     st.write(f"**Titularisations :** {player2_titularisations}")
     st.write(f"**Buts :** {player2_buts}")
     st.write(f"**Passes déc. :** {player2_passes}")
     st.write(f"**{key_stat[selected_position]} :** {player2_stat_key}")
+
