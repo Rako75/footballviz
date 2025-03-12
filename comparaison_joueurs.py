@@ -137,7 +137,7 @@ club2_logo = load_logo(club2_logo_url)
     #subtitle_color_2='#ABCDEF',
     #title_fontsize=18,
     #subtitle_fontsize=15,
-)
+#)
 
 # Note de bas de page
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
