@@ -126,17 +126,17 @@ club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
 # Configuration des titres avec club, logo et âge sous le nom du joueur
-title = dict(
-    title_name=f"{player1}",
-    title_color='#9B3647',
-    subtitle_name=f"{club1}, {age1} ans",
-    subtitle_color='#ABCDEF',
-    title_name_2=f"{player2}",
-    title_color_2='#3282b8',
-    subtitle_name_2=f"{club2}, {age2} ans",
-    subtitle_color_2='#ABCDEF',
-    title_fontsize=18,
-    subtitle_fontsize=15,
+#title = dict(
+    #title_name=f"{player1}",
+    #title_color='#9B3647',
+    #subtitle_name=f"{club1}, {age1} ans",
+    #subtitle_color='#ABCDEF',
+    #title_name_2=f"{player2}",
+    #title_color_2='#3282b8',
+    #subtitle_name_2=f"{club2}, {age2} ans",
+    #subtitle_color_2='#ABCDEF',
+    #title_fontsize=18,
+    #subtitle_fontsize=15,
 )
 
 # Note de bas de page
@@ -158,18 +158,18 @@ fig, ax = radar.plot_radar(
 )
 
 # Ajout des logos des clubs avec taille ajustée
-zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
+#zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
 # Logo du club 1 (haut gauche)
-image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
-ax.add_artist(annotation_box1)
+#image1 = OffsetImage(club1_logo, zoom=zoom_factor)
+#annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
+#ax.add_artist(annotation_box1)
 # Logo du club 2 (haut droite)
-image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
-ax.add_artist(annotation_box2)
+#image2 = OffsetImage(club2_logo, zoom=zoom_factor)
+#annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
+#ax.add_artist(annotation_box2)
 # Affichage du radar dans Streamlit
 # Création des colonnes pour afficher les informations des joueurs
-col1, col2 = st.columns(2)
+#col1, col2 = st.columns(2)
 
 # Création des colonnes pour afficher les informations des joueurs
 col1, col2 = st.columns(2)
