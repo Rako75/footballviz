@@ -147,12 +147,11 @@ radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F
 
 # Tracé du radar
 fig, ax = radar.plot_radar(
-    ranges=[(0, 100)] * len(params1),  # Les valeurs sont des pourcentages (0 à 100)
+    ranges=[(0, 100)] * len(params1),  
     params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
-    title=title,
-    endnote=endnote,
+    endnote=endnote,  # 👈 Supprime la note de bas de page
     alphas=[0.55, 0.5],
     compare=True
 )
