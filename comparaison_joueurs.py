@@ -159,19 +159,6 @@ fig, ax = radar.plot_radar(
 # Modifier la taille du radar chart
 fig.set_size_inches(100, 8)  # Largeur x Hauteur
 
-# Ajout des logos des clubs avec taille ajustée
-#zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
-# Logo du club 1 (haut gauche)
-#image1 = OffsetImage(club1_logo, zoom=zoom_factor)
-#annotation_box1 = AnnotationBbox(image1, (-19, 18), frameon=False)  # Ajustement de la position
-#ax.add_artist(annotation_box1)
-# Logo du club 2 (haut droite)
-#image2 = OffsetImage(club2_logo, zoom=zoom_factor)
-#annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
-#ax.add_artist(annotation_box2)
-# Affichage du radar dans Streamlit
-# Création des colonnes pour afficher les informations des joueurs
-#col1, col2 = st.columns(2)
 
 # Création des colonnes pour afficher les informations des joueurs
 col1, col2 = st.columns(2)
@@ -203,7 +190,7 @@ player2_stat_key = player2_info[key_stat[selected_position]]
 
 
 # Organisation de la mise en page
-col1, col2, col3 = st.columns([1, 10, 1])  # Colonnes gauche, centre (radar), droite
+col1, col2, col3 = st.columns([5, 10, 5])  # Colonnes gauche, centre (radar), droite
 
 # Colonne 1 : Infos du joueur 1
 with col1:
