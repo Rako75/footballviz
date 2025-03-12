@@ -185,17 +185,18 @@ key_stat = {
 player1_info = data1[data1['Joueur'] == player1].iloc[0]
 player1_age = int(player1_info['Age'])
 player1_titularisations = int(player1_info['Titularisations'])
-player1_buts = int(player1_info['Buts p/90 min'] * player1_info['Matches equivalents 90 minutes'])
-player1_passes = int(player1_info['Passes déc. p/90 min'] * player1_info['Matches equivalents 90 minutes'])
+player1_buts = int(player1_info['Buts'])  # Prend directement la valeur réelle des buts
+player1_passes = int(player1_info['Passes déc.'])  # Prend directement la valeur réelle des passes décisives
 player1_stat_key = player1_info[key_stat[selected_position]]
 
 # Extraction des informations du deuxième joueur
 player2_info = data2[data2['Joueur'] == player2].iloc[0]
 player2_age = int(player2_info['Age'])
 player2_titularisations = int(player2_info['Titularisations'])
-player2_buts = int(player2_info['Buts p/90 min'] * player2_info['Matches equivalents 90 minutes'])
-player2_passes = int(player2_info['Passes déc. p/90 min'] * player2_info['Matches equivalents 90 minutes'])
+player2_buts = int(player2_info['Buts'])  # Valeur réelle des buts
+player2_passes = int(player2_info['Passes decisives'])  # Valeur réelle des passes décisives
 player2_stat_key = player2_info[key_stat[selected_position]]
+
 
 # Affichage des informations du joueur 1
 with col1:
