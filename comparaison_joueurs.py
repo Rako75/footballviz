@@ -178,7 +178,7 @@ player2_stat_key = player2_info[key_stat[selected_position]]
 
 
 # Organisation de la mise en page
-col1, col2, col3 = st.columns([3, 10, 3])  # Colonnes gauche, centre (radar), droite
+col1, col2, col3 = st.columns([3, 15, 3])  # Colonnes gauche, centre (radar), droite
 
 # Colonne 1 : Infos du joueur 1
 with col1:
