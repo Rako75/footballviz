@@ -151,7 +151,7 @@ fig, ax = radar.plot_radar(
     params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
-    endnote=endnote,  # 👈 Supprime la note de bas de page
+    endnote="",  # 👈 Supprime la note de bas de page
     alphas=[0.55, 0.5],
     compare=True
 )
