@@ -157,7 +157,7 @@ fig, ax = radar.plot_radar(
 )
 
 # Modifier la taille du radar chart
-fig.set_size_inches(30, 8)  # Largeur x Hauteur
+fig.set_size_inches(50, 8)  # Largeur x Hauteur
 
 # Ajout des logos des clubs avec taille ajustée
 #zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
