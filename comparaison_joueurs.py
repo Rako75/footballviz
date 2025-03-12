@@ -151,13 +151,13 @@ fig, ax = radar.plot_radar(
     params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
-    endnote="",  # 👈 Supprime la note de bas de page
+    endnote=endnote,  # 👈 Supprime la note de bas de page
     alphas=[0.55, 0.5],
     compare=True
 )
 
 # Modifier la taille du radar chart
-fig.set_size_inches(15, 10)  # Largeur x Hauteur
+fig.set_size_inches(15, 15)  # Largeur x Hauteur
 
 # Ajout des logos des clubs avec taille ajustée
 #zoom_factor = 0.03  # Réduction du zoom pour une taille appropriée
