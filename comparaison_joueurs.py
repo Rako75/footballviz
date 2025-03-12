@@ -168,4 +168,25 @@ image2 = OffsetImage(club2_logo, zoom=zoom_factor)
 annotation_box2 = AnnotationBbox(image2, (19, 18), frameon=False)  # Ajustement de la position
 ax.add_artist(annotation_box2)
 # Affichage du radar dans Streamlit
+# Création des colonnes pour afficher les informations des joueurs
+col1, col2 = st.columns(2)
+
+# Affichage des informations du joueur 1
+with col1:
+    st.subheader(f"{player1} ({club1})")
+    st.image(club1_logo_url, width=100)  # Affiche le logo du club
+    st.write(f"**Âge :** {age1} ans")
+    st.write("**Statistiques :**")
+    player1_stats = pd.DataFrame(player1_data, index=params1, columns=[player1])
+    st.table(player1_stats)
+
+# Affichage des informations du joueur 2
+with col2:
+    st.subheader(f"{player2} ({club2})")
+    st.image(club2_logo_url, width=100)  # Affiche le logo du club
+    st.write(f"**Âge :** {age2} ans")
+    st.write("**Statistiques :**")
+    player2_stats = pd.DataFrame(player2_data, index=params2, columns=[player2])
+    st.table(player2_stats)
+
 st.pyplot(fig)
