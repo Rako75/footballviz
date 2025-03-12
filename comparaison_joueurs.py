@@ -171,22 +171,51 @@ ax.add_artist(annotation_box2)
 # Création des colonnes pour afficher les informations des joueurs
 col1, col2 = st.columns(2)
 
+# Création des colonnes pour afficher les informations des joueurs
+col1, col2 = st.columns(2)
+
+# Sélection des statistiques importantes par poste
+key_stat = {
+    "Attaquant": "xG p/90 min",
+    "Défenseur": "Interceptions",
+    "Milieu": "Passes progressives"
+}
+
+# Extraction des informations du premier joueur
+player1_info = data1[data1['Joueur'] == player1].iloc[0]
+player1_age = int(player1_info['Age'])
+player1_titularisations = int(player1_info['Titularisations'])
+player1_buts = int(player1_info['Buts p/90 min'] * player1_info['Matches equivalents 90 minutes'])
+player1_passes = int(player1_info['Passes déc. p/90 min'] * player1_info['Matches equivalents 90 minutes'])
+player1_stat_key = player1_info[key_stat[selected_position]]
+
+# Extraction des informations du deuxième joueur
+player2_info = data2[data2['Joueur'] == player2].iloc[0]
+player2_age = int(player2_info['Age'])
+player2_titularisations = int(player2_info['Titularisations'])
+player2_buts = int(player2_info['Buts p/90 min'] * player2_info['Matches equivalents 90 minutes'])
+player2_passes = int(player2_info['Passes déc. p/90 min'] * player2_info['Matches equivalents 90 minutes'])
+player2_stat_key = player2_info[key_stat[selected_position]]
+
 # Affichage des informations du joueur 1
 with col1:
     st.subheader(f"{player1} ({club1})")
-    st.image(club1_logo_url, width=100)  # Affiche le logo du club
-    st.write(f"**Âge :** {age1} ans")
-    st.write("**Statistiques :**")
-    player1_stats = pd.DataFrame(player1_data, index=params1, columns=[player1])
-    st.table(player1_stats)
+    st.image(club1_logo_url, width=100)  # Logo du club
+    st.metric("Age", player1_age)
+    st.metric("Titularisations", player1_titularisations)
+    st.metric("Buts", player1_buts)
+    st.metric("Passes decisives", player1_passes)
+    st.metric(key_stat[selected_position], round(player1_stat_key, 2))
 
 # Affichage des informations du joueur 2
 with col2:
     st.subheader(f"{player2} ({club2})")
-    st.image(club2_logo_url, width=100)  # Affiche le logo du club
-    st.write(f"**Âge :** {age2} ans")
-    st.write("**Statistiques :**")
-    player2_stats = pd.DataFrame(player2_data, index=params2, columns=[player2])
-    st.table(player2_stats)
+    st.image(club2_logo_url, width=100)  # Logo du club
+    st.metric("Age", player2_age)
+    st.metric("Titularisations", player2_titularisations)
+    st.metric("Buts", player2_buts)
+    st.metric("Passes decisives", player2_passes)
+    st.metric(key_stat[selected_position], round(player2_stat_key, 2))
+
 
 st.pyplot(fig)
