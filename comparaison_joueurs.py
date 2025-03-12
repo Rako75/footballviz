@@ -198,25 +198,7 @@ player2_passes = int(player2_info['Passes decisives'])  # Valeur réelle des pas
 player2_stat_key = player2_info[key_stat[selected_position]]
 
 
-# Affichage des informations du joueur 1
-with col1:
-    st.subheader(f"{player1} ({club1})")
-    st.image(club1_logo_url, width=100)  # Logo du club
-    st.metric("Age", player1_age)
-    st.metric("Titularisations", player1_titularisations)
-    st.metric("Buts", player1_buts)
-    st.metric("Passes decisives", player1_passes)
-    st.metric(key_stat[selected_position], round(player1_stat_key, 2))
 
-# Affichage des informations du joueur 2
-with col2:
-    st.subheader(f"{player2} ({club2})")
-    st.image(club2_logo_url, width=100)  # Logo du club
-    st.metric("Age", player2_age)
-    st.metric("Titularisations", player2_titularisations)
-    st.metric("Buts", player2_buts)
-    st.metric("Passes decisives", player2_passes)
-    st.metric(key_stat[selected_position], round(player2_stat_key, 2))
 
 
 # Organisation de la mise en page
