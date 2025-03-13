@@ -17,7 +17,12 @@ df["Création totale"] = df["Création Off."]
 # Filtrer le top 20 des joueurs en fonction d'une statistique clé (par exemple, les passes progressives)
 df_top_20 = df.nlargest(20, "Passes progressives")
 
-# Fonction pour tracer le premier graphique scatterplot avec Plotly
+# Nettoyer les données : Supprimer les lignes avec des valeurs manquantes dans les colonnes nécessaires
+df_top_20 = df_top_20.dropna(subset=["Distance totale parcourue avec le ballon", "Actions Défensives", 
+                                     "Passes progressives", "Passes cles", "Actions menant a un tir par 90 minutes", 
+                                     "Actions menant a un but par 90 minutes", "Tacles", "Interceptions", "Duels aeriens gagnes"])
+
+# Fonction pour tracer le graphique des milieux
 def plot_midfielders(df):
     fig = px.scatter(
         df,
