@@ -51,7 +51,7 @@ for i, row in labeled_players.iterrows():
         text=row["Joueur"], 
         showarrow=False, 
         font=dict(size=label_size),
-        bgcolor="rgba(255,255,255,0.7)"  # Amélioration de la lisibilité
+        bgcolor="rgba(0,0,0,0)"  # Fond complètement transparent
     )
 
 fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
