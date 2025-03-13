@@ -44,21 +44,14 @@ top_10_combined = pd.concat([top_10_x, top_10_y]).drop_duplicates(subset="Joueur
 # S'assurer que le nombre de labels affichés correspond au nombre sélectionné
 top_10_combined = top_10_combined.head(num_labels)  # Limiter au nombre de labels sélectionnés
 
-# Fonction pour gérer le jitter sur les deux axes
-def jitter(x_value, y_value, x_scale=0.02, y_scale=0.02):
-    x_jittered = x_value + np.random.uniform(-x_scale, x_scale) * (filtered_df[x_axis].max() - filtered_df[x_axis].min())
-    y_jittered = y_value + np.random.uniform(-y_scale, y_scale) * (filtered_df[y_axis].max() - filtered_df[y_axis].min())
-    return x_jittered, y_jittered
-
 # Création du graphique avec les joueurs
 fig = px.scatter(top_10_combined, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
 # Ajouter des annotations avec les labels (sans classement entre parenthèses)
 for i, row in top_10_combined.iterrows():
-    x_jittered, y_jittered = jitter(row[x_axis], row[y_axis], x_scale=0.05, y_scale=0.05)
     fig.add_annotation(
-        x=x_jittered,  
-        y=y_jittered,  
+        x=row[x_axis],  
+        y=row[y_axis],  
         text=f"{row['Joueur']}",  # Afficher seulement le nom du joueur
         showarrow=False, 
         font=dict(size=label_size),
