@@ -46,7 +46,9 @@ for i, row in labeled_players.iterrows():
         y=row[y_axis], 
         text=row["Joueur"], 
         showarrow=False, 
-        font=dict(size=label_size)
+        font=dict(size=label_size),
+        xshift=10,  # Décalage horizontal pour éviter le chevauchement
+        yshift=10   # Décalage vertical pour éviter le chevauchement
     )
 
 fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
