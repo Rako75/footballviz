@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import numpy as np
 
 # Charger les données
 df = pd.read_csv("df_BIG2025.csv")
@@ -39,14 +40,18 @@ labeled_players = filtered_df.nlargest(num_labels, y_axis) if num_labels > 0 els
 # Création du scatterplot
 fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Ajouter les labels uniquement pour les meilleurs joueurs
+# Éviter le chevauchement des labels
+def jitter(value, scale=0.02):
+    return value + np.random.uniform(-scale, scale) * (filtered_df[y_axis].max() - filtered_df[y_axis].min())
+
 for i, row in labeled_players.iterrows():
     fig.add_annotation(
         x=row[x_axis],  
-        y=row[y_axis] + (filtered_df[y_axis].max() * 0.02),  # Décalage vertical pour éviter le chevauchement
+        y=jitter(row[y_axis]),  # Ajout de jitter pour minimiser le chevauchement
         text=row["Joueur"], 
         showarrow=False, 
-        font=dict(size=label_size)
+        font=dict(size=label_size),
+        bgcolor="rgba(255,255,255,0.7)"  # Amélioration de la lisibilité
     )
 
 fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
