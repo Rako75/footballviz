@@ -43,24 +43,30 @@ def jitter(x_value, y_value, x_scale=0.02, y_scale=0.02):
     y_jittered = y_value + np.random.uniform(-y_scale, y_scale) * (filtered_df[y_axis].max() - filtered_df[y_axis].min())
     return x_jittered, y_jittered
 
-# Création du scatterplot
-fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
+# Création du graphique vide sans points
+fig = px.scatter()
 
-# Ajouter des labels avec gestion du jitter
-for i, row in labeled_players.iterrows():
+# Ajouter des annotations avec les labels et les classements
+for rank, (i, row) in enumerate(labeled_players.iterrows(), 1):
     x_jittered, y_jittered = jitter(row[x_axis], row[y_axis], x_scale=0.05, y_scale=0.05)  # Augmentation du jitter
     fig.add_annotation(
         x=x_jittered,  
         y=y_jittered,  
-        text=row["Joueur"], 
+        text=f"{row['Joueur']} ({rank})",  # Afficher le nom et le classement
         showarrow=False, 
         font=dict(size=label_size),
         bgcolor="rgba(0,0,0,0)"  # Fond complètement transparent
     )
 
-fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
+# Ajuster le layout
+fig.update_layout(
+    title=f"Classement des joueurs ({x_axis} vs {y_axis})",
+    xaxis_title=x_axis,
+    yaxis_title=y_axis,
+    showlegend=False  # Ne pas afficher la légende
+)
 
-# Affichage du scatterplot
+# Affichage du graphique
 st.plotly_chart(fig)
 
 # Affichage du classement top 5
