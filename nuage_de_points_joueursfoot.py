@@ -50,11 +50,11 @@ def plot_midfielders(df):
     ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
     ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
     ax.spines['top'].set_color('black')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
+    ax.spines['right'].set_color('black')
+    ax.spines['left'].set_color('black')
+    ax.spines['bottom'].set_color('black')
+    ax.tick_params(axis='x', colors='black')
+    ax.tick_params(axis='y', colors='black')
 
     return fig
 
