@@ -55,6 +55,9 @@ fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
 st.plotly_chart(fig)
 
 # Affichage du classement top 5
-top_5 = filtered_df.nlargest(5, y_axis)[["Joueur", "Équipe", "Compétition", x_axis, y_axis]]
-st.write("### Top 5 joueurs selon la variable choisie")
-st.dataframe(top_5)
+if x_axis != y_axis:
+    top_5 = filtered_df.nlargest(5, y_axis)[["Joueur", "Équipe", "Compétition", x_axis, y_axis]]
+    st.write("### Top 5 joueurs selon la variable choisie")
+    st.dataframe(top_5)
+else:
+    st.write("### Veuillez sélectionner deux variables différentes pour afficher le classement")
