@@ -17,7 +17,7 @@ x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerica
 y_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe Y", numerical_columns)
 
 # Sélection des compétitions
-competitions = ["Premier League", "La Liga", "Ligue 1", "Bundliga", "Serie A"]
+competitions = ["Premier League", "La Liga", "Ligue 1", "Bundesliga", "Serie A"]
 selected_competitions = st.sidebar.multiselect("Sélectionner les compétitions", competitions, default=competitions)
 
 # Filtrer par minutes jouées
@@ -50,13 +50,13 @@ def jitter(x_value, y_value, x_scale=0.02, y_scale=0.02):
 # Création du graphique avec les joueurs
 fig = px.scatter(top_10_combined, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Ajouter des annotations avec les labels et les classements
-for rank, (i, row) in enumerate(top_10_combined.iterrows(), 1):
+# Ajouter des annotations avec les labels (sans classement entre parenthèses)
+for i, row in top_10_combined.iterrows():
     x_jittered, y_jittered = jitter(row[x_axis], row[y_axis], x_scale=0.05, y_scale=0.05)
     fig.add_annotation(
         x=x_jittered,  
         y=y_jittered,  
-        text=f"{row['Joueur']} ({rank})",  # Afficher le nom et le classement
+        text=f"{row['Joueur']}",  # Afficher seulement le nom du joueur
         showarrow=False, 
         font=dict(size=label_size),
         bgcolor="rgba(0,0,0,0)"  # Fond complètement transparent
@@ -73,6 +73,9 @@ fig.update_layout(
 # Affichage du graphique
 st.plotly_chart(fig)
 
-# Affichage du classement Top 10 combiné
-st.write(f"### Top 10 des meilleurs joueurs selon la variable {x_axis} et {y_axis}")
-st.dataframe(top_10_combined[['Joueur', 'Équipe', 'Compétition', x_axis, y_axis]])
+# Affichage des deux Top 10 séparés
+st.write(f"### Top 10 des meilleurs joueurs selon la variable {x_axis}")
+st.dataframe(top_10_x[['Joueur', 'Équipe', 'Compétition', x_axis]])
+
+st.write(f"### Top 10 des meilleurs joueurs selon la variable {y_axis}")
+st.dataframe(top_10_y[['Joueur', 'Équipe', 'Compétition', y_axis]])
