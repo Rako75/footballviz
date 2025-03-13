@@ -45,10 +45,7 @@ for i, row in labeled_players.iterrows():
         x=row[x_axis], 
         y=row[y_axis], 
         text=row["Joueur"], 
-        showarrow=True, 
-        arrowhead=2, 
-        ax=10, 
-        ay=-10, 
+        showarrow=False, 
         font=dict(size=label_size)
     )
 
