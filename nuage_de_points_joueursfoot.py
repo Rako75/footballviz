@@ -39,17 +39,11 @@ labeled_players = filtered_df.nlargest(num_labels, y_axis) if num_labels > 0 els
 # Création du scatterplot
 fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Ajouter les labels uniquement pour les meilleurs joueurs avec des segments
+# Ajouter les labels uniquement pour les meilleurs joueurs
 for i, row in labeled_players.iterrows():
-    fig.add_shape(
-        type="line",
-        x0=row[x_axis], y0=row[y_axis],
-        x1=row[x_axis] + 5, y1=row[y_axis] + 5,  # Segment à côté du label
-        line=dict(color="black", width=1)
-    )
     fig.add_annotation(
-        x=row[x_axis] + 5,  
-        y=row[y_axis] + 5,  
+        x=row[x_axis],  
+        y=row[y_axis] + (filtered_df[y_axis].max() * 0.02),  # Décalage vertical pour éviter le chevauchement
         text=row["Joueur"], 
         showarrow=False, 
         font=dict(size=label_size)
