@@ -49,7 +49,7 @@ def plot_midfielders(df):
     ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
     ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
     ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
+    ax.spines['top'].set_color('black')
     ax.spines['right'].set_color('white')
     ax.spines['left'].set_color('white')
     ax.spines['bottom'].set_color('white')
