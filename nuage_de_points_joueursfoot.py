@@ -157,24 +157,18 @@ league_option = st.selectbox(
 # Filtrer les joueurs en fonction de la position et de la ligue
 if position_option == "Milieu":
     df_position = df[df["Position"].str.contains("Midfielder", case=False, na=False)]
-    metric = "Actions Défensives"
     plot_function = plot_midfielders
 elif position_option == "Attaquant":
     df_position = df[df["Position"].str.contains("Forward", case=False, na=False)]
-    metric = "Création totale"
     plot_function = plot_forwards
 else:  # Défenseur
     df_position = df[df["Position"].str.contains("Defender", case=False, na=False)]
-    metric = "Tacles"
     plot_function = plot_defenders
 
 if league_option != "Toutes les ligues":
     df_position = df_position[df_position["Ligue"] == league_option]
 
-# Prendre les 20 meilleurs joueurs selon la métrique sélectionnée
-top_20_players = df_position.nlargest(20, metric)
-
 # Afficher le graphique dans Streamlit
-st.write(f"Top 20 des {position_option.lower()}s ({league_option})")
-fig = plot_function(top_20_players)
+st.write(f"Analyse des {position_option.lower()}s ({league_option})")
+fig = plot_function(df_position)
 st.pyplot(fig)
