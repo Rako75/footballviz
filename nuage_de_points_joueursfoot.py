@@ -1,169 +1,45 @@
+import streamlit as st
 import pandas as pd
 import plotly.express as px
-import streamlit as st
 
-# Charger le fichier CSV
-df = pd.read_csv("df_Big5.csv")
+# Charger les données
+df = pd.read_csv("df_BIG2025.csv")
 
-# Ajouter des colonnes pertinentes pour l'analyse
-df["Actions Défensives"] = df["Tacles"] + df["Interceptions"]
-df["Création Off."] = (
-    df["Passes cles"] +
-    df["Actions menant a un tir par 90 minutes"] +
-    df["Actions menant a un but par 90 minutes"]
-)
-df["Création totale"] = df["Création Off."]
+# Filtrer les colonnes numériques
+numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
-# Filtrer le top 20 des joueurs en fonction d'une statistique clé (par exemple, les passes progressives)
-df_top_20 = df.nlargest(20, "Passes progressives")
+# Interface Streamlit
+st.title("Analyse des joueurs de football")
 
-# Nettoyer les données : Supprimer les lignes avec des valeurs manquantes dans les colonnes nécessaires
-df_top_20 = df_top_20.dropna(subset=["Distance totale parcourue avec le ballon", "Actions Défensives", 
-                                     "Passes progressives", "Passes cles", "Actions menant a un tir par 90 minutes", 
-                                     "Actions menant a un but par 90 minutes", "Tacles", "Interceptions", "Duels aeriens gagnes"])
+# Widgets de sélection des axes
+x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerical_columns)
+y_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe Y", numerical_columns)
 
-# Fonction pour tracer le graphique des milieux
-def plot_midfielders(df):
-    fig = px.scatter(
-        df,
-        x="Distance totale parcourue avec le ballon",
-        y="Actions Défensives",
-        size="Age",  # Taille des points basée sur l'âge
-        color="Passes progressives",  # Couleur des points basée sur les passes progressives
-        hover_name="Joueur",  # Afficher le nom du joueur au survol
-        color_continuous_scale="coolwarm",  # Palette de couleurs
-        title="Endurance et Activité Défensive des Milieux",
-        labels={"Distance totale parcourue avec le ballon": "Distance parcourue avec le ballon",
-                "Actions Défensives": "Actions Défensives (Tacles + Interceptions)",
-                "Passes progressives": "Passes progressives"},
-        template="plotly_dark"
-    )
-    fig.update_layout(
-        showlegend=True,
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font=dict(color='white'),
-        title_font=dict(size=16),
-        xaxis_title_font=dict(size=12),
-        yaxis_title_font=dict(size=12),
-        margin=dict(l=50, r=50, t=100, b=50)
-    )
-    return fig
+# Sélection des compétitions
+competitions = ["Premier League", "La Liga", "Ligue 1", "Bundliga", "Serie A"]
+selected_competitions = st.sidebar.multiselect("Sélectionner les compétitions", competitions, default=competitions)
 
-# Fonction pour tracer le graphique des attaquants
-def plot_forwards(df):
-    fig = px.scatter(
-        df,
-        x="Passes cles",
-        y="Actions menant a un tir par 90 minutes",
-        size="Age",
-        color="Actions menant a un but par 90 minutes",
-        hover_name="Joueur",
-        color_continuous_scale="coolwarm",
-        title="Création d'occasion par 90 min",
-        labels={"Passes cles": "Passes clés",
-                "Actions menant a un tir par 90 minutes": "Actions menant à un tir par 90 min",
-                "Actions menant a un but par 90 minutes": "Actions menant à un but par 90 min"},
-        template="plotly_dark"
-    )
-    fig.update_layout(
-        showlegend=True,
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font=dict(color='white'),
-        title_font=dict(size=16),
-        xaxis_title_font=dict(size=12),
-        yaxis_title_font=dict(size=12),
-        margin=dict(l=50, r=50, t=100, b=50)
-    )
-    return fig
+# Filtrer par minutes jouées
+min_minutes = st.sidebar.slider("Nombre minimum de minutes jouées", min_value=0, max_value=int(df["Minutes jouées"].max()), value=500)
 
-# Fonction pour tracer le graphique des défenseurs
-def plot_defenders(df):
-    fig = px.scatter(
-        df,
-        x="Tacles",
-        y="Interceptions",
-        size="Duels aeriens gagnes",
-        color="Duels aeriens gagnes",
-        hover_name="Joueur",
-        color_continuous_scale="viridis",
-        title="Performance Défensive : Tacles et Interceptions",
-        labels={"Tacles": "Tacles",
-                "Interceptions": "Interceptions",
-                "Duels aeriens gagnes": "Duels aériens gagnés"},
-        template="plotly_dark"
-    )
-    fig.update_layout(
-        showlegend=True,
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font=dict(color='white'),
-        title_font=dict(size=16),
-        xaxis_title_font=dict(size=12),
-        yaxis_title_font=dict(size=12),
-        margin=dict(l=50, r=50, t=100, b=50)
-    )
-    return fig
+# Nombre de labels de joueurs
+num_labels = st.sidebar.slider("Nombre de labels à afficher", min_value=0, max_value=50, value=10)
+label_size = st.sidebar.slider("Taille de texte des labels", min_value=2, max_value=8, value=5)
 
-# Nouveau scatterplot comparant les passes clés et les actions menant à un but
-def plot_passing_vs_goal_contrib(df):
-    fig = px.scatter(
-        df,
-        x="Passes cles",
-        y="Actions menant a un but par 90 minutes",
-        size="Duels aeriens gagnes",  # Taille des points basée sur les duels aériens gagnés
-        color="Age",  # Couleur des points basée sur l'âge
-        hover_name="Joueur",  # Afficher le nom du joueur au survol
-        color_continuous_scale="Viridis",  # Palette de couleurs
-        title="Passes clés vs Actions menant à un but",
-        labels={"Passes cles": "Passes clés",
-                "Actions menant a un but par 90 minutes": "Actions menant à un but par 90 min",
-                "Duels aeriens gagnes": "Duels aériens gagnés"},
-        template="plotly_dark"
-    )
-    fig.update_layout(
-        showlegend=True,
-        plot_bgcolor='black',
-        paper_bgcolor='black',
-        font=dict(color='white'),
-        title_font=dict(size=16),
-        xaxis_title_font=dict(size=12),
-        yaxis_title_font=dict(size=12),
-        margin=dict(l=50, r=50, t=100, b=50)
-    )
-    return fig
+# Filtrer les données
+filtered_df = df[(df["Compétition"].isin(selected_competitions)) & (df["Minutes jouées"] >= min_minutes)]
 
-# Interface utilisateur avec Streamlit
-st.title("Analyse des joueurs - Milieux, Attaquants et Défenseurs")
+# Création du scatterplot
+fig = px.scatter(filtered_df, x=x_axis, y=y_axis, text="Joueur", hover_data=["Équipe", "Compétition"], color="Compétition")
 
-# Sélecteur de position et de ligue
-position_option = st.selectbox("Sélectionnez une position:", ["Milieu", "Attaquant", "Défenseur"])
-league_option = st.selectbox(
-    "Sélectionnez une ligue:",
-    ["Toutes les ligues", "Premier League", "Bundesliga", "La Liga", "Ligue 1", "Serie A"]
-)
+# Affichage des labels
+fig.update_traces(textposition='top center', textfont_size=label_size)
+fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
 
-# Filtrer les joueurs en fonction de la position et de la ligue
-if position_option == "Milieu":
-    df_position = df_top_20[df_top_20["Position"].str.contains("Midfielder", case=False, na=False)]
-    plot_function = plot_midfielders
-elif position_option == "Attaquant":
-    df_position = df_top_20[df_top_20["Position"].str.contains("Forward", case=False, na=False)]
-    plot_function = plot_forwards
-else:  # Défenseur
-    df_position = df_top_20[df_top_20["Position"].str.contains("Defender", case=False, na=False)]
-    plot_function = plot_defenders
-
-if league_option != "Toutes les ligues":
-    df_position = df_position[df_position["Ligue"] == league_option]
-
-# Afficher le premier graphique (activité défensive ou offensive)
-st.write(f"Analyse des {position_option.lower()}s ({league_option})")
-fig = plot_function(df_position)
+# Affichage du scatterplot
 st.plotly_chart(fig)
 
-# Afficher le nouveau scatterplot Passes clés vs Actions menant à un but
-st.write("Passes clés vs Actions menant à un but")
-fig2 = plot_passing_vs_goal_contrib(df_top_20)
-st.plotly_chart(fig2)
+# Affichage du classement top 5
+top_5 = filtered_df[["Joueur", "Équipe", "Compétition", x_axis, y_axis]].nlargest(5, y_axis)
+st.write("### Top 5 joueurs selon la variable choisie")
+st.dataframe(top_5)
