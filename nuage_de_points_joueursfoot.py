@@ -1,5 +1,5 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 import streamlit as st
 
 # Charger le fichier CSV
@@ -14,134 +14,89 @@ df["Création Off."] = (
 )
 df["Création totale"] = df["Création Off."]
 
-# Fonctions pour tracer les graphiques
+# Filtrer le top 20 des joueurs en fonction d'une statistique clé (par exemple, les passes progressives)
+df_top_20 = df.nlargest(20, "Passes progressives")
+
+# Fonction pour tracer les graphiques avec Plotly
 def plot_midfielders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Distance totale parcourue avec le ballon"],
-        df["Actions Défensives"],
-        s=df["Age"] * 20,
-        c=df["Passes progressives"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="w"
+    fig = px.scatter(
+        df,
+        x="Distance totale parcourue avec le ballon",
+        y="Actions Défensives",
+        size="Age",  # Taille des points basée sur l'âge
+        color="Passes progressives",  # Couleur des points basée sur les passes progressives
+        hover_name="Joueur",  # Afficher le nom du joueur au survol
+        color_continuous_scale="coolwarm",  # Palette de couleurs
+        title="Endurance et Activité Défensive des Milieux",
+        labels={"Distance totale parcourue avec le ballon": "Distance parcourue avec le ballon",
+                "Actions Défensives": "Actions Défensives (Tacles + Interceptions)",
+                "Passes progressives": "Passes progressives"},
+        template="plotly_dark"
     )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Distance totale parcourue avec le ballon"],
-            row["Actions Défensives"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Passes progressives", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Endurance et Activité Défensive des Milieux", fontsize=16, color="white")
-    ax.set_xlabel("Distance totale parcourue avec le ballon", fontsize=12, color="white")
-    ax.set_ylabel("Actions Défensives (Tacles + Interceptions)", fontsize=12, color="white")
-    ax.spines['top'].set_color('black')
-    ax.spines['right'].set_color('black')
-    ax.spines['left'].set_color('black')
-    ax.spines['bottom'].set_color('black')
-    ax.tick_params(axis='x', colors='black')
-    ax.tick_params(axis='y', colors='black')
-
+    fig.update_layout(
+        showlegend=True,
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font=dict(color='white'),
+        title_font=dict(size=16),
+        xaxis_title_font=dict(size=12),
+        yaxis_title_font=dict(size=12),
+        margin=dict(l=50, r=50, t=100, b=50)
+    )
     return fig
 
 def plot_forwards(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Passes cles"],
-        df["Actions menant a un tir par 90 minutes"],
-        s=df["Age"] * 20,
-        c=df["Actions menant a un but par 90 minutes"],
-        cmap="coolwarm",
-        alpha=0.7,
-        edgecolors="white"
+    fig = px.scatter(
+        df,
+        x="Passes cles",
+        y="Actions menant a un tir par 90 minutes",
+        size="Age",
+        color="Actions menant a un but par 90 minutes",
+        hover_name="Joueur",
+        color_continuous_scale="coolwarm",
+        title="Création d'occasion par 90 min",
+        labels={"Passes cles": "Passes clés",
+                "Actions menant a un tir par 90 minutes": "Actions menant à un tir par 90 min",
+                "Actions menant a un but par 90 minutes": "Actions menant à un but par 90 min"},
+        template="plotly_dark"
     )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Passes cles"],
-            row["Actions menant a un tir par 90 minutes"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Actions menant à un but par 90 minutes", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Création d'occasion par 90 min", fontsize=16, color="white")
-    ax.set_xlabel("Passes clés", fontsize=12, color="white")
-    ax.set_ylabel("Actions menant à un tir par 90 minutes", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
+    fig.update_layout(
+        showlegend=True,
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font=dict(color='white'),
+        title_font=dict(size=16),
+        xaxis_title_font=dict(size=12),
+        yaxis_title_font=dict(size=12),
+        margin=dict(l=50, r=50, t=100, b=50)
+    )
     return fig
 
 def plot_defenders(df):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.set_facecolor("black")
-    
-    ax.grid(True, linestyle=':', color='white', alpha=0.5)
-    scatter = ax.scatter(
-        df["Tacles"],
-        df["Interceptions"],
-        s=df["Duels aeriens gagnes"] * 10,
-        c=df["Duels aeriens gagnes"],
-        cmap="viridis",
-        alpha=0.7,
-        edgecolors="w"
+    fig = px.scatter(
+        df,
+        x="Tacles",
+        y="Interceptions",
+        size="Duels aeriens gagnes",
+        color="Duels aeriens gagnes",
+        hover_name="Joueur",
+        color_continuous_scale="viridis",
+        title="Performance Défensive : Tacles et Interceptions",
+        labels={"Tacles": "Tacles",
+                "Interceptions": "Interceptions",
+                "Duels aeriens gagnes": "Duels aériens gagnés"},
+        template="plotly_dark"
     )
-
-    for i, row in df.iterrows():
-        ax.text(
-            row["Tacles"],
-            row["Interceptions"] + 0.1,
-            row["Joueur"],
-            fontsize=10,
-            color="white",
-            ha="center",
-            va="bottom"
-        )
-
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Duels aériens gagnés", rotation=270, labelpad=15, color="white")
-    cbar.ax.yaxis.set_tick_params(color="white")
-    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color="white")
-
-    ax.set_title("Performance Défensive : Tacles et Interceptions", fontsize=16, color="white")
-    ax.set_xlabel("Tacles", fontsize=12, color="white")
-    ax.set_ylabel("Interceptions", fontsize=12, color="white")
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-
+    fig.update_layout(
+        showlegend=True,
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font=dict(color='white'),
+        title_font=dict(size=16),
+        xaxis_title_font=dict(size=12),
+        yaxis_title_font=dict(size=12),
+        margin=dict(l=50, r=50, t=100, b=50)
+    )
     return fig
 
 # Interface utilisateur avec Streamlit
@@ -156,13 +111,13 @@ league_option = st.selectbox(
 
 # Filtrer les joueurs en fonction de la position et de la ligue
 if position_option == "Milieu":
-    df_position = df[df["Position"].str.contains("Midfielder", case=False, na=False)]
+    df_position = df_top_20[df_top_20["Position"].str.contains("Midfielder", case=False, na=False)]
     plot_function = plot_midfielders
 elif position_option == "Attaquant":
-    df_position = df[df["Position"].str.contains("Forward", case=False, na=False)]
+    df_position = df_top_20[df_top_20["Position"].str.contains("Forward", case=False, na=False)]
     plot_function = plot_forwards
 else:  # Défenseur
-    df_position = df[df["Position"].str.contains("Defender", case=False, na=False)]
+    df_position = df_top_20[df_top_20["Position"].str.contains("Defender", case=False, na=False)]
     plot_function = plot_defenders
 
 if league_option != "Toutes les ligues":
@@ -171,4 +126,4 @@ if league_option != "Toutes les ligues":
 # Afficher le graphique dans Streamlit
 st.write(f"Analyse des {position_option.lower()}s ({league_option})")
 fig = plot_function(df_position)
-st.pyplot(fig)
+st.plotly_chart(fig)
