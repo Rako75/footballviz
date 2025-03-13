@@ -16,7 +16,7 @@ x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerica
 y_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe Y", numerical_columns)
 
 # Sélection des compétitions
-competitions = ["Premier League", "La Liga", "Ligue 1", "Bundliga", "Serie A"]
+competitions = ["Premier League", "La Liga", "Ligue 1", "Bundesliga", "Serie A"]
 selected_competitions = st.sidebar.multiselect("Sélectionner les compétitions", competitions, default=competitions)
 
 # Filtrer par minutes jouées
@@ -40,6 +40,7 @@ fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
 st.plotly_chart(fig)
 
 # Affichage du classement top 5
+filtered_df[y_axis] = pd.to_numeric(filtered_df[y_axis], errors='coerce')
 top_5 = filtered_df[["Joueur", "Équipe", "Compétition", x_axis, y_axis]].nlargest(5, y_axis)
 st.write("### Top 5 joueurs selon la variable choisie")
 st.dataframe(top_5)
