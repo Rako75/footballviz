@@ -34,12 +34,15 @@ filtered_df = df[(df["Compétition"].isin(selected_competitions)) & (df["Minutes
 filtered_df[x_axis] = pd.to_numeric(filtered_df[x_axis], errors='coerce')
 filtered_df[y_axis] = pd.to_numeric(filtered_df[y_axis], errors='coerce')
 
-# Sélectionner les meilleurs joueurs pour les labels (Top 10 pour chaque variable)
-top_10_x = filtered_df.nlargest(10, x_axis)
-top_10_y = filtered_df.nlargest(10, y_axis)
+# Sélectionner les meilleurs joueurs pour les labels
+top_10_x = filtered_df.nlargest(num_labels, x_axis)
+top_10_y = filtered_df.nlargest(num_labels, y_axis)
 
 # Fusionner les deux top 10 (pour éviter les doublons)
 top_10_combined = pd.concat([top_10_x, top_10_y]).drop_duplicates(subset="Joueur")
+
+# S'assurer que le nombre de labels affichés correspond au nombre sélectionné
+top_10_combined = top_10_combined.head(num_labels)  # Limiter au nombre de labels sélectionnés
 
 # Fonction pour gérer le jitter sur les deux axes
 def jitter(x_value, y_value, x_scale=0.02, y_scale=0.02):
@@ -74,8 +77,8 @@ fig.update_layout(
 st.plotly_chart(fig)
 
 # Affichage des deux Top 10 séparés
-st.write(f"### Top 10 des meilleurs joueurs selon la variable {x_axis}")
+st.write(f"### Top {num_labels} des meilleurs joueurs selon la variable {x_axis}")
 st.dataframe(top_10_x[['Joueur', 'Équipe', 'Compétition', x_axis]])
 
-st.write(f"### Top 10 des meilleurs joueurs selon la variable {y_axis}")
+st.write(f"### Top {num_labels} des meilleurs joueurs selon la variable {y_axis}")
 st.dataframe(top_10_y[['Joueur', 'Équipe', 'Compétition', y_axis]])
