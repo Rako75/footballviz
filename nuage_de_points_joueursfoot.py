@@ -45,6 +45,62 @@ def plot_midfielders(df):
     )
     return fig
 
+# Fonction pour tracer le graphique des attaquants
+def plot_forwards(df):
+    fig = px.scatter(
+        df,
+        x="Passes cles",
+        y="Actions menant a un tir par 90 minutes",
+        size="Age",
+        color="Actions menant a un but par 90 minutes",
+        hover_name="Joueur",
+        color_continuous_scale="coolwarm",
+        title="Création d'occasion par 90 min",
+        labels={"Passes cles": "Passes clés",
+                "Actions menant a un tir par 90 minutes": "Actions menant à un tir par 90 min",
+                "Actions menant a un but par 90 minutes": "Actions menant à un but par 90 min"},
+        template="plotly_dark"
+    )
+    fig.update_layout(
+        showlegend=True,
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font=dict(color='white'),
+        title_font=dict(size=16),
+        xaxis_title_font=dict(size=12),
+        yaxis_title_font=dict(size=12),
+        margin=dict(l=50, r=50, t=100, b=50)
+    )
+    return fig
+
+# Fonction pour tracer le graphique des défenseurs
+def plot_defenders(df):
+    fig = px.scatter(
+        df,
+        x="Tacles",
+        y="Interceptions",
+        size="Duels aeriens gagnes",
+        color="Duels aeriens gagnes",
+        hover_name="Joueur",
+        color_continuous_scale="viridis",
+        title="Performance Défensive : Tacles et Interceptions",
+        labels={"Tacles": "Tacles",
+                "Interceptions": "Interceptions",
+                "Duels aeriens gagnes": "Duels aériens gagnés"},
+        template="plotly_dark"
+    )
+    fig.update_layout(
+        showlegend=True,
+        plot_bgcolor='black',
+        paper_bgcolor='black',
+        font=dict(color='white'),
+        title_font=dict(size=16),
+        xaxis_title_font=dict(size=12),
+        yaxis_title_font=dict(size=12),
+        margin=dict(l=50, r=50, t=100, b=50)
+    )
+    return fig
+
 # Nouveau scatterplot comparant les passes clés et les actions menant à un but
 def plot_passing_vs_goal_contrib(df):
     fig = px.scatter(
