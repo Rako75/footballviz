@@ -41,7 +41,16 @@ fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe
 
 # Ajouter les labels uniquement pour les meilleurs joueurs
 for i, row in labeled_players.iterrows():
-    fig.add_annotation(x=row[x_axis], y=row[y_axis], text=row["Joueur"], showarrow=False, font=dict(size=label_size))
+    fig.add_annotation(
+        x=row[x_axis], 
+        y=row[y_axis], 
+        text=row["Joueur"], 
+        showarrow=True, 
+        arrowhead=2, 
+        ax=10, 
+        ay=-10, 
+        font=dict(size=label_size)
+    )
 
 fig.update_layout(title=f"Comparaison des joueurs ({x_axis} vs {y_axis})")
 
