@@ -34,45 +34,23 @@ filtered_df = df[(df["Compétition"].isin(selected_competitions)) & (df["Minutes
 filtered_df[x_axis] = pd.to_numeric(filtered_df[x_axis], errors='coerce')
 filtered_df[y_axis] = pd.to_numeric(filtered_df[y_axis], errors='coerce')
 
-# Sélectionner les meilleurs joueurs pour les labels
-labeled_players = filtered_df.nlargest(num_labels, y_axis) if num_labels > 0 else pd.DataFrame()
+# Top 10 des meilleurs joueurs selon la variable X
+top_10_x = filtered_df.nlargest(10, x_axis)
 
-# Fonction pour gérer le jitter sur les deux axes
-def jitter(x_value, y_value, x_scale=0.02, y_scale=0.02):
-    x_jittered = x_value + np.random.uniform(-x_scale, x_scale) * (filtered_df[x_axis].max() - filtered_df[x_axis].min())
-    y_jittered = y_value + np.random.uniform(-y_scale, y_scale) * (filtered_df[y_axis].max() - filtered_df[y_axis].min())
-    return x_jittered, y_jittered
+# Top 10 des meilleurs joueurs selon la variable Y
+top_10_y = filtered_df.nlargest(10, y_axis)
 
-# Création du graphique vide sans points
-fig = px.scatter()
+# Affichage des Top 10
+st.write(f"### Top 10 des meilleurs joueurs selon la variable {x_axis}")
+st.dataframe(top_10_x[['Joueur', 'Club', 'Compétition', x_axis]])
 
-# Ajouter des annotations avec les labels et les classements
-for rank, (i, row) in enumerate(labeled_players.iterrows(), 1):
-    x_jittered, y_jittered = jitter(row[x_axis], row[y_axis], x_scale=0.05, y_scale=0.05)  # Augmentation du jitter
-    fig.add_annotation(
-        x=x_jittered,  
-        y=y_jittered,  
-        text=f"{row['Joueur']} ({rank})",  # Afficher le nom et le classement
-        showarrow=False, 
-        font=dict(size=label_size),
-        bgcolor="rgba(0,0,0,0)"  # Fond complètement transparent
-    )
+st.write(f"### Top 10 des meilleurs joueurs selon la variable {y_axis}")
+st.dataframe(top_10_y[['Joueur', 'Club', 'Compétition', y_axis]])
 
-# Ajuster le layout
-fig.update_layout(
-    title=f"Classement des joueurs ({x_axis} vs {y_axis})",
-    xaxis_title=x_axis,
-    yaxis_title=y_axis,
-    showlegend=False  # Ne pas afficher la légende
-)
+# Création du graphique de classement pour X
+fig_x = px.bar(top_10_x, x='Joueur', y=x_axis, title=f"Top 10 des joueurs selon {x_axis}", labels={x_axis: x_axis})
+st.plotly_chart(fig_x)
 
-# Affichage du graphique
-st.plotly_chart(fig)
-
-# Affichage du classement top 5
-if x_axis != y_axis:
-    top_5 = filtered_df.nlargest(5, y_axis)[["Joueur", "Équipe", "Compétition", x_axis, y_axis]]
-    st.write("### Top 5 joueurs selon la variable choisie")
-    st.dataframe(top_5)
-else:
-    st.write("### Veuillez sélectionner deux variables différentes pour afficher le classement")
+# Création du graphique de classement pour Y
+fig_y = px.bar(top_10_y, x='Joueur', y=y_axis, title=f"Top 10 des joueurs selon {y_axis}", labels={y_axis: y_axis})
+st.plotly_chart(fig_y)
