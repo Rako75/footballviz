@@ -10,7 +10,7 @@ df = pd.read_csv("df_BIG2025.csv")
 numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
 # Interface Streamlit
-st.title("Analyse des joueurs de football")
+st.title("Nuage de points des joueurs - Saison 24/25")
 
 # Widgets de sélection des axes
 x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerical_columns)
@@ -77,7 +77,7 @@ for i, row in top_10_combined.iterrows():
 
 # Ajuster le layout
 fig.update_layout(
-    title=f"Analyse des joueurs ({x_axis} vs {y_axis})",
+    title=f"{x_axis} vs {y_axis}",
     xaxis_title=x_axis,
     yaxis_title=y_axis,
     showlegend=True  # Affichage des couleurs par compétition
