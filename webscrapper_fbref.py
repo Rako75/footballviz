@@ -52,30 +52,26 @@ def create_dataframe(headers, data):
 # Interface Streamlit
 st.title('Web Scraper pour les Statistiques des Joueurs')
 
-# Sélection de la page à scraper
-page_choice = st.selectbox("Choisissez une catégorie de statistiques", list(urls.keys()))
+# Bouton pour scraper toutes les données
+if st.button('Charger les données et sauvegarder dans un fichier CSV'):
+    all_data = pd.DataFrame()  # Initialiser un DataFrame vide pour accumuler toutes les données
 
-# Initialisation d'un DataFrame vide pour accumuler les données
-all_data = pd.DataFrame()
-
-# Bouton pour lancer le scraping
-if st.button('Scraper les données et sauvegarder dans un fichier CSV'):
-    url = urls[page_choice]
-    headers, data = scrape_data(url)
+    for page_choice, url in urls.items():
+        st.write(f"Scraping des données pour : {page_choice}")
+        headers, data = scrape_data(url)
+        
+        if data:
+            # Créer le DataFrame à partir des données récupérées
+            df = create_dataframe(headers, data)
+            
+            # Ajouter les données au DataFrame global
+            all_data = pd.concat([all_data, df], ignore_index=True)
+        else:
+            st.error(f"Erreur lors du scraping des données de {page_choice}")
     
-    if data:
-        st.write(f"### Statistiques pour {page_choice}")
-        st.write("**Colonnes**: ", headers)
-        st.write("**Données**: ", data[:10])  # Affiche les 10 premières lignes pour la démonstration
-        
-        # Créer le DataFrame à partir des données
-        df = create_dataframe(headers, data)
-        
-        # Ajouter les données au DataFrame global
-        all_data = pd.concat([all_data, df], ignore_index=True)
-        
-        # Sauvegarder dans un fichier CSV
+    # Sauvegarder dans un fichier CSV
+    if not all_data.empty:
         all_data.to_csv('df_BIG2025.csv', index=False)
-        st.success("Données sauvegardées dans df_BIG2025.csv")
+        st.success("Toutes les données ont été sauvegardées dans df_BIG2025.csv")
     else:
-        st.error(f"Erreur lors du scraping des données de {page_choice}")
+        st.error("Aucune donnée n'a été récupérée.")
