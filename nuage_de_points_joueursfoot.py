@@ -47,32 +47,15 @@ top_10_combined = top_10_combined.head(num_labels)
 # Création du graphique avec **TOUS** les joueurs
 fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Fonction pour éviter le chevauchement des labels
-def adjust_label_position(existing_labels, x, y, delta=0.04):
-    """
-    Ajuste la position du label pour éviter qu'il ne chevauche d'autres labels existants.
-    """
-    new_y = y
-    while any(abs(new_y - prev_y) < delta for prev_x, prev_y in existing_labels):
-        new_y += delta  # Décale progressivement vers le haut
-    existing_labels.append((x, new_y))
-    return new_y
-
-# Liste pour suivre les positions des labels
-existing_labels = []
-
-# Ajouter des annotations SEULEMENT pour les joueurs sélectionnés (SANS lignes)
+# Ajouter des annotations juste au-dessus des points
 for i, row in top_10_combined.iterrows():
-    adjusted_y = adjust_label_position(existing_labels, row[x_axis], row[y_axis])
-
-    # Ajouter le label avec un ajustement dynamique
     fig.add_annotation(
         x=row[x_axis],  
-        y=adjusted_y,  # Nouvelle position ajustée
-        text=row["Joueur"],  # Seulement le nom du joueur
-        showarrow=False,  # Pas de flèche ni de ligne
-        font=dict(size=label_size, color="white"),
-        bgcolor="rgba(0,0,0,0)"  # Pas de fond blanc
+        y=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.02,  # Décalage vers le haut
+        text=row["Joueur"],  
+        showarrow=False,  
+        font=dict(size=label_size, color="black"),
+        bgcolor="rgba(0,0,0,0)"  # Fond transparent
     )
 
 # Ajuster le layout
