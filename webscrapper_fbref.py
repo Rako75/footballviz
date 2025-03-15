@@ -20,12 +20,20 @@ def scrape_data(url):
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Affichage de la structure de la page pour débogage
+        print(f"Scraping URL : {url}")
+        print(f"Code HTML de la page : {response.text[:500]}...")  # Affiche les 500 premiers caractères du HTML pour déboguer
+
+        table = soup.find('table', {'class': 'stats_table'})  # Cherche le tableau avec la classe 'stats_table'
+        if not table:
+            print("Table non trouvée, vérifiez la classe ou la structure HTML de la page.")
+            return [], []  # Si aucune table n'est trouvée, retour vide
         
-        table = soup.find('table', {'class': 'stats_table'})  # Trouver la table avec les stats
         headers = [header.text.strip() for header in table.find_all('th')]  # Récupérer les en-têtes
         rows = table.find_all('tr')
-        
-        # Récupérer les données des lignes
+
+        # Vérification de la structure des données et du nombre de colonnes
         data = []
         for row in rows:
             columns = row.find_all('td')
@@ -36,6 +44,9 @@ def scrape_data(url):
                 else:
                     print(f"Erreur dans la ligne (colonnes non correspondant) : {row_data}")
         
+        if not data:
+            print("Aucune donnée extraite pour cette page.")
+        
         return headers, data
     except Exception as e:
         print(f"Erreur lors du scraping de l'URL {url}: {e}")
@@ -44,16 +55,12 @@ def scrape_data(url):
 # Fonction pour créer le DataFrame et nettoyer les colonnes
 def create_dataframe(headers, data):
     if len(data) > 0:
-        # Vérification de la correspondance entre les colonnes et les données
         if len(headers) == len(data[0]):
             df = pd.DataFrame(data, columns=headers)
         else:
             raise ValueError("Le nombre de colonnes dans les données ne correspond pas à celui des en-têtes.")
         
-        # Nettoyer les noms des colonnes en supprimant le suffixe après '_'
         df.columns = df.columns.str.split('_').str[0]  # Supprimer le suffixe après '_'
-        
-        # Supprimer les doublons de colonnes
         df = df.loc[:, ~df.columns.duplicated()]  # Supprimer les doublons de colonnes
         
         return df
