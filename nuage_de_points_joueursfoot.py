@@ -52,11 +52,10 @@ for i, row in top_10_combined.iterrows():
     fig.add_annotation(
         x=row[x_axis],  
         y=row[y_axis],  
-        text=f"{row['Joueur']}",  # Seulement le nom du joueur
-        showarrow=True,  # Flèche vers le point
-        arrowhead=2,  # Petite flèche pour indiquer le point
+        text=row["Joueur"],  # Seulement le nom du joueur
+        showarrow=False,  # Pas de flèche
         font=dict(size=label_size),
-        bgcolor="rgba(255,255,255,0.7)"  # Fond légèrement blanc pour lisibilité
+        bgcolor="rgba(0,0,0,0)"  # Pas de fond blanc
     )
 
 # Ajuster le layout
