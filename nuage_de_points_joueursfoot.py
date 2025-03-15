@@ -141,7 +141,7 @@ def apply_modifications(df):
     return df_copy
 
 # Dictionnaire de renommage des colonnes
-        rename_columns = {
+    rename_columns = {
             "Player": "Joueur",
             "Nation": "Nationalité",
             "Squad": "Équipe",
