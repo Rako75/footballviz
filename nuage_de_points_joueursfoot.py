@@ -54,7 +54,7 @@ for i, row in top_10_combined.iterrows():
         y=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.02,  # Décalage vers le haut
         text=row["Joueur"],  
         showarrow=False,  
-        font=dict(size=label_size, color="black"),
+        font=dict(size=label_size, color="white"),
         bgcolor="rgba(0,0,0,0)"  # Fond transparent
     )
 
