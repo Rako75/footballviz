@@ -47,11 +47,28 @@ top_10_combined = top_10_combined.head(num_labels)
 # Création du graphique avec **TOUS** les joueurs
 fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Ajouter des annotations juste au-dessus des points
+# Dictionnaire pour suivre le nombre d'occurrences de chaque X
+x_counts = top_10_combined[x_axis].value_counts().to_dict()
+x_positions = {}  # Suivi des positions pour alterner à gauche/droite
+
+# Ajouter des annotations avec alternance des labels à gauche et à droite si nécessaire
 for i, row in top_10_combined.iterrows():
+    x_val = row[x_axis]
+    y_val = row[y_axis]
+
+    # Déterminer si on met le label à gauche ou à droite
+    if x_counts[x_val] > 1:
+        if x_val in x_positions:
+            x_positions[x_val] += 1
+        else:
+            x_positions[x_val] = 0
+        shift = (-0.02 if x_positions[x_val] % 2 == 0 else 0.02) * (filtered_df[x_axis].max() - filtered_df[x_axis].min())
+    else:
+        shift = 0
+
     fig.add_annotation(
-        x=row[x_axis],  
-        y=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.02,  # Décalage vers le haut
+        x=x_val + shift,  # Déplacement horizontal des labels si besoin
+        y=y_val + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.02,  # Décalage léger vers le haut
         text=row["Joueur"],  
         showarrow=False,  
         font=dict(size=label_size, color="white"),
