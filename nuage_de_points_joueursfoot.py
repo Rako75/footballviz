@@ -61,7 +61,7 @@ for i, row in top_10_combined.iterrows():
         y=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.035,  # Position du texte au-dessus
         text=row["Joueur"],  # Seulement le nom du joueur
         showarrow=False,  # Pas de flèche
-        font=dict(size=label_size, color="black"),
+        font=dict(size=label_size, color="white"),
         bgcolor="rgba(0,0,0,0)"  # Pas de fond blanc
     )
 
