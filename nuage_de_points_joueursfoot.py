@@ -7,7 +7,7 @@ import pandas as pd
 
 # Fonction pour scraper les données
 def scrape_data():
-urls = {
+    urls = {
 "stats": 'https://fbref.com/en/comps/Big5/stats/players/Big-5-European-Leagues-Stats',
 "shooting": 'https://fbref.com/en/comps/Big5/shooting/players/Big-5-European-Leagues-Stats',
 "passing": 'https://fbref.com/en/comps/Big5/passing/players/Big-5-European-Leagues-Stats',
