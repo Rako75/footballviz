@@ -2,27 +2,26 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
-
 import streamlit as st
 import pandas as pd
 
 # Fonction pour scraper les données
 def scrape_data():
-    urls = {
-        "stats": 'https://fbref.com/en/comps/Big5/stats/players/Big-5-European-Leagues-Stats',
-        "shooting": 'https://fbref.com/en/comps/Big5/shooting/players/Big-5-European-Leagues-Stats',
-        "passing": 'https://fbref.com/en/comps/Big5/passing/players/Big-5-European-Leagues-Stats',
-        "defense": 'https://fbref.com/en/comps/Big5/defense/players/Big-5-European-Leagues-Stats',
-        "gca": 'https://fbref.com/en/comps/Big5/gca/players/Big-5-European-Leagues-Stats',
-        "misc": 'https://fbref.com/en/comps/Big5/misc/players/Big-5-European-Leagues-Stats',
-        "possession": 'https://fbref.com/en/comps/Big5/possession/players/Big-5-European-Leagues-Stats',
-        "playtime": 'https://fbref.com/en/comps/Big5/playingtime/players/Big-5-European-Leagues-Stats'
-    }
+urls = {
+"stats": 'https://fbref.com/en/comps/Big5/stats/players/Big-5-European-Leagues-Stats',
+"shooting": 'https://fbref.com/en/comps/Big5/shooting/players/Big-5-European-Leagues-Stats',
+"passing": 'https://fbref.com/en/comps/Big5/passing/players/Big-5-European-Leagues-Stats',
+"defense": 'https://fbref.com/en/comps/Big5/defense/players/Big-5-European-Leagues-Stats',
+"gca": 'https://fbref.com/en/comps/Big5/gca/players/Big-5-European-Leagues-Stats',
+"misc": 'https://fbref.com/en/comps/Big5/misc/players/Big-5-European-Leagues-Stats',
+"possession": 'https://fbref.com/en/comps/Big5/possession/players/Big-5-European-Leagues-Stats',
+"playtime": 'https://fbref.com/en/comps/Big5/playingtime/players/Big-5-European-Leagues-Stats'
+}
 
-    dataframes = {}
+dataframes = {}
 
-    for key, url in urls.items():
-        try:
+for key, url in urls.items():
+    try:
             df = pd.read_html(url)[0]
             df.columns = [' '.join(col).strip() for col in df.columns]
             df = df.reset_index(drop=True)
@@ -339,15 +338,16 @@ position_mapping = {
 "GdB": "Gardien de But",
 }
 
-        # Remplacer les positions dans le DataFrame
-        df["Position"] = df["Position"].replace(position_mapping)
+# Remplacer les positions dans le DataFrame
+df["Position"] = df["Position"].replace(position_mapping)
 
-        # Afficher le tableau mis à jour
-        st.write(f"### Données modifiées pour {key.capitalize()}")
-        st.dataframe(df.head())
+# Afficher le tableau mis à jour
+st.write(f"### Données modifiées pour {key.capitalize()}")
+st.dataframe(df.head())
 
-        # Sauvegarde des données
-        df.to_csv(f'df_{key}_2025.csv', sep='\t', encoding='utf-8', index=False)
+# Sauvegarde des données
+df.to_csv(f'df_{key}_2025.csv', sep='\t', encoding='utf-8', index=False)
+
 # Filtrer les colonnes numériques
 numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
