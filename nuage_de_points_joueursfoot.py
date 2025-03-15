@@ -61,25 +61,17 @@ def adjust_label_position(existing_labels, x, y, delta=0.04):
 # Liste pour suivre les positions des labels
 existing_labels = []
 
-# Ajouter des annotations SEULEMENT pour les joueurs sélectionnés + Relier avec une ligne
+# Ajouter des annotations SEULEMENT pour les joueurs sélectionnés (SANS lignes)
 for i, row in top_10_combined.iterrows():
     adjusted_y = adjust_label_position(existing_labels, row[x_axis], row[y_axis])
-
-    # Ajouter une ligne entre le point et le label
-    fig.add_shape(
-        type="line",
-        x0=row[x_axis], y0=row[y_axis],  # Départ de la ligne (point du joueur)
-        x1=row[x_axis], y1=adjusted_y,  # Fin de la ligne (label ajusté)
-        line=dict(color="black", width=1)
-    )
 
     # Ajouter le label avec un ajustement dynamique
     fig.add_annotation(
         x=row[x_axis],  
         y=adjusted_y,  # Nouvelle position ajustée
         text=row["Joueur"],  # Seulement le nom du joueur
-        showarrow=False,  # Pas de flèche
-        font=dict(size=label_size, color="white"),
+        showarrow=False,  # Pas de flèche ni de ligne
+        font=dict(size=label_size, color="black"),
         bgcolor="rgba(0,0,0,0)"  # Pas de fond blanc
     )
 
