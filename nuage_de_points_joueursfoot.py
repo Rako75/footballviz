@@ -47,14 +47,21 @@ top_10_combined = top_10_combined.head(num_labels)
 # Création du graphique avec **TOUS** les joueurs
 fig = px.scatter(filtered_df, x=x_axis, y=y_axis, hover_data=["Joueur", "Équipe", "Compétition"], color="Compétition")
 
-# Ajouter des annotations SEULEMENT pour les joueurs sélectionnés
+# Ajouter des annotations SEULEMENT pour les joueurs sélectionnés + Relier avec une ligne
 for i, row in top_10_combined.iterrows():
+    fig.add_shape(
+        type="line",
+        x0=row[x_axis], y0=row[y_axis],  # Départ de la ligne (point du joueur)
+        x1=row[x_axis], y1=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.03,  # Légère élévation
+        line=dict(color="black", width=1)
+    )
+    
     fig.add_annotation(
         x=row[x_axis],  
-        y=row[y_axis],  
+        y=row[y_axis] + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.035,  # Position du texte au-dessus
         text=row["Joueur"],  # Seulement le nom du joueur
         showarrow=False,  # Pas de flèche
-        font=dict(size=label_size),
+        font=dict(size=label_size, color="black"),
         bgcolor="rgba(0,0,0,0)"  # Pas de fond blanc
     )
 
