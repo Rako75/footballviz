@@ -21,7 +21,6 @@ def scrape_data(url):
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Exemple de récupération d'un tableau avec des stats
         table = soup.find('table', {'class': 'stats_table'})  # Le tableau des statistiques
         headers = [header.text.strip() for header in table.find_all('th')]  # Récupérer les titres des colonnes
         rows = table.find_all('tr')
@@ -31,7 +30,11 @@ def scrape_data(url):
         for row in rows:
             columns = row.find_all('td')
             if columns:
-                data.append([column.text.strip() for column in columns])
+                row_data = [column.text.strip() for column in columns]
+                if len(row_data) == len(headers):
+                    data.append(row_data)
+                else:
+                    print(f"Erreur dans la ligne, nombre de colonnes non correspondant : {row_data}")
         
         return headers, data
     except Exception as e:
@@ -39,39 +42,19 @@ def scrape_data(url):
 
 # Fonction pour convertir les données en DataFrame Pandas
 def create_dataframe(headers, data):
-    df = pd.DataFrame(data, columns=headers)
-    
-    # Nettoyer les noms des colonnes en supprimant les suffixes après '_'
-    df.columns = df.columns.str.split('_').str[0]  # Supprimer le suffixe après '_'
-    
-    # Supprimer les doublons de colonnes
-    df = df.loc[:, ~df.columns.duplicated()]  # Supprimer les doublons de colonnes
-    
-    return df
-
-# Interface Streamlit
-st.title('Web Scraper pour les Statistiques des Joueurs')
-
-# Bouton pour scraper toutes les données
-if st.button('Charger les données et sauvegarder dans un fichier CSV'):
-    all_data = pd.DataFrame()  # Initialiser un DataFrame vide pour accumuler toutes les données
-
-    for page_choice, url in urls.items():
-        st.write(f"Scraping des données pour : {page_choice}")
-        headers, data = scrape_data(url)
-        
-        if data:
-            # Créer le DataFrame à partir des données récupérées
-            df = create_dataframe(headers, data)
-            
-            # Ajouter les données au DataFrame global
-            all_data = pd.concat([all_data, df], ignore_index=True)
+    if len(data) > 0:
+        # Vérification de la correspondance des colonnes
+        if len(headers) == len(data[0]):
+            df = pd.DataFrame(data, columns=headers)
         else:
-            st.error(f"Erreur lors du scraping des données de {page_choice}")
-    
-    # Sauvegarder dans un fichier CSV
-    if not all_data.empty:
-        all_data.to_csv('df_BIG2025.csv', index=False)
-        st.success("Toutes les données ont été sauvegardées dans df_BIG2025.csv")
+            raise ValueError("Le nombre de colonnes dans les données ne correspond pas à celui des en-têtes.")
+        
+        # Nettoyer les noms des colonnes en supprimant les suffixes après '_'
+        df.columns = df.columns.str.split('_').str[0]  # Supprimer le suffixe après '_'
+        
+        # Supprimer les doublons de colonnes
+        df = df.loc[:, ~df.columns.duplicated()]  # Supprimer les doublons de colonnes
+        
+        return df
     else:
-        st.error("Aucune donnée n'a été récupérée.")
+        raise ValueError("Aucune donnée trouvée pour créer le DataFrame.")
