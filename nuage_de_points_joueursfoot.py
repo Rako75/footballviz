@@ -334,8 +334,6 @@ if st.button("Charger les données"):
             "GdB": "Gardien de But",
         }
 
-        # Remplacer les positions dans le DataFrame
-        df["Position"] = df["Position"].replace(position_mapping)
 
         # Afficher le tableau mis à jour
         st.write(f"### Données modifiées pour {key.capitalize()}")
