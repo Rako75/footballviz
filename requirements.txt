@@ -13,3 +13,4 @@ wikipedia-api
 requests
 Pillow
 beautifulsoup4
+lxml
