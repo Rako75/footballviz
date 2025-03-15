@@ -17,7 +17,7 @@ x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerica
 y_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe Y", numerical_columns)
 
 # Sélection des compétitions
-competitions = ["Premier League", "La Liga", "Ligue 1", "Bundesliga", "Serie A"]
+competitions = ["Premier League", "La Liga", "Ligue 1", "Bundliga", "Serie A"]
 selected_competitions = st.sidebar.multiselect("Sélectionner les compétitions", competitions, default=competitions)
 
 # Filtrer par minutes jouées
