@@ -71,6 +71,19 @@ def merge_dataframes(dataframes):
     all_data = pd.concat(dataframes.values(), ignore_index=True)
     return all_data
 
+# Sauvegarde des données dans un fichier CSV
+def save_to_csv(df, file_path='df_BIG2025.csv', chunk_size=10000):
+    if len(df) > chunk_size:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            # Écrire l'entête une seule fois
+            df.iloc[:chunk_size].to_csv(f, sep='\t', header=True, index=False)
+            # Écrire le reste en morceaux
+            for i in range(chunk_size, len(df), chunk_size):
+                df.iloc[i:i+chunk_size].to_csv(f, sep='\t', header=False, index=False)
+    else:
+        # Sinon, on écrit directement tout le DataFrame
+        df.to_csv(file_path, sep='\t', encoding='utf-8', index=False)
+
 # Interface Streamlit
 st.title("Web Scraper des Statistiques des Joueurs")
 
