@@ -17,7 +17,7 @@ x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerica
 y_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe Y", numerical_columns)
 
 # Sélection des compétitions
-competitions = ["Premier League", "La Liga", "Ligue 1", "Bundesliga", "Serie A"]
+competitions = ["Premier League", "La Liga", "Ligue 1", "Bundliga", "Serie A"]
 selected_competitions = st.sidebar.multiselect("Sélectionner les compétitions", competitions, default=competitions)
 
 # Filtrer par minutes jouées
@@ -71,7 +71,7 @@ for i, row in top_10_combined.iterrows():
         y=y_val + (filtered_df[y_axis].max() - filtered_df[y_axis].min()) * 0.02,  # Décalage léger vers le haut
         text=row["Joueur"],  
         showarrow=False,  
-        font=dict(size=label_size, color="black"),
+        font=dict(size=label_size, color="white"),
         bgcolor="rgba(0,0,0,0)"  # Fond transparent
     )
 
