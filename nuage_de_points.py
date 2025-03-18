@@ -10,7 +10,7 @@ df = pd.read_csv("df_BIG2025.csv")
 numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
 # Interface Streamlit
-st.title("Nuage de points - Saison 2023/2024")
+st.title("Nuage de points - Saison 2024/2025")
 
 # Widgets de sélection des axes
 x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerical_columns)
