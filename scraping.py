@@ -1,4 +1,5 @@
 import pandas as pd
+import logging
 
 URLS = {
     "stats": "https://fbref.com/en/comps/Big5/stats/players/Big-5-European-Leagues-Stats",
@@ -41,23 +42,26 @@ def get_data():
     data = {}
     for key, url in URLS.items():
         try:
-            df = pd.read_html(url)[0]  # Lis le tableau de la première page HTML
-            if df.empty:
-                print(f"Pas de données trouvées pour {key}.")
-            else:
+            logging.info(f"Récupération des données pour {key} depuis {url}")
+            df = pd.read_html(url)[0]
+            if df is not None and not df.empty:
                 data[key] = clean_dataframe(df)
+            else:
+                logging.warning(f"Aucune donnée trouvée pour {key} à {url}")
         except Exception as e:
-            print(f"Erreur lors du chargement de {key}: {e}")
+            logging.error(f"Erreur lors du chargement de {key} : {e}")
             data[key] = None
+    # Vérifie si des données ont été récupérées
+    if all(value is None for value in data.values()):
+        logging.error("Aucune donnée n'a été récupérée.")
+        return None
     return data
 
 def process_data():
     """Fusionne les différentes tables et applique les modifications nécessaires."""
     data = get_data()
-
-    # Vérification si des données ont été récupérées
-    if not data:
-        print("Aucune donnée récupérée, vérifiez les URLs.")
+    if data is None:
+        logging.error("Impossible de traiter les données, car aucune donnée n'a été récupérée.")
         return None
 
     df = pd.concat(data.values(), axis=1, join="inner").T.drop_duplicates().T
@@ -229,11 +233,15 @@ def process_data():
 
     df = df.rename(columns=rename_columns)
 
-    print(df.info())
-
+    # Vérifie si df n'est pas vide avant de sauvegarder
+    if df.empty:
+        logging.error("Le DataFrame fusionné est vide.")
+        return None
+    
     df.to_csv('df_2025.csv', sep='\t', encoding='utf-8', index=False)
-    print("Données enregistrées sous 'df_2025.csv'.")
+    logging.info("Données enregistrées sous 'df_2025.csv'.")
     return df  # Retourne les données
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     process_data()
