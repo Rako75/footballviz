@@ -7,9 +7,6 @@ from scraping import process_data  # Importer la fonction de traitement des donn
 # Interface Streamlit
 st.title("Nuage de points - Saison 2024/2025")
 
-# Interface Streamlit
-st.title("Nuage de points - Saison 2024/2025")
-
 # Bouton pour charger les données depuis le web
 if st.button("Charger les données depuis le web"):
     df = process_data()  # Exécute le scraping et le traitement des données
