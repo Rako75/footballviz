@@ -220,6 +220,8 @@ def process_data():
 
     df = df.rename(columns=rename_columns)
 
+    print(df.info())
+
     df.to_csv('df_2025.csv', sep='\t', encoding='utf-8', index=False)
     print("Données enregistrées sous 'df_2025.csv'.")
     return df  # Retourne les données
