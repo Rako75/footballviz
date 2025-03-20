@@ -41,8 +41,11 @@ def get_data():
     data = {}
     for key, url in URLS.items():
         try:
-            df = pd.read_html(url)[0]
-            data[key] = clean_dataframe(df)
+            df = pd.read_html(url)[0]  # Lis le tableau de la première page HTML
+            if df.empty:
+                print(f"Pas de données trouvées pour {key}.")
+            else:
+                data[key] = clean_dataframe(df)
         except Exception as e:
             print(f"Erreur lors du chargement de {key}: {e}")
             data[key] = None
@@ -51,6 +54,12 @@ def get_data():
 def process_data():
     """Fusionne les différentes tables et applique les modifications nécessaires."""
     data = get_data()
+
+    # Vérification si des données ont été récupérées
+    if not data:
+        print("Aucune donnée récupérée, vérifiez les URLs.")
+        return None
+
     df = pd.concat(data.values(), axis=1, join="inner").T.drop_duplicates().T
 
     rename_columns = {
