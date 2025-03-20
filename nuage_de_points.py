@@ -2,15 +2,28 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from scraping import get_data  # Importer le script de scraping
 
-# Charger les données
-df = pd.read_csv("df_BIG2025.csv")
+# Interface Streamlit
+st.title("Nuage de points - Saison 2024/2025")
+
+# Bouton pour recharger les données
+if st.button("Charger les données depuis le web"):
+    df = fetch_data()
+    df.to_csv("df_BIG2025.csv", index=False)  # Sauvegarde locale
+    st.success("Données mises à jour avec succès !")
+else:
+    # Charger depuis le fichier local si dispo, sinon scraper
+    try:
+        df = pd.read_csv("df_BIG2025.csv")
+    except FileNotFoundError:
+        st.warning("Aucune donnée trouvée, récupération en cours...")
+        df = fetch_data()
+        df.to_csv("df_BIG2025.csv", index=False)
 
 # Filtrer les colonnes numériques
 numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
-# Interface Streamlit
-st.title("Nuage de points - Saison 2024/2025")
 
 # Widgets de sélection des axes
 x_axis = st.sidebar.selectbox("Sélectionner la variable pour l'axe X", numerical_columns)
