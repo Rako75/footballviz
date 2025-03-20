@@ -10,7 +10,9 @@ st.title("Nuage de points - Saison 2024/2025")
 if st.button("Charger les données depuis le web"):
     # Appeler le processus de scraping pour récupérer les données
     df = process_data()  # Cette fonction va récupérer et nettoyer les données à chaque clic
-    if df is not None:
+    
+    # Vérification si les données ont été récupérées correctement
+    if df is not None and not df.empty:
         # Si les données sont récupérées avec succès, les enregistrer et afficher un message de succès
         df.to_csv("df_2025.csv", index=False)
         st.success("Données mises à jour avec succès !")
@@ -23,9 +25,9 @@ else:
         st.success("Données chargées depuis le fichier local.")
     except FileNotFoundError:
         st.warning("Aucune donnée trouvée, veuillez charger les données.")
-        
-# Vérifier si df existe
-if 'df' in locals():
+
+# Vérification si df existe et n'est pas vide
+if 'df' in locals() and df is not None and not df.empty:
     # Filtrer les colonnes numériques
     numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
 
@@ -109,3 +111,6 @@ if 'df' in locals():
 
     st.write(f"### Top {num_labels} des meilleurs joueurs selon la variable {y_axis}")
     st.dataframe(top_10_y[['Joueur', 'Équipe', 'Compétition', y_axis]])
+
+else:
+    st.error("Les données sont invalides ou vides. Veuillez recharger les données.")
