@@ -7,9 +7,23 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from io import BytesIO
 
+
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
     data = pd.read_csv("df_BIG2025.csv")
+
+    # Sélection des colonnes à garder en string
+    string_cols = ["Joueur", "Nationalité", "Position", "Équipe", "Compétition"]
+    
+    # Convertir toutes les autres colonnes en int
+    for col in data.columns:
+        if col not in string_cols:
+            try:
+                data[col] = data[col].astype(str).str.replace(",", "").str.replace("+", "").str.replace("-", "").astype(float).astype(int)
+            except ValueError:
+                pass  # Ignore les erreurs de conversion pour éviter de crasher le script
+    
+    return data
     data = data[data['Matchs joués'].astype(int) > 10]
 
     # Normalisation des colonnes en fonction de la position
