@@ -10,6 +10,7 @@ from io import BytesIO
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
     data = pd.read_csv('df_BIG2025.csv', sep='\t', encoding='utf-8')
+    data = data.drop(columns=['Pos'])
 
     # Sélection des colonnes à garder en string
     string_cols = ["Joueur", "Nationalité", "Position", "Équipe", "Compétition"]
@@ -50,9 +51,6 @@ def load_and_preprocess_data(position):
         'Actions menant a un tir par 90 minutes': 'Actions créant un tir p/90 min',
         'Somme des buts et passes attendues par 90 minutes': 'xG + xAG p/90 min'
     })
-
-    # Supprimer la colonne 'Pos'
-    data = data.drop(columns=['Pos'])
     
     # Normalisation et ranking des statistiques
     for col in stats_cols:
