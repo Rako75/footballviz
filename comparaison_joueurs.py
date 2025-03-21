@@ -51,6 +51,9 @@ def load_and_preprocess_data(position):
         'Somme des buts et passes attendues par 90 minutes': 'xG + xAG p/90 min'
     })
 
+    # Supprimer la colonne 'Pos'
+    data = data.drop(columns=['Pos'])
+    
     # Normalisation et ranking des statistiques
     for col in stats_cols:
         if col in data.columns:
