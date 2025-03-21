@@ -9,7 +9,7 @@ from io import BytesIO
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
-    data = pd.read_csv("df_BIG2025.csv", sep=",")
+    data = pd.read_csv("df_BIG2025.csv", encoding='utf-8')
 
     # Sélection des colonnes à garder en string
     string_cols = ["Joueur", "Nationalité", "Position", "Équipe", "Compétition"]
