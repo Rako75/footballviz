@@ -99,19 +99,19 @@ st.sidebar.title("Radarchart - Saison 24/25")
 
 selected_position = st.sidebar.selectbox("Choisissez la position", options=["FW", "DF", "MF"])
 data, stats_cols = load_and_preprocess_data(selected_position)
-league1 = st.sidebar.selectbox("Sélectionnez la ligue du premier joueur", options=data1['Compétition'].unique())
-league2 = st.sidebar.selectbox("Sélectionnez la ligue du deuxième joueur", options=data2['Compétition'].unique())
+league1 = st.sidebar.selectbox("Sélectionnez la ligue du premier joueur", options=data['Compétition'].unique())
+league2 = st.sidebar.selectbox("Sélectionnez la ligue du deuxième joueur", options=data['Compétition'].unique())
 
 # Chargement des données et des joueurs
-data1, params1 = load_and_preprocess_data(league_files[league1][selected_position], selected_position)
-data2, params2 = load_and_preprocess_data(league_files[league2][selected_position], selected_position)
+data, params1 = load_and_preprocess_data(league1][selected_position], selected_position)
+data, params2 = load_and_preprocess_data(league2][selected_position], selected_position)
 
 player1 = st.sidebar.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
 player2 = st.sidebar.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
 
 # Extraction des données des joueurs
-player1_data = data1[data1['Joueur'] == player1].iloc[0][params1].tolist()
-player2_data = data2[data2['Joueur'] == player2].iloc[0][params2].tolist()
+player1_data = data[data['Joueur'] == player1].iloc[0][params1].tolist()
+player2_data = data[data['Joueur'] == player2].iloc[0][params2].tolist()
 
 # Extraction du club et de l'âge des joueurs
 club1 = data1[data1['Joueur'] == player1].iloc[0]['Équipe']
