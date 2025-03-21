@@ -15,15 +15,31 @@ def load_and_preprocess_data(position):
     # Sélection des colonnes à garder en string
     string_cols = ["Joueur", "Nationalité", "Position", "Équipe", "Compétition"]
     
-    # Convertir toutes les autres colonnes en int
+    # Définition des stats en fonction de la position
+    position_stats = {
+        "FW": ['Buts p/90 min', 'Passes déc. p/90 min', 'Buts + passes déc. p/90min',
+               'Distance progressive', 'Passes progressives', 'Receptions progressives', 'xG p/90 min', 'xAG p/90 min'],
+        "DF": ['Interceptions', 'Tacles gagnants', 'Dégagements', 'Duels aériens gagnés', 'Passes progressives', 'Contres'],
+        "MF": ['Passes clés', 'Actions créant un tir p/90 min', 'xG + xAG p/90 min',
+               'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
+    }
+
+    # Vérifier que la position est valide
+    if position not in position_stats:
+        raise ValueError(f"Position non reconnue : {position}")
+
+    stats_cols = position_stats[position]
+
+    # Convertir toutes les colonnes sauf celles en string
     for col in data.columns:
         if col not in string_cols:
             try:
                 data[col] = data[col].astype(str).str.replace(",", "").str.replace("+", "").str.replace("-", "").astype(float).astype(int)
             except ValueError:
                 pass  # Ignore les erreurs de conversion pour éviter de crasher le script
-    
-    return data
+
+    return data, stats_cols
+
     data = data[data['Matchs joués'].astype(int) > 10]
 
     # Normalisation des colonnes en fonction de la position
