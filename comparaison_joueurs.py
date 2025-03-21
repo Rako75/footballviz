@@ -57,7 +57,7 @@ def load_logo(logo_url):
 # URL des répertoires de logos par ligue
 logo_directories = {
     "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
-    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
+    "Bundliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
     "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
     "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
     "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
