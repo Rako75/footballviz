@@ -103,8 +103,8 @@ league1 = st.sidebar.selectbox("Sélectionnez la ligue du premier joueur", optio
 league2 = st.sidebar.selectbox("Sélectionnez la ligue du deuxième joueur", options=data['Compétition'].unique())
 
 # Chargement des données et des joueurs
-data, params1 = load_and_preprocess_data(league1][selected_position], selected_position)
-data, params2 = load_and_preprocess_data(league2][selected_position], selected_position)
+data, params1 = load_and_preprocess_data(league1[selected_position], selected_position)
+data, params2 = load_and_preprocess_data(league2[selected_position], selected_position)
 
 player1 = st.sidebar.selectbox("Sélectionnez le premier joueur", options=data1['Joueur'].unique())
 player2 = st.sidebar.selectbox("Sélectionnez le deuxième joueur", options=data2['Joueur'].unique())
