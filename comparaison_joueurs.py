@@ -17,7 +17,7 @@ def load_and_preprocess_data(position):
     # Définition des stats en fonction de la position
     position_stats = {
         "FW": ['Buts p/90 min', 'Passes déc. p/90 min', 'Buts + passes déc. p/90min',
-               'Distance progressive', 'Passes progressives', 'Receptions progressives', 'xG p/90 min', 'xAG p/90 min'],
+               'Distance progressive', 'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min'],
         "DF": ['Interceptions', 'Tacles gagnants', 'Dégagements', 'Duels aériens gagnés', 'Passes progressives', 'Contres'],
         "MF": ['Passes clés', 'Actions créant un tir p/90 min', 'xG + xAG p/90 min',
                'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
@@ -36,11 +36,11 @@ def load_and_preprocess_data(position):
     data = data.rename(columns={
         'Distance progressive parcourue avec le ballon': 'Distance progressive',
         'Buts par 90 minutes': 'Buts p/90 min',
-        'Passes decisives par 90 minutes': 'Passes déc. p/90 min',
-        'Buts + Passes decisives par 90 minutes': 'Buts + passes déc. p/90min',
+        'Passes décisives par 90 minutes': 'Passes déc. p/90 min',
+        'Buts + Passes décisives par 90 minutes': 'Buts + passes déc. p/90min',
         'Buts attendus par 90 minutes': 'xG p/90 min',
         'Passes décisives attendues par 90 minutes': 'xAG p/90 min',
-        'Actions menant a un tir par 90 minutes': 'Actions créant un tir p/90 min',
+        'Actions menant à un tir par 90 minutes': 'Actions créant un tir p/90 min',
         'Somme des buts et passes attendues par 90 minutes': 'xG + xAG p/90 min'
     })
     
