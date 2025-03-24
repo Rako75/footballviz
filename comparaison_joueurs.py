@@ -18,7 +18,7 @@ def load_and_preprocess_data(file_path, position):
                       'Buts + passes déc. p/90min', 'Distance progressive',
                       'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min']
     elif position == "Défenseur":
-        stats_cols = ['Interceptions', 'Tacles', 'Dégagements',
+        stats_cols = ['Interceptions', 'Tacles gagnants', 'Dégagements',
                       'Duels défensifs gagnés', 'Passes progressives', 'Duels aériens gagnés']
     elif position == "Milieu":
         stats_cols = ['Passes clés', 'Actions créant un tir p/90 min', 
