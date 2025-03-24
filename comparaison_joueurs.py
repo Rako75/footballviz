@@ -19,7 +19,7 @@ def load_and_preprocess_data(position):
                'Distance progressive', 'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min'],
         "DF": ['Interceptions', 'Tacles gagnants', 'Dégagements', 'Duels aériens gagnés', 'Passes progressives', 'Contres'],
         "MF": ['Passes clés', 'Actions créant un tir p/90 min', 'xG + xAG p/90 min',
-               'Passes vers le dernier tiers', 'Passes progressives', 'Courses progressives']
+               'Passes dans le dernier tiers', 'Passes progressives', 'Courses progressives']
     }
 
     if position not in position_stats:
