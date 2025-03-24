@@ -94,7 +94,7 @@ logo_directories = {
 
 # Streamlit application
 # Utilisation de la barre latérale pour les sélections
-st.sidebar.title("Radarchart - Saison 23/24")
+st.sidebar.title("Radarchart - Saison 24/25")
 
 selected_position = st.sidebar.selectbox("Choisissez la position", options=["Attaquant", "Défenseur", "Milieu"])
 league1 = st.sidebar.selectbox("Sélectionnez la ligue du premier joueur", options=list(league_files.keys()))
