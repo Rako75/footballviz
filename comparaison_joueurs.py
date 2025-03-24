@@ -11,7 +11,7 @@ from io import BytesIO
 def load_and_preprocess_data(position):
     data = pd.read_csv('df_BIG2025.csv', sep=',', encoding='utf-8')
 
-  df['Compétition'] = df['Compétition'].replace('Bundliga', 'Bundesliga')
+  data['Compétition'] = data['Compétition'].replace('Bundliga', 'Bundesliga')
 
     # Définition des stats en fonction de la position
     position_stats = {
