@@ -14,7 +14,7 @@ def load_and_preprocess_data(position):
 data['Compétition'] = data['Compétition'].replace('Bundliga', 'Bundesliga')
 
     # Définition des stats en fonction de la position
-    position_stats = {
+position_stats = {
         "FW": ['Buts p/90 min', 'Passes déc. p/90 min', 'Buts + passes déc. p/90min',
                'Distance progressive', 'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min'],
         "DF": ['Interceptions', 'Tacles gagnants', 'Dégagements', 'Duels aériens gagnés', 'Passes progressives', 'Contres'],
