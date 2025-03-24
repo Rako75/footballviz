@@ -3,9 +3,6 @@ import numpy as np
 import streamlit as st
 from soccerplots.radar_chart import Radar
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import requests
-from io import BytesIO
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
@@ -50,21 +47,6 @@ def load_and_preprocess_data(position):
 
     return data, stats_cols
 
-# Fonction pour charger un logo à partir d'une URL
-def load_logo(logo_url):
-    response = requests.get(logo_url)
-    image = plt.imread(BytesIO(response.content))
-    return image
-
-# URL des répertoires de logos par ligue
-logo_directories = {
-    "Premier League": "https://raw.githubusercontent.com/Rako75/footballviz/main/Premier%20League%20Logos",
-    "Bundesliga": "https://raw.githubusercontent.com/Rako75/footballviz/main/Bundesliga%20Logos",
-    "La Liga": "https://raw.githubusercontent.com/Rako75/footballviz/main/La%20Liga%20Logos",
-    "Ligue 1": "https://raw.githubusercontent.com/Rako75/footballviz/main/Ligue%201%20Logos",
-    "Serie A": "https://raw.githubusercontent.com/Rako75/footballviz/main/Serie%20A%20Logos",
-}
-
 # Streamlit Application
 st.sidebar.title("Radarchart - Saison 24/25")
 
@@ -84,18 +66,6 @@ player2 = st.sidebar.selectbox("Sélectionnez le deuxième joueur", options=data
 player1_data = data1[data1['Joueur'] == player1].iloc[0][stats_cols].tolist()
 player2_data = data2[data2['Joueur'] == player2].iloc[0][stats_cols].tolist()
 
-# Extraction du club des joueurs
-club1 = data1[data1['Joueur'] == player1].iloc[0]['Équipe']
-club2 = data2[data2['Joueur'] == player2].iloc[0]['Équipe']
-
-# Génération des URL des logos des clubs
-club1_logo_url = f"{logo_directories[league1]}/{club1}.png"
-club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
-
-# Charger les logos
-club1_logo = load_logo(club1_logo_url)
-club2_logo = load_logo(club2_logo_url)
-
 # Radar Chart
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
@@ -111,14 +81,3 @@ fig, ax = radar.plot_radar(
 )
 
 st.pyplot(fig)
-
-# Affichage des infos des joueurs
-col1, col2 = st.columns(2)
-
-with col1:
-    st.image(club1_logo, width=100)
-    st.subheader(f"{player1} (rouge)")
-
-with col2:
-    st.image(club2_logo, width=100)
-    st.subheader(f"{player2} (bleu)")
