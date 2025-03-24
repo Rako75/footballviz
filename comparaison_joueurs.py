@@ -9,8 +9,7 @@ from io import BytesIO
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
-    data = pd.read_csv('df_BIG2025.csv', sep='\t', encoding='utf-8')
-    data = data.drop(columns=['Pos'])
+    data = pd.read_csv('df_BIG2025.csv', sep=',', encoding='utf-8')
 
     # Sélection des colonnes à garder en string
     string_cols = ["Joueur", "Nationalité", "Position", "Équipe", "Compétition"]
@@ -29,13 +28,6 @@ def load_and_preprocess_data(position):
 
     stats_cols = position_stats[position]
 
-    # Nettoyage et conversion des colonnes
-    for col in data.columns:
-        if col not in string_cols:
-            try:
-                data[col] = data[col].astype(str).str.replace(",", "").str.replace("+", "").str.replace("-", "").astype(float).astype(int)
-            except ValueError:
-                pass  # Ignore erreurs de conversion
 
     # Filtrer les joueurs avec plus de 10 matchs
     data = data[data['Matchs joués'].astype(int) > 10]
