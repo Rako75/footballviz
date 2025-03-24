@@ -14,8 +14,7 @@ def load_and_preprocess_data(file_path, position):
 
     # Normalisation des colonnes en fonction de la position
     if position == "Attaquant":
-        stats_cols = ['Buts p/90 min', 'Passes déc. p/90 min',
-                      'Buts + passes déc. p/90min', 'Distance progressive',
+        stats_cols = ['Buts + passes déc. p/90min', 'Distance progressive',
                       'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min']
     elif position == "Défenseur":
         stats_cols = ['Interceptions', 'Tacles gagnants', 'Dégagements',
@@ -125,19 +124,17 @@ club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
 club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
+
+
 # Note de bas de page
 endnote = "Source : FBref | Auteur : Alex Rakotomalala"
 
 # Instanciation de l'objet Radar
 radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
 
-# Streamlit sliders pour zoomer
-min_value = st.sidebar.slider("Zoom minimum", 0, 50, 0)
-max_value = st.sidebar.slider("Zoom maximum", 50, 100, 100)
-
-# Tracé du radar avec zoom dynamique
+# Tracé du radar
 fig, ax = radar.plot_radar(
-    ranges=[(min_value, max_value)] * len(params1),  # Plage dynamique basée sur les sliders
+    ranges=[(0, 100)] * len(params1),  
     params=params1,
     values=[player1_data, player2_data],
     radar_color=['#9B3647', '#3282b8'],
@@ -146,8 +143,9 @@ fig, ax = radar.plot_radar(
     compare=True
 )
 
-# Agrandir le radar chart
-fig.set_size_inches(12, 10)  # Largeur x Hauteur en pouces (12 pouces x 10 pouces par exemple)
+# Modifier la taille du radar chart
+fig.set_size_inches(100, 8)  # Largeur x Hauteur
+
 
 # Création des colonnes pour afficher les informations des joueurs
 col1, col2 = st.columns(2)
@@ -174,6 +172,8 @@ player2_titularisations = int(player2_info['Titularisations'])
 player2_buts = int(player2_info['Buts'])  # Valeur réelle des buts
 player2_passes = int(player2_info['Passes décisives'])  # Valeur réelle des passes décisives
 player2_stat_key = player2_info[key_stat[selected_position]]
+
+
 
 
 # Organisation de la mise en page
