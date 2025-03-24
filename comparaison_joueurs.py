@@ -1,11 +1,10 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-from soccerplots.radar_chart import Radar
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import plotly.graph_objects as go
 import requests
 from io import BytesIO
+import matplotlib.pyplot as plt
 
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(file_path, position):
@@ -125,81 +124,38 @@ club2_logo_url = f"{logo_directories[league2]}/{club2}.png"
 club1_logo = load_logo(club1_logo_url)
 club2_logo = load_logo(club2_logo_url)
 
+# Création du radar chart avec Plotly pour permettre l'interaction et le zoom
+fig = go.Figure()
 
+fig.add_trace(go.Scatterpolar(
+    r=player1_data,
+    theta=params1,
+    fill='toself',
+    name=player1,
+    line=dict(color='#9B3647')
+))
 
-# Note de bas de page
-endnote = "Source : FBref | Auteur : Alex Rakotomalala"
+fig.add_trace(go.Scatterpolar(
+    r=player2_data,
+    theta=params2,
+    fill='toself',
+    name=player2,
+    line=dict(color='#3282b8')
+))
 
-# Instanciation de l'objet Radar
-radar = Radar(background_color="#121212", patch_color="#28252C", label_color="#F0FFF0", range_color="#F0FFF0")
-
-# Tracé du radar
-fig, ax = radar.plot_radar(
-    ranges=[(0, 100)] * len(params1),  
-    params=params1,
-    values=[player1_data, player2_data],
-    radar_color=['#9B3647', '#3282b8'],
-    endnote=endnote,  # 👈 Supprime la note de bas de page
-    alphas=[0.55, 0.5],
-    compare=True
+# Mise en forme
+fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, 100]  # Plage de valeurs des axes
+        )
+    ),
+    showlegend=True,
+    title="Comparaison des Joueurs",
+    title_x=0.5,
+    template="plotly_dark"
 )
 
-# Modifier la taille du radar chart
-fig.set_size_inches(100, 8)  # Largeur x Hauteur
-
-
-# Création des colonnes pour afficher les informations des joueurs
-col1, col2 = st.columns(2)
-
-# Sélection des statistiques importantes par poste
-key_stat = {
-    "Attaquant": "xG p/90 min",
-    "Défenseur": "Interceptions",
-    "Milieu": "Passes progressives"
-}
-
-# Extraction des informations du premier joueur
-player1_info = data1[data1['Joueur'] == player1].iloc[0]
-player1_age = int(player1_info['Âge'])
-player1_titularisations = int(player1_info['Titularisations'])
-player1_buts = int(player1_info['Buts'])  # Prend directement la valeur réelle des buts
-player1_passes = int(player1_info['Passes décisives'])  # Prend directement la valeur réelle des passes décisives
-player1_stat_key = player1_info[key_stat[selected_position]]
-
-# Extraction des informations du deuxième joueur
-player2_info = data2[data2['Joueur'] == player2].iloc[0]
-player2_age = int(player2_info['Âge'])
-player2_titularisations = int(player2_info['Titularisations'])
-player2_buts = int(player2_info['Buts'])  # Valeur réelle des buts
-player2_passes = int(player2_info['Passes décisives'])  # Valeur réelle des passes décisives
-player2_stat_key = player2_info[key_stat[selected_position]]
-
-
-
-
-# Organisation de la mise en page
-col1, col2, col3 = st.columns([6, 15, 6])  # Colonnes gauche, centre (radar), droite
-
-# Colonne 1 : Infos du joueur 1
-with col1:
-    st.image(club1_logo, width=100)
-    st.subheader(f"{player1} (rouge)")  # Nom de la couleur en français
-    st.write(f"**Âge :** {player1_age}")
-    st.write(f"**Titularisations :** {player1_titularisations}")
-    st.write(f"**Buts :** {player1_buts}")
-    st.write(f"**Passes déc. :** {player1_passes}")
-    st.write(f"**{key_stat[selected_position]} :** {player1_stat_key}")
-
-# Colonne 2 : Radar Chart (plein centre)
-with col2:
-    st.pyplot(fig)  # Affiche le radar chart au centre
-
-# Colonne 3 : Infos du joueur 2
-with col3:
-    st.image(club2_logo, width=100)
-    st.subheader(f"{player2} (bleu)")  # Nom de la couleur en français
-    st.write(f"**Âge :** {player2_age}")
-    st.write(f"**Titularisations :** {player2_titularisations}")
-    st.write(f"**Buts :** {player2_buts}")
-    st.write(f"**Passes déc. :** {player2_passes}")
-    st.write(f"**{key_stat[selected_position]} :** {player2_stat_key}")
+# Affichage du graphique interactif avec zoom
+st.plotly_chart(fig)
