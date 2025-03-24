@@ -10,11 +10,11 @@ from io import BytesIO
 # Fonction pour charger et prétraiter les données
 def load_and_preprocess_data(position):
     data = pd.read_csv('df_BIG2025.csv', sep=',', encoding='utf-8')
-
-data['Compétition'] = data['Compétition'].replace('Bundliga', 'Bundesliga')
+    
+    data['Compétition'] = data['Compétition'].replace('Bundliga', 'Bundesliga')
 
     # Définition des stats en fonction de la position
-position_stats = {
+    position_stats = {
         "FW": ['Buts p/90 min', 'Passes déc. p/90 min', 'Buts + passes déc. p/90min',
                'Distance progressive', 'Passes progressives', 'Réceptions progressives', 'xG p/90 min', 'xAG p/90 min'],
         "DF": ['Interceptions', 'Tacles gagnants', 'Dégagements', 'Duels aériens gagnés', 'Passes progressives', 'Contres'],
@@ -26,7 +26,6 @@ position_stats = {
         raise ValueError(f"Position non reconnue : {position}")
 
     stats_cols = position_stats[position]
-
 
     # Filtrer les joueurs avec plus de 10 matchs
     data = data[data['Matchs joués'].astype(int) > 10]
@@ -54,7 +53,7 @@ position_stats = {
 # Fonction pour charger un logo à partir d'une URL
 def load_logo(logo_url):
     response = requests.get(logo_url)
-    image = plt.imread(BytesIO(response.content), format='png')
+    image = plt.imread(BytesIO(response.content))
     return image
 
 # URL des répertoires de logos par ligue
@@ -85,7 +84,7 @@ player2 = st.sidebar.selectbox("Sélectionnez le deuxième joueur", options=data
 player1_data = data1[data1['Joueur'] == player1].iloc[0][stats_cols].tolist()
 player2_data = data2[data2['Joueur'] == player2].iloc[0][stats_cols].tolist()
 
-# Extraction du club et de l'âge des joueurs
+# Extraction du club des joueurs
 club1 = data1[data1['Joueur'] == player1].iloc[0]['Équipe']
 club2 = data2[data2['Joueur'] == player2].iloc[0]['Équipe']
 
