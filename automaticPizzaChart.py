@@ -90,11 +90,18 @@ def get_player_image(player_name):
     try:
         page = wikipedia.page(player_name)
         for img_url in page.images:
-            if any(img_url.lower().endswith(ext) for ext in ['jpg', 'jpeg', 'png']) and 'wiki' in img_url:
-                return img_url
+            if any(img_url.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png']):
+                try:
+                    response = requests.get(img_url, timeout=5)
+                    if response.status_code == 200 and 'image' in response.headers['Content-Type']:
+                        # On retourne une URL d’image valide
+                        return img_url
+                except:
+                    continue
     except Exception as e:
-        print(f"Erreur image pour {player_name}: {e}")
+        print(f"Erreur lors de la récupération de l’image pour {player_name}: {e}")
     return None
+
 
 
 def show_picture(df, selected_stats):
