@@ -128,7 +128,7 @@ def find_similar_players(player_name, league, top_n=10):
         if player == player_name:
             continue
 
-        equipe = filtered_df.loc[index, 'Equipe']
+        equipe = filtered_df.loc[index, 'Équipe']
         league = filtered_df.loc[index, 'Compétition']
 
         # Obtenir l'URL du logo avec gestion des caractères spéciaux
