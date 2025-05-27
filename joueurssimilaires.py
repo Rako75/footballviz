@@ -103,10 +103,10 @@ def find_similar_players(player_name, league, top_n=10):
     close_match = next(p for p in list_of_all_players if p.lower() == find_close_match[0])
 
     # Filtrer par ligue
-    filtered_df = df[df['Ligue'] == league]
+    filtered_df = df[df['Compétition'] == league]
 
     if filtered_df.empty:
-        st.warning(f"Aucun joueur similaire trouvé dans la ligue '{league}'.")
+        st.warning(f"Aucun joueur similaire trouvé dans la Compétition '{league}'.")
         return []
 
     # Index du joueur trouvé
@@ -129,7 +129,7 @@ def find_similar_players(player_name, league, top_n=10):
             continue
 
         equipe = filtered_df.loc[index, 'Equipe']
-        league = filtered_df.loc[index, 'Ligue']
+        league = filtered_df.loc[index, 'Compétition']
 
         # Obtenir l'URL du logo avec gestion des caractères spéciaux
         logo_url = get_logo_url(equipe, league)
@@ -146,7 +146,7 @@ st.title("Recherche de joueurs similaires")
 player_name = st.text_input("Entrez le nom d'un joueur :").strip()
 
 # Sélection de la ligue
-leagues = df['Ligue'].unique().tolist()
+leagues = df['Compétition'].unique().tolist()
 selected_league = st.selectbox("Choisissez une ligue :", leagues)
 
 # Sélection du nombre de joueurs similaires
