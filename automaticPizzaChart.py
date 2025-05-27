@@ -16,6 +16,7 @@ LEAGUE_URLS = {
     "Serie A": "https://fbref.com/en/comps/11/stats/Serie-A-Stats",
     "Bundesliga": "https://fbref.com/en/comps/20/stats/Bundesliga-Stats",
     "Ligue 1": "https://fbref.com/en/comps/13/stats/Ligue-1-Stats",
+    "Premier League": "https://fbref.com/en/comps/9/stats/Premier-League-Stats"
 }
 
 # Fonction modifiée pour prendre l'URL de ligue
