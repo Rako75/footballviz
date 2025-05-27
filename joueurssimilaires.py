@@ -9,7 +9,7 @@ import urllib.parse
 # Chargement des données
 @st.cache_data
 def load_data():
-    return pd.read_csv("df_Big2025.csv")
+    return pd.read_csv("df_BIG2025.csv")
 
 df = load_data()
 
