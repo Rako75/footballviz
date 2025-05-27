@@ -14,5 +14,4 @@ requests
 Pillow
 beautifulsoup4
 lxml
-mplsoccer 
-beautifulsoup4
+mplsoccer
