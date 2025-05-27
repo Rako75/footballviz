@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import os
@@ -9,6 +8,10 @@ import openpyxl
 from mplsoccer import PyPizza
 from highlight_text import fig_text
 import matplotlib.pyplot as plt
+import wikipedia
+import requests
+from PIL import Image
+from io import BytesIO
 
 # Mapping des ligues
 LEAGUE_URLS = {
@@ -19,7 +22,6 @@ LEAGUE_URLS = {
     "Premier League": "https://fbref.com/en/comps/9/stats/Premier-League-Stats"
 }
 
-# Fonction modifiée pour prendre l'URL de ligue
 @st.cache_data
 def getReports(url):
     html = urlopen(url)
@@ -81,6 +83,18 @@ def get_players_data(player_name):
             stat_values.append(tds[1].text.strip())
 
     return stat_keys, stat_values
+
+
+@st.cache_data
+def get_player_image(player_name):
+    try:
+        page = wikipedia.page(player_name)
+        for img_url in page.images:
+            if any(img_url.lower().endswith(ext) for ext in ['jpg', 'jpeg', 'png']) and 'wiki' in img_url:
+                return img_url
+    except Exception as e:
+        print(f"Erreur image pour {player_name}: {e}")
+    return None
 
 
 def show_picture(df, selected_stats):
@@ -191,6 +205,29 @@ else:
 
 player1 = st.selectbox("🎯 Joueur 1", all_players)
 player2 = st.selectbox("🔁 Joueur 2 (optionnel)", [""] + all_players)
+
+if player1:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(player1.title())
+        img1_url = get_player_image(player1.title())
+        if img1_url:
+            response1 = requests.get(img1_url)
+            img1 = Image.open(BytesIO(response1.content))
+            st.image(img1, width=150)
+        else:
+            st.text("Image non trouvée")
+
+    if player2:
+        with col2:
+            st.subheader(player2.title())
+            img2_url = get_player_image(player2.title())
+            if img2_url:
+                response2 = requests.get(img2_url)
+                img2 = Image.open(BytesIO(response2.content))
+                st.image(img2, width=150)
+            else:
+                st.text("Image non trouvée")
 
 if st.button("🎨 Générer Radar"):
     selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
