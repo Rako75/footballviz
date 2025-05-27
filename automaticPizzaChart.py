@@ -73,6 +73,7 @@ def show_picture(params, values, name_of_player, img_url):
     font_bold = FontManager()
     image = Image.open(urlopen(img_url))
 
+    # Circular crop
     mask = Image.new('L', image.size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0) + image.size, fill=255)
@@ -84,10 +85,10 @@ def show_picture(params, values, name_of_player, img_url):
 
     baker = PyPizza(
         params=params,
-        background_color="#132257",
-        straight_line_color="#000000",
+        background_color="#000000",  # Fond noir
+        straight_line_color="#ffffff",
         straight_line_lw=1,
-        last_circle_color="#000000",
+        last_circle_color="#ffffff",
         last_circle_lw=1,
         other_circle_lw=0,
         inner_circle_size=11
@@ -101,25 +102,28 @@ def show_picture(params, values, name_of_player, img_url):
         value_colors=text_colors,
         value_bck_colors=slice_colors,
         blank_alpha=0.4,
-        kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=1),
+        kwargs_slices=dict(edgecolor="#ffffff", zorder=2, linewidth=1),
         kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
         kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=3,
-                           bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
+                           bbox=dict(edgecolor="#ffffff", facecolor="#222222", boxstyle="round,pad=0.2", lw=1))
     )
+
+    fig.patch.set_facecolor('black')  # Fond noir pour toute la figure
 
     fig.text(0.515, 0.945, name_of_player.title(), size=27,
              ha="center", fontproperties=font_bold.prop, color="#ffffff")
 
     fig.text(0.515, 0.925,
              "Percentile Rank vs Top-Five League Players (last 365 days)",
-             size=13, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+             size=13, ha="center", fontproperties=font_bold.prop, color="#bbbbbb")
 
     add_image(masked_img, fig, left=0.472, bottom=0.457, width=0.086, height=0.08, zorder=-1)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png")
+    plt.savefig(buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight")
     buf.seek(0)
     return buf
+
 
 
 # ==== STREAMLIT UI ====
