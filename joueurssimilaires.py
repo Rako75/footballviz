@@ -14,7 +14,7 @@ def load_data():
 df = load_data()
 
 # Vérification des colonnes nécessaires
-required_columns = ['Joueur', 'Ligue']
+required_columns = ['Joueur', 'Compétition']
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Les colonnes suivantes sont absentes du fichier CSV : {', '.join(required_columns)}")
 
