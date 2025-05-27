@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 
 @st.cache_data
 def getReports():
-    url = 'https://fbref.com/en/comps/12/stats/La-Liga-Stats'
+    url = 'https://fbref.com/en/comps/9/stats/Premier-League-Stats'
     html = urlopen(url)
     bs = BeautifulSoup(html, 'html.parser')
     usable_bs = str(bs).replace("<!--", "").replace("-->", "")
