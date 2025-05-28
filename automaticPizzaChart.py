@@ -57,18 +57,6 @@ def name_updater(file_path):
     df.to_excel(file_path, index=False)
     return df
 
-
-
-
-
-
-
-
-
-
-
-
-
 def link_generator(player_name, df):
     matches = df[df['Name'].str.lower() == player_name.lower()]
     if not matches.empty:
@@ -145,11 +133,6 @@ def show_picture(df, selected_stats):
     fig.text(0.515, 0.942, "Radar individuel — Stats normalisées (percentiles)", size=15, ha="center", color="#000000")
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices", size=9, ha="right", color="#000000")
 
-
-
-
-
-
     st.pyplot(fig)
 
 def show_comparison_picture(df1, df2, selected_stats):
@@ -191,10 +174,6 @@ def show_comparison_picture(df1, df2, selected_stats):
     fig.text(0.515, 0.942, "Radar comparatif — Stats (percentiles)", size=15, ha="center", color="#000000")
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices", size=9, ha="right", color="#000000")
 
-
-
-
-
     st.pyplot(fig)
 
 # Interface Streamlit
@@ -218,7 +197,11 @@ for league in selected_leagues:
 player1 = player2 = ""
 if len(selected_leagues) == 1:
     all_players = profiles_by_league[selected_leagues[0]]['Name'].tolist()
-    player1 = st.selectbox("🎯 Joueur", all_players)
+    mode = st.radio("Sélectionnez le mode d'affichage :", ["Radar d'un joueur", "Comparer deux joueurs"], horizontal=True)
+    player1 = st.selectbox("🎯 Joueur 1", all_players, key="player1_single")
+    if mode == "Comparer deux joueurs":
+        remaining_players = [p for p in all_players if p != player1]
+        player2 = st.selectbox("🎯 Joueur 2", remaining_players, key="player2_single")
 elif len(selected_leagues) == 2:
     col1, col2 = st.columns(2)
     with col1:
@@ -253,7 +236,7 @@ radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCa
                 'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
                 'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
 
-if st.button("🎨 Générer Radar"):
+if player1:
     try:
         keys1, values1 = get_players_data(player1, profiles_by_league[selected_leagues[0]])
         stats1 = dict(zip(keys1, values1))
@@ -262,7 +245,8 @@ if st.button("🎨 Générer Radar"):
         df1["Player"] = player1.title()
 
         if player2:
-            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[1]])
+            index_league_2 = 0 if len(selected_leagues) == 1 else 1
+            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[index_league_2]])
             stats2 = dict(zip(keys2, values2))
             data2 = [float(stats2.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df2 = pd.DataFrame([data2], columns=radar_labels)
