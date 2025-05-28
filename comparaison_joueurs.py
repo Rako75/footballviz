@@ -34,12 +34,12 @@ def load_and_preprocess_data(file_path, position):
         'Actions menant à un tir par 90 minutes':'Actions créant un tir p/90 min',
         'Somme des buts et passes attendues par 90 minutes':'xG + xAG p/90 min'
     })
-    for col in stats_cols:
-        if col in data.columns:
+  stats_cols = [col for col in stats_cols if col in data.columns]
+
             data[col] = data[col].astype(float) / data['Matchs en 90 min']
 
-    for col in stats_cols:
-        if col in data.columns:
+  stats_cols = [col for col in stats_cols if col in data.columns]
+
             data[col] = (data[col].rank(pct=True) * 100).astype(int)
 
     return data, stats_cols
@@ -94,6 +94,7 @@ club2_logo = load_logo(club2_logo_url)
 # PyPizza Radar
 slice_colors = ["#1A1A1A"] * len(params1)
 text_colors = ["#F0F0F0"] * len(params1)
+
 
 baker = PyPizza(
     params=params1,
