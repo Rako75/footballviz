@@ -14,7 +14,7 @@ requests
 Pillow
 beautifulsoup4
 lxml
-mplsoccer
+mplsoccer>=1.0.6
 pandas
 highlight_text
 wikipedia
