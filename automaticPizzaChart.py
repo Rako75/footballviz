@@ -141,13 +141,13 @@ def show_comparison_picture(df1, df2, selected_stats):
              highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}],
              ha="center", color="#000000")
     fig.text(0.515, 0.942, "Radar comparatif — Stats (percentiles)", size=15, ha="center", color="#000000")
-    fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices", size=9, ha="right", color="#000000")
+    fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices, ©Alex Rakotomalala", size=9, ha="right", color="#000000")
 
     st.pyplot(fig)
 
 # Interface Streamlit
 st.set_page_config(page_title="Radar FBRef", layout="centered")
-st.title("🎯 Radar Player - Comparateur FBRef")
+st.title("🎯 Comparateur de joueurs - Top 5 ligues")
 
 selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
 profiles_by_league = {}
