@@ -34,13 +34,10 @@ def load_and_preprocess_data(file_path, position):
         'Actions menant à un tir par 90 minutes':'Actions créant un tir p/90 min',
         'Somme des buts et passes attendues par 90 minutes':'xG + xAG p/90 min'
     })
-  stats_cols = [col for col in stats_cols if col in data.columns]
-
-            data[col] = data[col].astype(float) / data['Matchs en 90 min']
-
-  stats_cols = [col for col in stats_cols if col in data.columns]
-
-            data[col] = (data[col].rank(pct=True) * 100).astype(int)
+    stats_cols = [col for col in stats_cols if col in data.columns]
+    data[col] = data[col].astype(float) / data['Matchs en 90 min']
+    stats_cols = [col for col in stats_cols if col in data.columns]
+    data[col] = (data[col].rank(pct=True) * 100).astype(int)
 
     return data, stats_cols
 
