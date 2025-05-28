@@ -128,7 +128,6 @@ baker = PyPizza(
     last_circle_color="#F0F0F0",
     other_circle_lw=0,
     inner_circle_size=10,
-    inner_circle_color="#1A1A1A",
     direction_clockwise=True,
     slice_colors=slice_colors,
     value_colors=text_colors,
