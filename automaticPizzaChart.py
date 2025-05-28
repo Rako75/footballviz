@@ -47,10 +47,12 @@ def getReports(url, league_name):
 
 def name_updater(path):
     df = pd.read_excel(path)
+
     for i in range(len(df)):
         if isinstance(df.loc[i, 'Link'], str):
             name_from_url = df.loc[i, 'Link'].split('/')[-1].replace('-', ' ').lower()
             df.loc[i, 'Name'] = name_from_url
+
     df.drop_duplicates(subset='Name', keep='first', inplace=True)
     df.to_excel(path, index=False)
     return df
@@ -80,23 +82,10 @@ def get_players_data(player_name, df):
     bs = BeautifulSoup(html, 'html.parser')
 
     scout_link = bs.find('div', {'class': 'section_heading_text'}).find('a')['href']
-
-
-
-
-
-
-
-
     scout_html = urlopen("https://fbref.com" + scout_link)
     bs_scout_all = BeautifulSoup(scout_html, 'html.parser')
     bs_scout = bs_scout_all.find('div', {'id': re.compile(r'div_scout_full_')})
-
-
-
     table = bs_scout.find("table", {'id': re.compile(r'scout_full_')})
-
-
 
     stat_keys, stat_values = [], []
     for row in table.find_all('tr'):
@@ -107,7 +96,6 @@ def get_players_data(player_name, df):
             stat_values.append(tds[1].text.strip())
 
     return stat_keys, stat_values
-
 
 @st.cache_data
 def get_player_image(player_name):
@@ -219,6 +207,19 @@ if selected_leagues:
     df_profiles = load_profiles(selected_leagues)
     all_players = sorted(df_profiles['Name'].unique().tolist())
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     col1, col2 = st.columns(2)
     with col1:
         player1 = st.selectbox("🎯 Joueur 1", all_players)
@@ -237,6 +238,28 @@ if selected_leagues:
                 st.image(img1, width=150)
             else:
                 st.text("Image non trouvée")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         if player2:
             with col2:
