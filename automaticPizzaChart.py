@@ -10,7 +10,7 @@ from highlight_text import fig_text
 import matplotlib.pyplot as plt
 import time
 
-# ------------------- CONFIGURATION -------------------
+# Mapping des ligues
 LEAGUE_URLS = {
     "La Liga": "https://fbref.com/en/comps/12/stats/La-Liga-Stats",
     "Serie A": "https://fbref.com/en/comps/11/stats/Serie-A-Stats",
@@ -19,7 +19,6 @@ LEAGUE_URLS = {
     "Premier League": "https://fbref.com/en/comps/9/stats/Premier-League-Stats"
 }
 
-# ------------------- UTILITAIRES -------------------
 @st.cache_data
 def getReports(url, league_name):
     html = urlopen(url)
@@ -29,6 +28,7 @@ def getReports(url, league_name):
     bs_clean = BeautifulSoup(usable_bs, 'html.parser')
     table_contents = bs_clean.find_all('table')
 
+    os.makedirs("profiles", exist_ok=True)
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.append(["Name", "Link"])
@@ -40,7 +40,6 @@ def getReports(url, league_name):
             href = link['href']
             sheet.append([name, href])
 
-    os.makedirs("profiles", exist_ok=True)
     filepath = f"profiles/{league_name.lower().replace(' ', '_')}_profiles.xlsx"
     workbook.save(filepath)
 
@@ -111,6 +110,7 @@ def show_picture(df, selected_stats):
              highlight_textprops=[{"color": '#1A78CF'}], ha="center", color="#000000")
     fig.text(0.515, 0.942, "Radar individuel — Stats normalisées (percentiles)", size=15, ha="center", color="#000000")
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices", size=9, ha="right", color="#000000")
+
     st.pyplot(fig)
 
 def show_comparison_picture(df1, df2, selected_stats):
@@ -142,23 +142,25 @@ def show_comparison_picture(df1, df2, selected_stats):
              ha="center", color="#000000")
     fig.text(0.515, 0.942, "Radar comparatif — Stats (percentiles)", size=15, ha="center", color="#000000")
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices, ©Alex Rakotomalala", size=9, ha="right", color="#000000")
+
     st.pyplot(fig)
 
-# ------------------- INTERFACE STREAMLIT -------------------
+# Interface Streamlit
 st.set_page_config(page_title="Radar FBRef", layout="centered")
 st.title("🎯 Comparateur de joueurs - Top 5 ligues")
 
+selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
+
+# Création du dossier ici avant tout
+os.makedirs("profiles", exist_ok=True)
+
 # Bouton de réinitialisation
 if st.button("🔄 Réinitialiser les données"):
-    for f in os.listdir("profiles"):
-        path = os.path.join("profiles", f)
-        if os.path.isfile(path) and path.endswith(".xlsx"):
-            os.remove(path)
-    st.success("Réinitialisation effectuée. Re-sélectionnez les ligues.")
+    for file in os.listdir("profiles"):
+        os.remove(os.path.join("profiles", file))
+    st.experimental_rerun()
 
-selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
 profiles_by_league = {}
-
 for league in selected_leagues:
     url = LEAGUE_URLS[league]
     league_key = league.lower().replace(" ", "_")
@@ -201,7 +203,7 @@ if st.button("🎨 Générer Radar"):
         df1["Player"] = player1.title()
 
         if player2:
-            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[1]])
+            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[-1]])
             stats2 = dict(zip(keys2, values2))
             data2 = [float(stats2.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df2 = pd.DataFrame([data2], columns=radar_labels)
