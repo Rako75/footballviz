@@ -74,16 +74,29 @@ def link_generator(player_name, df):
     else:
         raise ValueError(f"Nom du joueur introuvable : {player_name}")
 
-def get_players_data(player_name, df):
-    link_to_player_profile = link_generator(player_name, df)
+def get_players_data(player_name):
+    link_to_player_profile = link_generator(player_name)
     html = urlopen("https://fbref.com" + link_to_player_profile)
     bs = BeautifulSoup(html, 'html.parser')
 
-    scout_link = bs.find('div', {'class': 'section_heading_text'}).find('a')['href']
+    section_div = bs.find('div', {'class': 'section_heading_text'})
+    if not section_div:
+        raise ValueError(f"Section des stats non trouvée pour {player_name}")
+
+    scout_anchor = section_div.find('a')
+    if not scout_anchor or 'href' not in scout_anchor.attrs:
+        raise ValueError(f"Lien scout non trouvé pour {player_name}")
+
+    scout_link = scout_anchor['href']
     scout_html = urlopen("https://fbref.com" + scout_link)
     bs_scout_all = BeautifulSoup(scout_html, 'html.parser')
     bs_scout = bs_scout_all.find('div', {'id': re.compile(r'div_scout_full_')})
+    if bs_scout is None:
+        raise ValueError(f"Aucune section de données de radar pour {player_name}")
+
     table = bs_scout.find("table", {'id': re.compile(r'scout_full_')})
+    if table is None:
+        raise ValueError(f"Aucune table de statistiques trouvée pour {player_name}")
 
     stat_keys, stat_values = [], []
     for row in table.find_all('tr'):
@@ -94,6 +107,7 @@ def get_players_data(player_name, df):
             stat_values.append(tds[1].text.strip())
 
     return stat_keys, stat_values
+
 
 @st.cache_data
 def get_player_image(player_name):
