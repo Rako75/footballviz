@@ -197,16 +197,14 @@ st.title("🎯 Radar Player - Comparateur FBRef")
 
 selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
 
-if st.button("📥 Charger les profils"):
-    if not selected_leagues:
-        st.warning("Veuillez sélectionner au moins une ligue.")
-    else:
-        for league in selected_leagues:
-            st.info(f"Chargement des joueurs de {league}...")
-            url = LEAGUE_URLS[league]
-            getReports(url)
-        name_updater()
-        st.success("Profils chargés")
+if selected_leagues:
+    for league in selected_leagues:
+        st.info(f"Chargement des joueurs de {league}...")
+        url = LEAGUE_URLS[league]
+        getReports(url)
+    name_updater()
+    st.success("Profils chargés.")
+
 
 if os.path.exists("player_profiles.xlsx"):
     df_profiles = pd.read_excel("player_profiles.xlsx")
