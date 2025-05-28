@@ -8,10 +8,7 @@ import openpyxl
 from mplsoccer import PyPizza
 from highlight_text import fig_text
 import matplotlib.pyplot as plt
-import wikipedia
-import requests
-from PIL import Image
-from io import BytesIO
+import time
 
 # Mapping des ligues
 LEAGUE_URLS = {
@@ -25,6 +22,7 @@ LEAGUE_URLS = {
 @st.cache_data
 def getReports(url, league_name):
     html = urlopen(url)
+    time.sleep(1)
     bs = BeautifulSoup(html, 'html.parser')
     usable_bs = str(bs).replace("<!--", "").replace("-->", "")
     bs_clean = BeautifulSoup(usable_bs, 'html.parser')
@@ -65,69 +63,49 @@ def link_generator(player_name, df):
         raise ValueError(f"Nom du joueur introuvable : {player_name}")
 
 def get_players_data(player_name, df):
-    link_to_player_profile = link_generator(player_name, df)
-    html = urlopen("https://fbref.com" + link_to_player_profile)
-    bs = BeautifulSoup(html, 'html.parser')
-
-    scout_link = bs.find('div', {'class': 'section_heading_text'}).find('a')['href']
-    scout_html = urlopen("https://fbref.com" + scout_link)
-    bs_scout_all = BeautifulSoup(scout_html, 'html.parser')
-    bs_scout = bs_scout_all.find('div', {'id': re.compile(r'div_scout_full_')})
-    table = bs_scout.find("table", {'id': re.compile(r'scout_full_')})
-
-    stat_keys, stat_values = [], []
-    for row in table.find_all('tr'):
-        th = row.find('th')
-        tds = row.find_all('td')
-        if th and tds and len(tds) > 1:
-            stat_keys.append(th.text.strip())
-            stat_values.append(tds[1].text.strip())
-
-    return stat_keys, stat_values
-
-@st.cache_data
-def get_player_image(player_name):
     try:
-        page = wikipedia.page(player_name)
-        for img_url in page.images:
-            if any(img_url.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png']):
-                try:
-                    response = requests.get(img_url, timeout=5)
-                    if response.status_code == 200 and 'image' in response.headers['Content-Type']:
-                        return img_url
-                except:
-                    continue
+        link_to_player_profile = link_generator(player_name, df)
+        time.sleep(1)
+        html = urlopen("https://fbref.com" + link_to_player_profile)
+        bs = BeautifulSoup(html, 'html.parser')
+
+        scout_link = bs.find('div', {'class': 'section_heading_text'}).find('a')['href']
+        time.sleep(1)
+        scout_html = urlopen("https://fbref.com" + scout_link)
+        bs_scout_all = BeautifulSoup(scout_html, 'html.parser')
+        bs_scout = bs_scout_all.find('div', {'id': re.compile(r'div_scout_full_')})
+        table = bs_scout.find("table", {'id': re.compile(r'scout_full_')})
+
+        stat_keys, stat_values = [], []
+        for row in table.find_all('tr'):
+            th = row.find('th')
+            tds = row.find_all('td')
+            if th and tds and len(tds) > 1:
+                stat_keys.append(th.text.strip())
+                stat_values.append(tds[1].text.strip())
+
+        return stat_keys, stat_values
     except Exception as e:
-        print(f"Erreur lors de la récupération de l’image pour {player_name}: {e}")
-    return None
+        raise RuntimeError(f"Erreur réseau ou structure inattendue : {e}")
 
 def show_picture(df, selected_stats):
     values = df[selected_stats].values.flatten().tolist()
     player_name = df["Player"].values[0]
     params_offset = [False if "Touches" not in p and "Press" not in p else True for p in selected_stats]
 
-    baker = PyPizza(
-        params=selected_stats,
-        background_color="#EBEBE9",
-        straight_line_color="#222222",
-        straight_line_lw=1,
-        last_circle_lw=1,
-        last_circle_color="#222222",
-        other_circle_ls="-.",
-        other_circle_lw=1,
-    )
+    baker = PyPizza(params=selected_stats, background_color="#EBEBE9",
+                    straight_line_color="#222222", straight_line_lw=1,
+                    last_circle_lw=1, last_circle_color="#222222",
+                    other_circle_ls="-.", other_circle_lw=1)
 
     fig, ax = baker.make_pizza(
-        values,
-        figsize=(10, 10),
+        values, figsize=(10, 10),
         kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222", zorder=2, linewidth=1),
         kwargs_params=dict(color="#000000", fontsize=12, va="center"),
         kwargs_values=dict(color="#000000", fontsize=10, zorder=3,
                            bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
     )
-
     baker.adjust_texts(params_offset, offset=-0.10)
-
     fig_text(0.515, 0.99, f"<{player_name}>", size=17, fig=fig,
              highlight_textprops=[{"color": '#1A78CF'}], ha="center", color="#000000")
     fig.text(0.515, 0.942, "Radar individuel — Stats normalisées (percentiles)", size=15, ha="center", color="#000000")
@@ -142,21 +120,13 @@ def show_comparison_picture(df1, df2, selected_stats):
     player_2 = df2["Player"].values[0]
     params_offset = [False] * len(selected_stats)
 
-    baker = PyPizza(
-        params=selected_stats,
-        background_color="#EBEBE9",
-        straight_line_color="#222222",
-        straight_line_lw=1,
-        last_circle_lw=1,
-        last_circle_color="#222222",
-        other_circle_ls="-.",
-        other_circle_lw=1,
-    )
+    baker = PyPizza(params=selected_stats, background_color="#EBEBE9",
+                    straight_line_color="#222222", straight_line_lw=1,
+                    last_circle_lw=1, last_circle_color="#222222",
+                    other_circle_ls="-.", other_circle_lw=1)
 
     fig, ax = baker.make_pizza(
-        values_1,
-        compare_values=values_2,
-        figsize=(10, 10),
+        values_1, compare_values=values_2, figsize=(10, 10),
         kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222", linewidth=1, zorder=2),
         kwargs_compare=dict(facecolor="#FF9300", edgecolor="#222222", linewidth=1, zorder=2),
         kwargs_params=dict(color="#000000", fontsize=11, va="center"),
@@ -167,7 +137,6 @@ def show_comparison_picture(df1, df2, selected_stats):
     )
 
     baker.adjust_texts(params_offset, offset=4.15, adj_comp_values=True)
-
     fig_text(0.515, 0.99, f"<{player_1}> vs <{player_2}>", size=17, fig=fig,
              highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}],
              ha="center", color="#000000")
@@ -181,7 +150,6 @@ st.set_page_config(page_title="Radar FBRef", layout="centered")
 st.title("🎯 Radar Player - Comparateur FBRef")
 
 selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
-
 profiles_by_league = {}
 
 for league in selected_leagues:
@@ -197,35 +165,16 @@ for league in selected_leagues:
 player1 = player2 = ""
 if len(selected_leagues) == 1:
     all_players = profiles_by_league[selected_leagues[0]]['Name'].tolist()
-    mode = st.radio("Sélectionnez le mode d'affichage :", ["Radar d'un joueur", "Comparer deux joueurs"], horizontal=True)
-    player1 = st.selectbox("🎯 Joueur 1", all_players, key="player1_single")
-    if mode == "Comparer deux joueurs":
-        remaining_players = [p for p in all_players if p != player1]
-        player2 = st.selectbox("🎯 Joueur 2", remaining_players, key="player2_single")
+    player1 = st.selectbox("🎯 Joueur", all_players)
+    compare_mode = st.radio("Mode", ["Radar individuel", "Comparer deux joueurs"])
+    if compare_mode == "Comparer deux joueurs":
+        player2 = st.selectbox("Joueur à comparer", all_players, key="player2")
 elif len(selected_leagues) == 2:
     col1, col2 = st.columns(2)
     with col1:
         player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", profiles_by_league[selected_leagues[0]]['Name'].tolist(), key="player1")
     with col2:
         player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", profiles_by_league[selected_leagues[1]]['Name'].tolist(), key="player2")
-
-col1, col2 = st.columns(2)
-if player1:
-    with col1:
-        st.subheader(player1.title())
-        img1_url = get_player_image(player1.title())
-        if img1_url:
-            st.image(Image.open(BytesIO(requests.get(img1_url).content)), width=150)
-        else:
-            st.text("Image non trouvée")
-if player2:
-    with col2:
-        st.subheader(player2.title())
-        img2_url = get_player_image(player2.title())
-        if img2_url:
-            st.image(Image.open(BytesIO(requests.get(img2_url).content)), width=150)
-        else:
-            st.text("Image non trouvée")
 
 selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
                   'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
@@ -236,7 +185,7 @@ radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCa
                 'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
                 'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
 
-if player1:
+if st.button("🎨 Générer Radar"):
     try:
         keys1, values1 = get_players_data(player1, profiles_by_league[selected_leagues[0]])
         stats1 = dict(zip(keys1, values1))
@@ -245,8 +194,7 @@ if player1:
         df1["Player"] = player1.title()
 
         if player2:
-            index_league_2 = 0 if len(selected_leagues) == 1 else 1
-            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[index_league_2]])
+            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[-1]])
             stats2 = dict(zip(keys2, values2))
             data2 = [float(stats2.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df2 = pd.DataFrame([data2], columns=radar_labels)
@@ -254,6 +202,5 @@ if player1:
             show_comparison_picture(df1, df2, radar_labels)
         else:
             show_picture(df1, radar_labels)
-
     except Exception as e:
         st.error(f"Erreur lors de la génération du radar : {e}")
