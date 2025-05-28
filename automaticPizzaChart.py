@@ -23,36 +23,29 @@ LEAGUE_URLS = {
 }
 
 @st.cache_data
-def getReports(url):
+def fetch_league_players(url):
     html = urlopen(url)
     bs = BeautifulSoup(html, 'html.parser')
     usable_bs = str(bs).replace("<!--", "").replace("-->", "")
     bs_clean = BeautifulSoup(usable_bs, 'html.parser')
     table_contents = bs_clean.find_all('table')
 
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.append(["Name", "Link"])
-
+    players = []
     for content in table_contents:
         links = content.find_all('a', href=re.compile(r"^/en/players/[a-f0-9]{8}/[A-Za-z0-9-]+$"))
         for link in links:
             name = link.text.strip().lower().replace('-', ' ')
             href = link['href']
-            sheet.append([name, href])
+            players.append({'Name': name, 'Link': href})
+    return pd.DataFrame(players).drop_duplicates(subset='Name')
 
-    workbook.save('player_profiles.xlsx')
-
-
-def name_updater():
-    df = pd.read_excel('player_profiles.xlsx')
+def name_updater(df):
     for i in range(len(df)):
         if isinstance(df.loc[i, 'Link'], str):
             name_from_url = df.loc[i, 'Link'].split('/')[-1].replace('-', ' ').lower()
             df.loc[i, 'Name'] = name_from_url
     df.drop_duplicates(subset='Name', keep='first', inplace=True)
-    df.to_excel('player_profiles.xlsx', index=False)
-
+    return df
 
 def link_generator(player_name):
     df = pd.read_excel('player_profiles.xlsx')
@@ -61,7 +54,6 @@ def link_generator(player_name):
         return matches.iloc[0]['Link']
     else:
         raise ValueError(f"Nom du joueur introuvable : {player_name}")
-
 
 def get_players_data(player_name):
     link_to_player_profile = link_generator(player_name)
@@ -84,7 +76,6 @@ def get_players_data(player_name):
 
     return stat_keys, stat_values
 
-
 @st.cache_data
 def get_player_image(player_name):
     try:
@@ -94,23 +85,104 @@ def get_player_image(player_name):
                 try:
                     response = requests.get(img_url, timeout=5)
                     if response.status_code == 200 and 'image' in response.headers['Content-Type']:
-                        # On retourne une URL d’image valide
                         return img_url
                 except:
                     continue
     except Exception as e:
-        print(f"Erreur lors de la récupération de l’image pour {player_name}: {e}")
+        print(f"Erreur image {player_name}: {e}")
     return None
 
+# --- Streamlit UI ---
+st.set_page_config(page_title="Radar FBRef", layout="centered")
+st.title("🎯 Radar Player - Comparateur FBRef")
 
+selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
 
-def show_picture(df, selected_stats):
-    values = df[selected_stats].values.flatten().tolist()
+# Init session state
+if "loaded_leagues" not in st.session_state:
+    st.session_state.loaded_leagues = set()
+
+if selected_leagues:
+    new_leagues = [l for l in selected_leagues if l not in st.session_state.loaded_leagues]
+    all_profiles = []
+
+    for league in new_leagues:
+        st.info(f"Chargement des joueurs de {league}...")
+        df_league = fetch_league_players(LEAGUE_URLS[league])
+        all_profiles.append(df_league)
+        st.session_state.loaded_leagues.add(league)
+
+    if all_profiles:
+        df_new = pd.concat(all_profiles)
+        df_new = name_updater(df_new)
+
+        if os.path.exists("player_profiles.xlsx"):
+            df_existing = pd.read_excel("player_profiles.xlsx")
+            df_combined = pd.concat([df_existing, df_new])
+            df_combined.drop_duplicates(subset="Name", keep="first", inplace=True)
+        else:
+            df_combined = df_new
+
+        df_combined.to_excel("player_profiles.xlsx", index=False)
+        st.success("Profils mis à jour avec les nouvelles ligues.")
+
+# Charger les joueurs
+if os.path.exists("player_profiles.xlsx"):
+    df_profiles = pd.read_excel("player_profiles.xlsx")
+    all_players = df_profiles['Name'].tolist()
+else:
+    all_players = []
+
+player1 = player2 = ""
+
+if len(selected_leagues) == 1:
+    player1 = st.selectbox("🎯 Joueur", all_players)
+elif len(selected_leagues) == 2:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(f"🎯 Joueur de {selected_leagues[0]}")
+        player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", all_players, key="player1")
+    with col2:
+        st.subheader(f"🔁 Joueur de {selected_leagues[1]}")
+        player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", all_players, key="player2")
+
+if player1:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(player1.title())
+        img1_url = get_player_image(player1.title())
+        if img1_url:
+            st.image(Image.open(BytesIO(requests.get(img1_url).content)), width=150)
+        else:
+            st.text("Image non trouvée")
+
+    if player2:
+        with col2:
+            st.subheader(player2.title())
+            img2_url = get_player_image(player2.title())
+            if img2_url:
+                st.image(Image.open(BytesIO(requests.get(img2_url).content)), width=150)
+            else:
+                st.text("Image non trouvée")
+
+# Statistiques radar
+selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
+                  'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
+                  'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
+                  'Tackles', 'Tackles Won', 'Shots Blocked', 'Interceptions', 'Clearances']
+
+radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCards', 'Red\nCards',
+                'Passes\nAttempted', 'Pass\nCompletion %', 'Progressive\nPasses', 'Through\nBalls', 'Key\nPasses',
+                'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
+                'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
+
+def show_radar(df, radar_labels):
+    values = df[radar_labels].values.flatten().tolist()
     player_name = df["Player"].values[0]
-    params_offset = [False if "Touches" not in p and "Press" not in p else True for p in selected_stats]
+    params_offset = [False if "Touches" not in p and "Press" not in p else True for p in radar_labels]
 
     baker = PyPizza(
-        params=selected_stats,
+        params=radar_labels,
         background_color="#EBEBE9",
         straight_line_color="#222222",
         straight_line_lw=1,
@@ -130,30 +202,24 @@ def show_picture(df, selected_stats):
     )
 
     baker.adjust_texts(params_offset, offset=-0.10)
-
     fig_text(0.515, 0.99, f"<{player_name}>", size=17, fig=fig,
              highlight_textprops=[{"color": '#1A78CF'}],
              ha="center", color="#000000")
-
     fig.text(0.515, 0.942, "Radar individuel — Stats normalisées (percentiles)",
              size=15, ha="center", color="#000000")
-
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices",
              size=9, ha="right", color="#000000")
-
     st.pyplot(fig)
 
-
-def show_comparison_picture(df1, df2, selected_stats):
-    values_1 = df1[selected_stats].values.flatten().tolist()
-    values_2 = df2[selected_stats].values.flatten().tolist()
+def show_comparison(df1, df2, radar_labels):
+    values_1 = df1[radar_labels].values.flatten().tolist()
+    values_2 = df2[radar_labels].values.flatten().tolist()
     player_1 = df1["Player"].values[0]
     player_2 = df2["Player"].values[0]
-    params_offset = [False] * len(selected_stats)
+    params_offset = [False] * len(radar_labels)
 
-    plt.style.use('fivethirtyeight')
     baker = PyPizza(
-        params=selected_stats,
+        params=radar_labels,
         background_color="#EBEBE9",
         straight_line_color="#222222",
         straight_line_lw=1,
@@ -177,90 +243,14 @@ def show_comparison_picture(df1, df2, selected_stats):
     )
 
     baker.adjust_texts(params_offset, offset=4.15, adj_comp_values=True)
-
     fig_text(0.515, 0.99, f"<{player_1}> vs <{player_2}>", size=17, fig=fig,
              highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}],
              ha="center", color="#000000")
-
     fig.text(0.515, 0.942, "Radar comparatif — Stats (percentiles)",
              size=15, ha="center", color="#000000")
-
     fig.text(0.99, 0.005, "Données : FBRef/Opta\nGraphique inspiré de @Worville & @FootballSlices",
              size=9, ha="right", color="#000000")
-
     st.pyplot(fig)
-
-
-# Streamlit interface
-st.set_page_config(page_title="Radar FBRef", layout="centered")
-st.title("🎯 Radar Player - Comparateur FBRef")
-
-selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
-
-if selected_leagues:
-    for league in selected_leagues:
-        st.info(f"Chargement des joueurs de {league}...")
-        url = LEAGUE_URLS[league]
-        getReports(url)
-    name_updater()
-    st.success("Profils chargés.")
-
-
-if os.path.exists("player_profiles.xlsx"):
-    df_profiles = pd.read_excel("player_profiles.xlsx")
-    all_players = df_profiles['Name'].tolist()
-else:
-    all_players = []
-
-player1 = player2 = ""
-
-if len(selected_leagues) == 1:
-    player1 = st.selectbox("🎯 Joueur", all_players)
-elif len(selected_leagues) == 2:
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader(f"🎯 Joueur de {selected_leagues[0]}")
-        player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", all_players, key="player1")
-
-    with col2:
-        st.subheader(f"🔁 Joueur de {selected_leagues[1]}")
-        player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", all_players, key="player2")
-
-# Affichage des images
-if player1:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader(player1.title())
-        img1_url = get_player_image(player1.title())
-        if img1_url:
-            response1 = requests.get(img1_url)
-            img1 = Image.open(BytesIO(response1.content))
-            st.image(img1, width=150)
-        else:
-            st.text("Image non trouvée")
-
-    if player2:
-        with col2:
-            st.subheader(player2.title())
-            img2_url = get_player_image(player2.title())
-            if img2_url:
-                response2 = requests.get(img2_url)
-                img2 = Image.open(BytesIO(response2.content))
-                st.image(img2, width=150)
-            else:
-                st.text("Image non trouvée")
-
-# Radar stat labels
-selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
-                  'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
-                  'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
-                  'Tackles', 'Tackles Won', 'Shots Blocked', 'Interceptions', 'Clearances']
-
-radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCards', 'Red\nCards',
-                'Passes\nAttempted', 'Pass\nCompletion %', 'Progressive\nPasses', 'Through\nBalls', 'Key\nPasses',
-                'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
-                'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
 
 if st.button("🎨 Générer Radar"):
     try:
@@ -276,9 +266,8 @@ if st.button("🎨 Générer Radar"):
             data2 = [float(stats2.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df2 = pd.DataFrame([data2], columns=radar_labels)
             df2["Player"] = player2.title()
-            show_comparison_picture(df1, df2, radar_labels)
+            show_comparison(df1, df2, radar_labels)
         else:
-            show_picture(df1, radar_labels)
-
+            show_radar(df1, radar_labels)
     except Exception as e:
-        st.error(f"Erreur lors de la génération du radar : {e}")
+        st.error(f"Erreur radar : {e}")
