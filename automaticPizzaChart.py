@@ -195,14 +195,18 @@ def show_comparison_picture(df1, df2, selected_stats):
 st.set_page_config(page_title="Radar FBRef", layout="centered")
 st.title("🎯 Radar Player - Comparateur FBRef")
 
-league = st.selectbox("Choisissez une ligue", list(LEAGUE_URLS.keys()))
+selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
 
 if st.button("📥 Charger les profils"):
-    st.info("Chargement des joueurs...")
-    url = LEAGUE_URLS[league]
-    getReports(url)
-    name_updater()
-    st.success("Profils chargés")
+    if not selected_leagues:
+        st.warning("Veuillez sélectionner au moins une ligue.")
+    else:
+        for league in selected_leagues:
+            st.info(f"Chargement des joueurs de {league}...")
+            url = LEAGUE_URLS[league]
+            getReports(url)
+        name_updater()
+        st.success("Profils chargés")
 
 if os.path.exists("player_profiles.xlsx"):
     df_profiles = pd.read_excel("player_profiles.xlsx")
@@ -210,9 +214,22 @@ if os.path.exists("player_profiles.xlsx"):
 else:
     all_players = []
 
-player1 = st.selectbox("🎯 Joueur 1", all_players)
-player2 = st.selectbox("🔁 Joueur 2 (optionnel)", [""] + all_players)
+player1 = player2 = ""
 
+if len(selected_leagues) == 1:
+    player1 = st.selectbox("🎯 Joueur", all_players)
+elif len(selected_leagues) == 2:
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader(f"🎯 Joueur de {selected_leagues[0]}")
+        player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", all_players, key="player1")
+
+    with col2:
+        st.subheader(f"🔁 Joueur de {selected_leagues[1]}")
+        player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", all_players, key="player2")
+
+# Affichage des images
 if player1:
     col1, col2 = st.columns(2)
     with col1:
@@ -236,17 +253,18 @@ if player1:
             else:
                 st.text("Image non trouvée")
 
+# Radar stat labels
+selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
+                  'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
+                  'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
+                  'Tackles', 'Tackles Won', 'Shots Blocked', 'Interceptions', 'Clearances']
+
+radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCards', 'Red\nCards',
+                'Passes\nAttempted', 'Pass\nCompletion %', 'Progressive\nPasses', 'Through\nBalls', 'Key\nPasses',
+                'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
+                'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
+
 if st.button("🎨 Générer Radar"):
-    selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
-                      'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
-                      'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
-                      'Tackles', 'Tackles Won', 'Shots Blocked', 'Interceptions', 'Clearances']
-
-    radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCards', 'Red\nCards',
-                    'Passes\nAttempted', 'Pass\nCompletion %', 'Progressive\nPasses', 'Through\nBalls', 'Key\nPasses',
-                    'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
-                    'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
-
     try:
         keys1, values1 = get_players_data(player1)
         stats1 = dict(zip(keys1, values1))
