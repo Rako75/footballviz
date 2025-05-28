@@ -261,7 +261,7 @@ if selected_leagues:
 
     if player1:
         try:
-            keys1, values1 = get_players_data(player1, df_profiles)
+            keys1, values1 = get_players_data(player1)
             stats1 = dict(zip(keys1, values1))
             data1 = [float(stats1.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df1 = pd.DataFrame([data1], columns=radar_labels)
