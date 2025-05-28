@@ -28,7 +28,6 @@ def getReports(url, league_name):
     bs_clean = BeautifulSoup(usable_bs, 'html.parser')
     table_contents = bs_clean.find_all('table')
 
-    os.makedirs("profiles", exist_ok=True)
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.append(["Name", "Link"])
@@ -40,6 +39,7 @@ def getReports(url, league_name):
             href = link['href']
             sheet.append([name, href])
 
+    os.makedirs("profiles", exist_ok=True)
     filepath = f"profiles/{league_name.lower().replace(' ', '_')}_profiles.xlsx"
     workbook.save(filepath)
 
@@ -150,17 +150,8 @@ st.set_page_config(page_title="Radar FBRef", layout="centered")
 st.title("🎯 Comparateur de joueurs - Top 5 ligues")
 
 selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
-
-# Création du dossier ici avant tout
-os.makedirs("profiles", exist_ok=True)
-
-# Bouton de réinitialisation
-if st.button("🔄 Réinitialiser les données"):
-    for file in os.listdir("profiles"):
-        os.remove(os.path.join("profiles", file))
-    st.experimental_rerun()
-
 profiles_by_league = {}
+
 for league in selected_leagues:
     url = LEAGUE_URLS[league]
     league_key = league.lower().replace(" ", "_")
@@ -171,20 +162,6 @@ for league in selected_leagues:
         name_updater(file_path)
     profiles_by_league[league] = pd.read_excel(file_path)
 
-player1 = player2 = ""
-if len(selected_leagues) == 1:
-    all_players = profiles_by_league[selected_leagues[0]]['Name'].tolist()
-    player1 = st.selectbox("🎯 Joueur", all_players)
-    compare_mode = st.radio("Mode", ["Radar individuel", "Comparer deux joueurs"])
-    if compare_mode == "Comparer deux joueurs":
-        player2 = st.selectbox("Joueur à comparer", all_players, key="player2")
-elif len(selected_leagues) == 2:
-    col1, col2 = st.columns(2)
-    with col1:
-        player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", profiles_by_league[selected_leagues[0]]['Name'].tolist(), key="player1")
-    with col2:
-        player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", profiles_by_league[selected_leagues[1]]['Name'].tolist(), key="player2")
-
 selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
                   'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
                   'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
@@ -194,7 +171,30 @@ radar_labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCa
                 'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
                 'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
 
-if st.button("🎨 Générer Radar"):
+player1 = player2 = ""
+ready_to_generate = False
+
+if len(selected_leagues) == 1:
+    all_players = profiles_by_league[selected_leagues[0]]['Name'].tolist()
+    player1 = st.selectbox("🎯 Joueur", all_players, key="player1_single")
+    compare_mode = st.radio("Mode", ["Radar individuel", "Comparer deux joueurs"])
+    if compare_mode == "Comparer deux joueurs":
+        player2 = st.selectbox("Joueur à comparer", all_players, key="player2_single")
+        if player1 and player2:
+            ready_to_generate = True
+    else:
+        ready_to_generate = True
+
+elif len(selected_leagues) == 2:
+    col1, col2 = st.columns(2)
+    with col1:
+        player1 = st.selectbox(f"Joueur 1 ({selected_leagues[0]})", profiles_by_league[selected_leagues[0]]['Name'].tolist(), key="player1_league1")
+    with col2:
+        player2 = st.selectbox(f"Joueur 2 ({selected_leagues[1]})", profiles_by_league[selected_leagues[1]]['Name'].tolist(), key="player2_league2")
+    if player1 and player2:
+        ready_to_generate = True
+
+if ready_to_generate:
     try:
         keys1, values1 = get_players_data(player1, profiles_by_league[selected_leagues[0]])
         stats1 = dict(zip(keys1, values1))
@@ -203,7 +203,8 @@ if st.button("🎨 Générer Radar"):
         df1["Player"] = player1.title()
 
         if player2:
-            keys2, values2 = get_players_data(player2, profiles_by_league[selected_leagues[-1]])
+            league_for_p2 = selected_leagues[1] if len(selected_leagues) == 2 else selected_leagues[0]
+            keys2, values2 = get_players_data(player2, profiles_by_league[league_for_p2])
             stats2 = dict(zip(keys2, values2))
             data2 = [float(stats2.get(s, "0").replace("%", "").strip() or 0) for s in selected_stats]
             df2 = pd.DataFrame([data2], columns=radar_labels)
@@ -211,5 +212,6 @@ if st.button("🎨 Générer Radar"):
             show_comparison_picture(df1, df2, radar_labels)
         else:
             show_picture(df1, radar_labels)
+
     except Exception as e:
         st.error(f"Erreur lors de la génération du radar : {e}")
