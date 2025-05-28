@@ -9,7 +9,6 @@ scikit-learn
 adjustText
 openpyxl
 plotly
-wikipedia-api
 requests
 Pillow
 beautifulsoup4
@@ -17,5 +16,3 @@ lxml
 mplsoccer
 pandas
 highlight_text
-wikipedia
-time
