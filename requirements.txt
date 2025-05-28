@@ -18,3 +18,4 @@ mplsoccer
 pandas
 highlight_text
 wikipedia
+time
