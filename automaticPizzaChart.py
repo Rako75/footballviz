@@ -145,22 +145,26 @@ def show_comparison_picture(df1, df2, selected_stats):
 
     st.pyplot(fig)
 
+# Nouvelle fonction centrale pour charger et mettre à jour les profils
+def load_or_update_profiles(leagues):
+    profiles = {}
+    for league in leagues:
+        url = LEAGUE_URLS[league]
+        league_key = league.lower().replace(" ", "_")
+        file_path = f"profiles/{league_key}_profiles.xlsx"
+        if not os.path.exists(file_path):
+            st.info(f"Téléchargement des joueurs pour {league}…")
+            getReports(url, league)
+        df = name_updater(file_path)
+        profiles[league] = df
+    return profiles
+
 # Interface Streamlit
 st.set_page_config(page_title="Radar FBRef", layout="centered")
 st.title("🎯 Comparateur de joueurs - Top 5 ligues")
 
 selected_leagues = st.multiselect("Choisissez une ou deux ligues", list(LEAGUE_URLS.keys()), max_selections=2)
-profiles_by_league = {}
-
-for league in selected_leagues:
-    url = LEAGUE_URLS[league]
-    league_key = league.lower().replace(" ", "_")
-    file_path = f"profiles/{league_key}_profiles.xlsx"
-    if not os.path.exists(file_path):
-        st.info(f"Téléchargement des joueurs pour {league}…")
-        getReports(url, league)
-        name_updater(file_path)
-    profiles_by_league[league] = pd.read_excel(file_path)
+profiles_by_league = load_or_update_profiles(selected_leagues)
 
 selected_stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
                   'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
