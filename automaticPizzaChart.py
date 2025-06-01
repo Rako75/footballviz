@@ -64,7 +64,7 @@ st.title("📊 Radar de performances - Saison 2024/25")
 
 # Charger les données
 df = pd.read_csv("df_BIG2025.csv", sep=",")
-ligues = df["Ligue"].unique()
+ligues = df["Compétition"].unique()
 
 # Choix du mode
 mode = st.radio("Mode de visualisation", ["Radar individuel", "Radar comparatif"], horizontal=True)
