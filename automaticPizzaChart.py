@@ -64,7 +64,7 @@ st.title("📊 Radar de performances - Saison 2024/25")
 
 # Charger les données
 df = pd.read_csv("df_BIG2025.csv", sep=",")
-ligues = df["Ligue"].unique()
+ligues = df["Compétition"].unique()
 
 # Choix du mode
 mode = st.radio("Mode de visualisation", ["Radar individuel", "Radar comparatif"], horizontal=True)
@@ -78,12 +78,12 @@ font_italic = FontManager()
 if mode == "Radar individuel":
     col1, _ = st.columns([2, 1])
     with col1:
-        ligue1 = st.selectbox("Ligue", ligues, key="ligue_ind")
-        joueur1 = st.selectbox("Joueur", df[df["Ligue"] == ligue1]["Joueur"].sort_values(), key="joueur_ind")
+        ligue1 = st.selectbox("Compétition", ligues, key="ligue_ind")
+        joueur1 = st.selectbox("Joueur", df[df["Compétition"] == ligue1]["Joueur"].sort_values(), key="joueur_ind")
 
     if joueur1:
         st.subheader(f"🎯 Radar individuel : {joueur1}")
-        df_j1 = df[df["Ligue"] == ligue1]
+        df_j1 = df[df["Compétition"] == ligue1]
         values1 = calculate_percentiles(joueur1, df_j1)
 
         baker = PyPizza(
@@ -126,12 +126,12 @@ elif mode == "Radar comparatif":
 
     with col2:
         ligue2 = st.selectbox("Ligue Joueur 2", ligues, key="ligue2")
-        joueur2 = st.selectbox("Joueur 2", df[df["Ligue"] == ligue2]["Joueur"].sort_values(), key="joueur2")
+        joueur2 = st.selectbox("Joueur 2", df[df["Compétition"] == ligue2]["Joueur"].sort_values(), key="joueur2")
 
     if joueur1 and joueur2:
         st.subheader(f"⚔️ Radar comparatif : {joueur1} vs {joueur2}")
-        df_j1 = df[df["Ligue"] == ligue1]
-        df_j2 = df[df["Ligue"] == ligue2]
+        df_j1 = df[df["Compétition"] == ligue1]
+        df_j2 = df[df["Compétition"] == ligue2]
         values1 = calculate_percentiles(joueur1, df_j1)
         values2 = calculate_percentiles(joueur2, df_j2)
 
