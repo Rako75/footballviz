@@ -1,172 +1,127 @@
 import streamlit as st
 import pandas as pd
-import os
-import re
-import time
-from urllib.request import urlopen, Request
-from bs4 import BeautifulSoup
-import openpyxl
-from mplsoccer import PyPizza
-from highlight_text import fig_text
+import numpy as np
+from mplsoccer import PyPizza, FontManager
 import matplotlib.pyplot as plt
 
-# Mapping des ligues
-LEAGUE_URLS = {
-    "La Liga": "https://fbref.com/en/comps/12/stats/La-Liga-Stats",
-    "Serie A": "https://fbref.com/en/comps/11/stats/Serie-A-Stats",
-    "Bundesliga": "https://fbref.com/en/comps/20/stats/Bundesliga-Stats",
-    "Ligue 1": "https://fbref.com/en/comps/13/stats/Ligue-1-Stats",
-    "Premier League": "https://fbref.com/en/comps/9/stats/Premier-League-Stats"
+# ---------------------- Paramètres radar ----------------------
+RAW_STATS = {
+    "Buts\nsans pénalty": "Buts (sans penalty)",
+    "Passes déc.": "Passes décisives",
+    "Buts +\nPasses déc.": "Buts + Passes D",
+    "Cartons\njaunes": "Cartons jaunes",
+    "Cartons\nrouges": "Cartons rouges",
+    "Passes\ntentées": "Passes tentées",
+    "Passes\nclés": "Passes clés",
+    "Passes\nprogressives": "Passes progressives",
+    "Passes\ndernier 1/3": "Passes dans le dernier tiers",
+    "Passes\ndans la surface": "Passes dans la surface",
+    "Touches": "Touches de balle",
+    "Dribbles\ntentés": "Dribbles tentés",
+    "Dribbles\nréussis": "Dribbles réussis",
+    "Ballons perdus\nsous pression": "Ballons perdus sous la pression d’un adversaire",
+    "Ballons perdus\nen conduite": "Ballons perdus en conduite",
+    "Tacles\ngagnants": "Tacles gagnants",
+    "Tirs\nbloqués": "Tirs bloqués",
+    "Duels\ngagnés": "Duels défensifs gagnés",
+    "Interceptions": "Interceptions",
+    "Dégagements": "Dégagements"
 }
 
-# Télécharger les profils une seule fois
-def scrape_all_profiles():
-    os.makedirs("profiles", exist_ok=True)
-    all_rows = []
-    headers = {"User-Agent": "Mozilla/5.0"}
+SLICE_COLORS = ["#bbEE90"] * 5 + ["#FF93ff"] * 5 + ["#FFCCCB"] * 5 + ["#87CEEB"] * 5
+TEXT_COLORS = ["#000000"] * 20
 
-    for league, url in LEAGUE_URLS.items():
-        print(f"Scraping {league}")
-        req = Request(url, headers=headers)
-        html = urlopen(req).read()
-        time.sleep(1)
+# ---------------------- Fonction radar ----------------------
 
-        soup = BeautifulSoup(html, "html.parser")
-        usable_html = str(soup).replace("<!--", "").replace("-->", "")
-        bs_clean = BeautifulSoup(usable_html, 'html.parser')
+def calculate_percentiles(joueur_nom, df):
+    player = df[df["Joueur"] == joueur_nom].iloc[0]
+    values = []
 
-        tables = bs_clean.find_all("table")
-        for table in tables:
-            links = table.find_all('a', href=re.compile(r"^/en/players/[a-f0-9]{8}/[A-Za-z0-9-]+$"))
-            for link in links:
-                name = link.text.strip().lower()
-                href = link['href']
-                all_rows.append([name, href, league])
+    for label, col in RAW_STATS.items():
+        try:
+            if "par 90 minutes" in col or "%" in col:
+                player_value = player[col]
+                dist = df[col]
+            else:
+                player_value = player[col] / player["Matchs en 90 min"]
+                dist = df[col] / df["Matchs en 90 min"]
 
-    df = pd.DataFrame(all_rows, columns=["Name", "Link", "League"])
-    df.drop_duplicates(subset=["Name", "League"], inplace=True)
-    df.to_excel("profiles/all_profiles.xlsx", index=False)
-    print("✅ Fichier créé avec succès.")
+            percentile = np.round((dist < player_value).mean() * 100, 1)
+        except:
+            percentile = 0
 
-@st.cache_data
-def load_profiles():
-    if not os.path.exists("profiles/all_profiles.xlsx"):
-        scrape_all_profiles()
-    return pd.read_excel("profiles/all_profiles.xlsx")
+        values.append(percentile)
 
-def get_players_data(link_suffix):
-    try:
-        url = "https://fbref.com" + link_suffix
-        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        html = urlopen(req).read()
-        soup = BeautifulSoup(html, 'html.parser')
-        scout_link = soup.find('div', class_="section_heading_text").find('a')['href']
+    return values
 
-        time.sleep(1)
-        scout_url = "https://fbref.com" + scout_link
-        scout_html = urlopen(Request(scout_url, headers={"User-Agent": "Mozilla/5.0"})).read()
-        scout_soup = BeautifulSoup(scout_html, 'html.parser')
-
-        table = scout_soup.find("div", id=re.compile(r"div_scout_full_")).find("table")
-
-        stat_keys, stat_values = [], []
-        for row in table.find_all('tr'):
-            th = row.find('th')
-            tds = row.find_all('td')
-            if th and tds and len(tds) > 1:
-                stat_keys.append(th.text.strip())
-                stat_values.append(tds[1].text.strip())
-
-        return stat_keys, stat_values
-    except Exception as e:
-        raise RuntimeError(f"Erreur lors du chargement des stats : {e}")
-
-def show_radar(df, labels):
-    values = df[labels].values.flatten().tolist()
-    name = df["Player"].values[0]
-
-    baker = PyPizza(params=labels, background_color="#EBEBE9", straight_line_color="#222222")
-    fig, ax = baker.make_pizza(
-        values, figsize=(10, 10),
-        kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222"),
-        kwargs_params=dict(color="#000000", fontsize=12),
-        kwargs_values=dict(color="#000000", fontsize=10,
-                           bbox=dict(edgecolor="#000", facecolor="cornflowerblue", boxstyle="round,pad=0.2"))
+def plot_radar(joueur_nom, values, color="#1f77b4"):
+    font_normal = FontManager()
+    font_bold = FontManager()
+    baker = PyPizza(
+        params=list(RAW_STATS.keys()),
+        background_color="#132257",
+        straight_line_color="#000000",
+        straight_line_lw=1,
+        last_circle_color="#000000",
+        last_circle_lw=1,
+        other_circle_lw=0,
+        inner_circle_size=11
     )
-    fig_text(0.515, 0.99, f"<{name.title()}>", size=17, fig=fig, ha="center", color="#000")
+
+    fig, ax = baker.make_pizza(
+        values,
+        figsize=(10, 12),
+        color_blank_space="same",
+        slice_colors=SLICE_COLORS,
+        value_colors=TEXT_COLORS,
+        value_bck_colors=SLICE_COLORS,
+        blank_alpha=0.4,
+        kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=1),
+        kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
+        kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=3,
+                           bbox=dict(edgecolor="#000000", facecolor=color, boxstyle="round,pad=0.2", lw=1))
+    )
+
+    fig.text(0.515, 0.945, joueur_nom, size=27, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig.text(0.515, 0.925, "Stats par 90 min - FBRef | Saison 2024-25", size=13,
+             ha="center", fontproperties=font_bold.prop, color="#ffffff")
     st.pyplot(fig)
 
-def show_comparison(df1, df2, labels):
-    values1 = df1[labels].values.flatten().tolist()
-    values2 = df2[labels].values.flatten().tolist()
-    name1, name2 = df1["Player"].values[0], df2["Player"].values[0]
+# ---------------------- Application Streamlit ----------------------
 
-    baker = PyPizza(params=labels, background_color="#EBEBE9", straight_line_color="#222222")
-    fig, ax = baker.make_pizza(
-        values1, compare_values=values2, figsize=(10, 10),
-        kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222"),
-        kwargs_compare=dict(facecolor="#FF9300", edgecolor="#222222"),
-        kwargs_params=dict(color="#000000", fontsize=12),
-        kwargs_values=dict(color="#000000", fontsize=10,
-                           bbox=dict(edgecolor="#000", facecolor="cornflowerblue", boxstyle="round,pad=0.2")),
-        kwargs_compare_values=dict(color="#000000", fontsize=10,
-                                   bbox=dict(edgecolor="#000", facecolor="#FF9300", boxstyle="round,pad=0.2"))
-    )
-    fig_text(0.515, 0.99, f"<{name1.title()}> vs <{name2.title()}>", size=17, fig=fig, ha="center", color="#000")
-    st.pyplot(fig)
+st.set_page_config(layout="wide")
+st.title("📊 Radar de performance des joueurs")
 
-# Statistiques à utiliser
-stats = ['Non-Penalty Goals', 'Assists', 'Goals + Assists', 'Yellow Cards', 'Red Cards',
-         'Passes Attempted', 'Pass Completion %', 'Progressive Passes', 'Through Balls', 'Key Passes',
-         'Touches', 'Take-Ons Attempted', 'Successful Take-Ons', 'Miscontrols', 'Dispossessed',
-         'Tackles', 'Tackles Won', 'Shots Blocked', 'Interceptions', 'Clearances']
-labels = ['Non-Penalty\nGoals', 'Assists', 'Goals +\nAssists', 'Yellow\nCards', 'Red\nCards',
-          'Passes\nAttempted', 'Pass\nCompletion %', 'Progressive\nPasses', 'Through\nBalls', 'Key\nPasses',
-          'Touches', 'Take-Ons\nAttempted', 'Successful\nTake-Ons', 'Miscontrols', 'Dispossessed',
-          'Tackles', 'Tackles\nWon', 'Shots\nBlocked', 'Interceptions', 'Clearances']
+# Charger les données
+df = pd.read_csv("df_BIG2025.csv")
 
-# Interface Streamlit
-st.set_page_config(page_title="Radar FBRef", layout="centered")
-st.title("🎯 Comparateur de joueurs - Top 5 ligues")
+# Choix de la ligue
+ligues = df["Ligue"].dropna().unique()
+ligue_choisie = st.selectbox("Choisissez une ligue :", ligues)
 
-df_profiles = load_profiles()
-selected_league = st.selectbox("Sélectionnez une ligue", sorted(df_profiles['League'].unique()))
-filtered_players = df_profiles[df_profiles["League"] == selected_league]
+# Filtrage par ligue
+df_ligue = df[df["Ligue"] == ligue_choisie]
 
-player1 = st.selectbox("Joueur principal", filtered_players["Name"].unique())
-compare_mode = st.checkbox("Comparer avec un second joueur")
+# Choix des joueurs (un ou deux)
+joueurs_disponibles = df_ligue["Joueur"].dropna().unique()
+joueurs_selectionnes = st.multiselect("Sélectionnez un ou deux joueurs :", joueurs_disponibles, max_selections=2)
 
-if compare_mode:
-    player2 = st.selectbox("Joueur à comparer", df_profiles["Name"].unique())
-    if st.button("Générer le radar"):
-        try:
-            l1 = df_profiles[df_profiles["Name"] == player1]["Link"].values[0]
-            l2 = df_profiles[df_profiles["Name"] == player2]["Link"].values[0]
+# Affichage du radar
+if len(joueurs_selectionnes) == 1:
+    joueur = joueurs_selectionnes[0]
+    st.subheader(f"🎯 Radar individuel : {joueur}")
+    values = calculate_percentiles(joueur, df_ligue)
+    plot_radar(joueur, values)
 
-            keys1, vals1 = get_players_data(l1)
-            d1 = dict(zip(keys1, vals1))
-            stats1 = [float(d1.get(s, "0").replace("%", "").strip() or 0) for s in stats]
-            df1 = pd.DataFrame([stats1], columns=labels)
-            df1["Player"] = player1
+elif len(joueurs_selectionnes) == 2:
+    joueur1, joueur2 = joueurs_selectionnes
+    st.subheader(f"⚔️ Comparaison : {joueur1} vs {joueur2}")
+    col1, col2 = st.columns(2)
 
-            keys2, vals2 = get_players_data(l2)
-            d2 = dict(zip(keys2, vals2))
-            stats2 = [float(d2.get(s, "0").replace("%", "").strip() or 0) for s in stats]
-            df2 = pd.DataFrame([stats2], columns=labels)
-            df2["Player"] = player2
+    with col1:
+        values1 = calculate_percentiles(joueur1, df_ligue)
+        plot_radar(joueur1, values1, color="#FF69B4")
 
-            show_comparison(df1, df2, labels)
-        except Exception as e:
-            st.error(e)
-else:
-    if st.button("Générer le radar"):
-        try:
-            link = df_profiles[df_profiles["Name"] == player1]["Link"].values[0]
-            keys, vals = get_players_data(link)
-            d = dict(zip(keys, vals))
-            data = [float(d.get(s, "0").replace("%", "").strip() or 0) for s in stats]
-            df = pd.DataFrame([data], columns=labels)
-            df["Player"] = player1
-            show_radar(df, labels)
-        except Exception as e:
-            st.error(e)
+    with col2:
+        values2 = calculate_percentiles(joueur2, df_ligue)
+        plot_radar(joueur2, values2, color="#00CED1")
