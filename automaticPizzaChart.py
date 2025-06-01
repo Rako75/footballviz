@@ -115,6 +115,8 @@ with col2:
 
 # ---------------------- Affichage radar(s) ----------------------
 
+# ---------------------- Radar fusionné ----------------------
+
 if joueur1 and not joueur2:
     st.subheader(f"🎯 Radar individuel : {joueur1}")
     df_j1 = df[df["Compétition"] == ligue1]
@@ -122,44 +124,59 @@ if joueur1 and not joueur2:
     plot_radar(joueur1, values1, color="#1f77b4")
 
 elif joueur1 and joueur2:
-    st.subheader(f"⚔️ Comparaison : {joueur1} (📍{ligue1}) vs {joueur2} (📍{ligue2})")
-    
-    col1_radar, col2_radar = st.columns(2)
-    
-    with col1_radar:
-        df_j1 = df[df["Compétition"] == ligue1]
-        values1 = calculate_percentiles(joueur1, df_j1)
-        plot_radar(joueur1, values1, color="#FF69B4")
-    
-    with col2_radar:
-        df_j2 = df[df["Compétition"] == ligue2]
-        values2 = calculate_percentiles(joueur2, df_j2)
-        plot_radar(joueur2, values2, color="#00CED1")
+    st.subheader(f"⚔️ Radar comparatif fusionné : {joueur1} vs {joueur2}")
 
+    # Données pour chaque joueur selon sa ligue
+    df_j1 = df[df["Compétition"] == ligue1]
+    df_j2 = df[df["Compétition"] == ligue2]
 
-# Filtrage par ligue
-df_ligue = df[df["Compétition"] == ligue_choisie]
+    values1 = calculate_percentiles(joueur1, df_j1)
+    values2 = calculate_percentiles(joueur2, df_j2)
 
-# Choix des joueurs (un ou deux)
-joueurs_disponibles = df_ligue["Joueur"].dropna().unique()
-joueurs_selectionnes = st.multiselect("Sélectionnez un ou deux joueurs :", joueurs_disponibles, max_selections=2)
+    # Radar fusionné
+    font_normal = FontManager()
+    font_bold = FontManager()
 
-# Affichage du radar
-if len(joueurs_selectionnes) == 1:
-    joueur = joueurs_selectionnes[0]
-    st.subheader(f"🎯 Radar individuel : {joueur}")
-    values = calculate_percentiles(joueur, df_ligue)
-    plot_radar(joueur, values)
+    baker = PyPizza(
+        params=list(RAW_STATS.keys()),
+        background_color="#132257",
+        straight_line_color="#000000",
+        straight_line_lw=1,
+        last_circle_color="#000000",
+        last_circle_lw=1,
+        other_circle_lw=0,
+        inner_circle_size=11
+    )
 
-elif len(joueurs_selectionnes) == 2:
-    joueur1, joueur2 = joueurs_selectionnes
-    st.subheader(f"⚔️ Comparaison : {joueur1} vs {joueur2}")
-    col1, col2 = st.columns(2)
+    fig, ax = baker.make_pizza(
+        values1,
+        figsize=(10, 12),
+        param_location=110,
+        color_blank_space="same",
+        slice_colors=SLICE_COLORS,
+        value_colors=TEXT_COLORS,
+        value_bck_colors=SLICE_COLORS,
+        blank_alpha=0.4,
+        kwargs_slices=dict(edgecolor="#000000", zorder=1, linewidth=1, alpha=0.7),
+        kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
+        kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=2,
+                           bbox=dict(edgecolor="#000000", facecolor="#FF69B4", boxstyle="round,pad=0.2", lw=1))
+    )
 
-    with col1:
-        values1 = calculate_percentiles(joueur1, df_ligue)
-        plot_radar(joueur1, values1, color="#FF69B4")
+    baker.add_pizza(values2,
+        ax=ax,
+        kwargs_slices=dict(facecolor="none", edgecolor="#00CED1", linewidth=2.5, linestyle='--', zorder=3),
+        kwargs_values=dict(color="#00CED1", fontsize=11, fontproperties=font_normal.prop, zorder=4)
+    )
 
-    with col2:
-        values2 = calculate_percentiles(joueur2, df_ligue)
-        plot_radar(joueur2, values2, color="#00CED1")
+    fig.text(0.515, 0.95, f"{joueur1} vs {joueur2}", size=24, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig.text(0.515, 0.925, "Radar comparatif - Stats par 90 min - FBRef | Saison 2024-25", size=13,
+             ha="center", fontproperties=font_bold.prop, color="#ffffff")
+
+    legend_elements = [
+        plt.Line2D([0], [0], color="#FF69B4", lw=4, label=joueur1),
+        plt.Line2D([0], [0], color="#00CED1", lw=2, linestyle='--', label=joueur2)
+    ]
+    ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=2, frameon=False, fontsize=12)
+
+    st.pyplot(fig)
