@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from mplsoccer import PyPizza, FontManager
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+from mplsoccer import PyPizza, FontManager
+from matplotlib import font_manager
+from highlight_text import fig_text
 
-# ---------------------- PARAMÈTRES DU RADAR ----------------------
+# ---------------------- Données ----------------------
 
 RAW_STATS = {
     "Buts\nsans pénalty": "Buts (sans penalty)",
@@ -30,154 +31,109 @@ RAW_STATS = {
     "Dégagements": "Dégagements"
 }
 
-# ---------------------- COULEURS ----------------------
+SLICE_COLORS = ["#1A78CF"] * 20
+COMPARE_COLORS = ["#FF9300"] * 20
+TEXT_COLORS = ["#000000"] * 20
 
-COLOR_1 = "#1A78CF"
-COLOR_2 = "#FF9300"
-SLICE_COLORS = [COLOR_1] * len(RAW_STATS)
+# ---------------------- Chargement et préparation ----------------------
 
-# ---------------------- FONCTIONS ----------------------
+@st.cache_data
+def load_and_prepare_data():
+    df = pd.read_csv("df_BIG2025.csv")
 
-def calculate_percentiles(player_name, df):
-    player = df[df["Joueur"] == player_name].iloc[0]
-    percentiles = []
-
+    # Calcul des per 90 minutes et percentiles
     for label, col in RAW_STATS.items():
-        try:
-            if "par 90 minutes" in col or "%" in col:
-                val = player[col]
-                dist = df[col]
-            else:
-                val = player[col] / player["Matchs en 90 min"]
-                dist = df[col] / df["Matchs en 90 min"]
-            percentile = round((dist < val).mean() * 100, 1)
-        except:
-            percentile = 0
-        percentiles.append(percentile)
+        per90_col = f"{col}_per_90"
+        if per90_col not in df.columns:
+            df[per90_col] = df[col] / df["Matchs en 90 min"]
+        df[f"{col}_percentile"] = (df[per90_col].rank(pct=True) * 100).astype(int)
 
-    return percentiles
+    return df
 
-# ---------------------- APP STREAMLIT ----------------------
+# ---------------------- Affichage radar ----------------------
 
-st.set_page_config(layout="wide", page_title="Radar de joueurs")
-st.title("📊 Radar de performances - Saison 2024/25")
+def draw_individual_radar(player_name, df):
+    player = df[df["Joueur"] == player_name].iloc[0]
+    values = [player[f"{col}_percentile"] for col in RAW_STATS.values()]
+    values_display = [f"{v}%" for v in values]
 
-# Charger les données
-df = pd.read_csv("df_BIG2025.csv", sep=",")
-ligues = df["Compétition"].unique()
+    font_normal = FontManager()
+    font_bold = FontManager()
 
-# Choix du mode
-mode = st.radio("Mode de visualisation", ["Radar individuel", "Radar comparatif"], horizontal=True)
+    baker = PyPizza(params=list(RAW_STATS.keys()), background_color="#132257")
 
-font_normal = FontManager()
-font_bold = FontManager()
-font_italic = FontManager()
+    fig, ax = baker.make_pizza(
+        values,
+        figsize=(9, 9),
+        color_blank_space="same",
+        slice_colors=SLICE_COLORS,
+        value_colors=TEXT_COLORS,
+        value_bck_colors=SLICE_COLORS,
+        kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=1),
+        kwargs_params=dict(color="#ffffff", fontsize=10, fontproperties=font_bold.prop),
+        kwargs_values=dict(values=values_display, color="#ffffff", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
+    )
 
-# ---------------------- MODE INDIVIDUEL ----------------------
+    fig.text(0.5, 0.97, f"{player_name} - Radar Individuel", size=16, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    st.pyplot(fig)
 
-if mode == "Radar individuel":
-    col1, _ = st.columns([2, 1])
-    with col1:
-        ligue1 = st.selectbox("Compétition", ligues, key="ligue_ind")
-        joueur1 = st.selectbox("Joueur", df[df["Compétition"] == ligue1]["Joueur"].sort_values(), key="joueur_ind")
 
-    if joueur1:
-        st.subheader(f"🎯 Radar individuel : {joueur1}")
-        df_j1 = df[df["Compétition"] == ligue1]
-        values1 = calculate_percentiles(joueur1, df_j1)
+def draw_comparison_radar(player1, player2, df):
+    p1 = df[df["Joueur"] == player1].iloc[0]
+    p2 = df[df["Joueur"] == player2].iloc[0]
 
-        baker = PyPizza(
-            params=list(RAW_STATS.keys()),
-            background_color="#132257",
-            straight_line_color="#000000",
-            straight_line_lw=1,
-            last_circle_color="#000000",
-            last_circle_lw=1,
-            other_circle_lw=0,
-            inner_circle_size=11
-        )
+    values1 = [p1[f"{col}_percentile"] for col in RAW_STATS.values()]
+    values2 = [p2[f"{col}_percentile"] for col in RAW_STATS.values()]
 
-        fig, ax = baker.make_pizza(
-            values1,
-            figsize=(10, 12),
-            param_location=110,
-            color_blank_space="same",
-            slice_colors=SLICE_COLORS,
-            value_colors=["#ffffff"] * len(values1),
-            value_bck_colors=SLICE_COLORS,
-            kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=1),
-            kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop),
-            kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop,
-                               bbox=dict(edgecolor="#000000", facecolor=COLOR_1, boxstyle="round,pad=0.2", lw=1))
-        )
+    values1_display = [f"{v}%" for v in values1]
+    values2_display = [f"{v}%" for v in values2]
 
-        fig.text(0.515, 0.95, joueur1, size=24, ha="center", fontproperties=font_bold.prop, color="#ffffff")
-        fig.text(0.515, 0.925, "Stats par 90 min - FBRef | Saison 2024-25", size=13,
-                 ha="center", fontproperties=font_bold.prop, color="#ffffff")
-        st.pyplot(fig)
+    font_normal = FontManager()
+    font_bold = FontManager()
 
-# ---------------------- MODE COMPARATIF ----------------------
+    baker = PyPizza(params=list(RAW_STATS.keys()), background_color="#ffffff")
 
-elif mode == "Radar comparatif":
-    col1, col2 = st.columns(2)
-    with col1:
-        ligue1 = st.selectbox("Ligue Joueur 1", ligues, key="ligue1")
-        joueur1 = st.selectbox("Joueur 1", df[df["Compétition"] == ligue1]["Joueur"].sort_values(), key="joueur1")
+    fig, ax = baker.make_pizza(
+        values1,
+        compare_values=values2,
+        figsize=(9, 9),
+        kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222", linewidth=1, zorder=2),
+        kwargs_compare=dict(facecolor="#FF9300", edgecolor="#222222", linewidth=1, zorder=2),
+        kwargs_params=dict(color="#000000", fontsize=10, fontproperties=font_bold.prop),
+        kwargs_values=dict(values=values1_display, color="#000000", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="#1A78CF", boxstyle="round,pad=0.2", lw=1)),
+        kwargs_compare_values=dict(values=values2_display, color="#000000", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="#FF9300", boxstyle="round,pad=0.2", lw=1))
+    )
 
-    with col2:
-        ligue2 = st.selectbox("Ligue Joueur 2", ligues, key="ligue2")
-        joueur2 = st.selectbox("Joueur 2", df[df["Compétition"] == ligue2]["Joueur"].sort_values(), key="joueur2")
+    fig_text(0.5, 0.975, f"< {player1} > vs < {player2} >", size=15, fig=fig,
+              highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}], ha="center",
+              fontproperties=font_bold.prop, color="#000000")
 
-    if joueur1 and joueur2:
-        st.subheader(f"⚔️ Radar comparatif : {joueur1} vs {joueur2}")
-        df_j1 = df[df["Compétition"] == ligue1]
-        df_j2 = df[df["Compétition"] == ligue2]
-        values1 = calculate_percentiles(joueur1, df_j1)
-        values2 = calculate_percentiles(joueur2, df_j2)
+    st.pyplot(fig)
 
-        params_offset = [False] * len(RAW_STATS)
-        params_offset[9] = True
-        params_offset[10] = True
+# ---------------------- Streamlit UI ----------------------
 
-        baker = PyPizza(
-            params=list(RAW_STATS.keys()),
-            background_color="#ffffff",
-            straight_line_color="#000000",
-            straight_line_lw=1,
-            last_circle_color="#000000",
-            last_circle_lw=1,
-            other_circle_ls="-.",
-            other_circle_lw=1
-        )
+def main():
+    st.set_page_config(page_title="Radar Stats", layout="wide")
+    st.title("📊 Radar de performance des joueurs")
 
-        fig, ax = baker.make_pizza(
-            values1,
-            compare_values=values2,
-            figsize=(10, 10),
-            kwargs_slices=dict(facecolor=COLOR_1, edgecolor="#222222", linewidth=1, zorder=2),
-            kwargs_compare=dict(facecolor=COLOR_2, edgecolor="#222222", linewidth=1, zorder=2),
-            kwargs_params=dict(color="#000000", fontsize=12, fontproperties=font_bold.prop),
-            kwargs_values=dict(
-                color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
-                bbox=dict(edgecolor="#000000", facecolor=COLOR_1, boxstyle="round,pad=0.2", lw=1)
-            ),
-            kwargs_compare_values=dict(
-                color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
-                bbox=dict(edgecolor="#000000", facecolor=COLOR_2, boxstyle="round,pad=0.2", lw=1)
-            )
-        )
+    df = load_and_prepare_data()
+    mode = st.radio("Choisissez un mode :", ["Radar individuel", "Radar comparatif"])
 
-        baker.adjust_texts(params_offset, offset=-0.17, adj_comp_values=True)
+    if mode == "Radar individuel":
+        player = st.selectbox("Choisissez un joueur :", df["Joueur"].unique())
+        draw_individual_radar(player, df)
 
-        fig.text(0.515, 0.99, f"{joueur1} vs {joueur2}", size=18, ha="center",
-                 fontproperties=font_bold.prop, color="#000000")
-        fig.text(0.515, 0.955, "Radar comparatif - Stats par 90 min | FBRef | Saison 2024-25",
-                 size=13, ha="center", fontproperties=font_bold.prop, color="#444444")
+    elif mode == "Radar comparatif":
+        col1, col2 = st.columns(2)
+        with col1:
+            player1 = st.selectbox("Joueur 1", df["Joueur"].unique(), key="p1")
+        with col2:
+            player2 = st.selectbox("Joueur 2", df["Joueur"].unique(), key="p2")
 
-        legend_p1 = mpatches.Patch(color=COLOR_1, label=joueur1)
-        legend_p2 = mpatches.Patch(color=COLOR_2, label=joueur2)
-        ax.legend(handles=[legend_p1, legend_p2], loc="upper right", bbox_to_anchor=(1.3, 1.0))
+        if player1 != player2:
+            draw_comparison_radar(player1, player2, df)
+        else:
+            st.warning("Veuillez choisir deux joueurs différents pour la comparaison.")
 
-        fig.text(0.99, 0.01, "Source: FBRef\nInspiration: @Worville, @FootballSlices",
-                 size=8, ha="right", fontproperties=font_italic.prop, color="#888888")
-        st.pyplot(fig)
+if __name__ == "__main__":
+    main()
