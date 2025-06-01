@@ -96,11 +96,11 @@ st.title("📊 Radar de performance des joueurs")
 df = pd.read_csv("df_BIG2025.csv")
 
 # Choix de la ligue
-ligues = df["Ligue"].dropna().unique()
+ligues = df["Compétition"].dropna().unique()
 ligue_choisie = st.selectbox("Choisissez une ligue :", ligues)
 
 # Filtrage par ligue
-df_ligue = df[df["Ligue"] == ligue_choisie]
+df_ligue = df[df["Compétition"] == ligue_choisie]
 
 # Choix des joueurs (un ou deux)
 joueurs_disponibles = df_ligue["Joueur"].dropna().unique()
