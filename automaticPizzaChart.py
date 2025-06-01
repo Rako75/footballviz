@@ -122,7 +122,7 @@ elif mode == "Radar comparatif":
     col1, col2 = st.columns(2)
     with col1:
         ligue1 = st.selectbox("Ligue Joueur 1", ligues, key="ligue1")
-        joueur1 = st.selectbox("Joueur 1", df[df["Ligue"] == ligue1]["Joueur"].sort_values(), key="joueur1")
+        joueur1 = st.selectbox("Joueur 1", df[df["Compétition"] == ligue1]["Joueur"].sort_values(), key="joueur1")
 
     with col2:
         ligue2 = st.selectbox("Ligue Joueur 2", ligues, key="ligue2")
