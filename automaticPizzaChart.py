@@ -57,23 +57,23 @@ st.title("📊 Radar de performances - Saison 2024/25")
 
 # --- Charger les données ---
 df = pd.read_csv("df_BIG2025.csv", sep=",")
-ligues = df["Ligue"].unique()
+ligues = df["Compétition"].unique()
 
 # --- Sélection utilisateurs ---
 col1, col2 = st.columns(2)
 with col1:
     ligue1 = st.selectbox("Ligue Joueur 1", ligues, key="ligue1")
-    joueur1 = st.selectbox("Joueur 1", df[df["Ligue"] == ligue1]["Joueur"].sort_values(), key="joueur1")
+    joueur1 = st.selectbox("Joueur 1", df[df["Compétition"] == ligue1]["Joueur"].sort_values(), key="joueur1")
 
 with col2:
     ligue2 = st.selectbox("Ligue Joueur 2 (facultatif)", ligues, key="ligue2")
-    joueur2 = st.selectbox("Joueur 2 (facultatif)", df[df["Ligue"] == ligue2]["Joueur"].sort_values(), key="joueur2")
+    joueur2 = st.selectbox("Joueur 2 (facultatif)", df[df["Compétition"] == ligue2]["Joueur"].sort_values(), key="joueur2")
 
 # --- Affichage radar ---
 
 if joueur1 and not joueur2:
     st.subheader(f"🎯 Radar individuel : {joueur1}")
-    df_j1 = df[df["Ligue"] == ligue1]
+    df_j1 = df[df["Compétition"] == ligue1]
     values1 = calculate_percentiles(joueur1, df_j1)
 
     font_normal = FontManager()
@@ -111,8 +111,8 @@ if joueur1 and not joueur2:
 
 elif joueur1 and joueur2:
     st.subheader(f"⚔️ Radar comparatif : {joueur1} vs {joueur2}")
-    df_j1 = df[df["Ligue"] == ligue1]
-    df_j2 = df[df["Ligue"] == ligue2]
+    df_j1 = df[df["Compétition"] == ligue1]
+    df_j2 = df[df["Compétition"] == ligue2]
 
     values1 = calculate_percentiles(joueur1, df_j1)
     values2 = calculate_percentiles(joueur2, df_j2)
