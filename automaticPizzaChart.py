@@ -79,9 +79,9 @@ def plot_individual_radar(player_name, percentiles):
                            bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
     )
 
-    fig.text(0.515, 0.945, player_name, size=27, ha="center", fontproperties=font_bold.prop, color="#ffffff")
-    fig.text(0.515, 0.925, "Stats en percentile par 90 min - FBRef | Saison 2024-25", size=13,
-             ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig_text(0.515, 0.99, f"<{player1}> vs <{player2}>", size=17, fig=fig,
+         highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}],
+         ha="center", fontproperties=font_bold.prop, color="#000000")
 
     st.pyplot(fig)
 
