@@ -154,7 +154,7 @@ elif mode == "Radar comparatif":
 
         baker = PyPizza(
             params=list(RAW_STATS.keys()),
-            background_color="#ffffff",
+            background_color="#132257",  # même fond que radar individuel
             straight_line_color="#000000",
             straight_line_lw=1,
             last_circle_color="#000000",
@@ -169,28 +169,30 @@ elif mode == "Radar comparatif":
             figsize=(10, 10),
             kwargs_slices=dict(facecolor=COLOR_1, edgecolor="#222222", linewidth=1, zorder=2),
             kwargs_compare=dict(facecolor=COLOR_2, edgecolor="#222222", linewidth=1, zorder=2),
-            kwargs_params=dict(color="#000000", fontsize=12, fontproperties=font_bold.prop),
+            kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop),
             kwargs_values=dict(
-                color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
+                color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=3,
                 bbox=dict(edgecolor="#000000", facecolor=COLOR_1, boxstyle="round,pad=0.2", lw=1)
             ),
             kwargs_compare_values=dict(
-                color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
+                color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=3,
                 bbox=dict(edgecolor="#000000", facecolor=COLOR_2, boxstyle="round,pad=0.2", lw=1)
             )
         )
 
         baker.adjust_texts(params_offset, offset=-0.17, adj_comp_values=True)
 
-        fig.text(0.515, 0.99, f"{joueur1} vs {joueur2}", size=18, ha="center",
-                 fontproperties=font_bold.prop, color="#000000")
+        fig.text(0.515, 0.99, f"{joueur1} vs {joueur2}", size=24, ha="center",
+                 fontproperties=font_bold.prop, color="#ffffff")
+
         fig.text(0.515, 0.955, "Radar comparatif - Stats par 90 min | FBRef | Saison 2024-25",
-                 size=13, ha="center", fontproperties=font_bold.prop, color="#444444")
+                 size=13, ha="center", fontproperties=font_bold.prop, color="#ffffff")
 
         legend_p1 = mpatches.Patch(color=COLOR_1, label=joueur1)
         legend_p2 = mpatches.Patch(color=COLOR_2, label=joueur2)
         ax.legend(handles=[legend_p1, legend_p2], loc="upper right", bbox_to_anchor=(1.3, 1.0))
 
         fig.text(0.99, 0.01, "Source: FBRef\nInspiration: @Worville, @FootballSlices",
-                 size=8, ha="right", fontproperties=font_italic.prop, color="#888888")
+                 size=8, ha="right", fontproperties=font_italic.prop, color="#dddddd")
+
         st.pyplot(fig)
