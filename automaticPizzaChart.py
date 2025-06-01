@@ -44,18 +44,31 @@ def calculate_percentiles(player_name, df):
 
     for label, col in RAW_STATS.items():
         try:
-            if "par 90 minutes" in col or "%" in col:
+            if col not in df.columns or pd.isna(player[col]):
+                percentile = 0
+            elif "par 90 minutes" in col or "%" in col:
                 val = player[col]
                 dist = df[col]
+                if pd.isna(val) or dist.dropna().empty:
+                    percentile = 0
+                else:
+                    percentile = round((dist < val).mean() * 100)
             else:
-                val = player[col] / player["Matchs en 90 min"]
-                dist = df[col] / df["Matchs en 90 min"]
-                percentile = round((dist < val).mean() * 100)
-        except:
+                if player["Matchs en 90 min"] == 0:
+                    percentile = 0
+                else:
+                    val = player[col] / player["Matchs en 90 min"]
+                    dist = df[col] / df["Matchs en 90 min"]
+                    if pd.isna(val) or dist.dropna().empty:
+                        percentile = 0
+                    else:
+                        percentile = round((dist < val).mean() * 100)
+        except Exception as e:
             percentile = 0
         percentiles.append(percentile)
 
     return percentiles
+
 
 # ---------------------- APP STREAMLIT ----------------------
 
