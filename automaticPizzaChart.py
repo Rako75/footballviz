@@ -97,7 +97,7 @@ df = pd.read_csv("df_BIG2025.csv")
 
 # ---------------------- Nouvelle interface inter-ligues ----------------------
 
-ligues = df["Ligue"].dropna().unique()
+ligues = df["Compétition"].dropna().unique()
 
 st.markdown("### 🎯 Comparaison de joueurs (même ou différentes ligues)")
 
@@ -105,19 +105,19 @@ col1, col2 = st.columns(2)
 
 with col1:
     ligue1 = st.selectbox("Ligue du Joueur 1", ligues, key="ligue1")
-    joueurs1 = df[df["Ligue"] == ligue1]["Joueur"].unique()
+    joueurs1 = df[df["Compétition"] == ligue1]["Joueur"].unique()
     joueur1 = st.selectbox("Joueur 1", joueurs1)
 
 with col2:
     ligue2 = st.selectbox("Ligue du Joueur 2", ligues, key="ligue2")
-    joueurs2 = df[df["Ligue"] == ligue2]["Joueur"].unique()
+    joueurs2 = df[df["Compétition"] == ligue2]["Joueur"].unique()
     joueur2 = st.selectbox("Joueur 2", joueurs2)
 
 # ---------------------- Affichage radar(s) ----------------------
 
 if joueur1 and not joueur2:
     st.subheader(f"🎯 Radar individuel : {joueur1}")
-    df_j1 = df[df["Ligue"] == ligue1]
+    df_j1 = df[df["Compétition"] == ligue1]
     values1 = calculate_percentiles(joueur1, df_j1)
     plot_radar(joueur1, values1, color="#1f77b4")
 
@@ -127,12 +127,12 @@ elif joueur1 and joueur2:
     col1_radar, col2_radar = st.columns(2)
     
     with col1_radar:
-        df_j1 = df[df["Ligue"] == ligue1]
+        df_j1 = df[df["Compétition"] == ligue1]
         values1 = calculate_percentiles(joueur1, df_j1)
         plot_radar(joueur1, values1, color="#FF69B4")
     
     with col2_radar:
-        df_j2 = df[df["Ligue"] == ligue2]
+        df_j2 = df[df["Compétition"] == ligue2]
         values2 = calculate_percentiles(joueur2, df_j2)
         plot_radar(joueur2, values2, color="#00CED1")
 
