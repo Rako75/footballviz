@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from mplsoccer import PyPizza, FontManager
+import matplotlib.pyplot as plt
 from matplotlib import font_manager
 from highlight_text import fig_text
 
-# ---------------------- Données ----------------------
+# ---------------------- Paramètres radar ----------------------
 
 RAW_STATS = {
     "Buts\nsans pénalty": "Buts (sans penalty)",
@@ -31,109 +31,122 @@ RAW_STATS = {
     "Dégagements": "Dégagements"
 }
 
-SLICE_COLORS = ["#1A78CF"] * 20
-COMPARE_COLORS = ["#FF9300"] * 20
+SLICE_COLORS = ["#1A78CF"] * 10 + ["#FF9300"] * 10
 TEXT_COLORS = ["#000000"] * 20
 
-# ---------------------- Chargement et préparation ----------------------
+# ---------------------- Fonctions ----------------------
 
-@st.cache_data
-def load_and_prepare_data():
-    df = pd.read_csv("df_BIG2025.csv")
+def calculate_percentiles(df, raw_stats):
+    df_percentiles = df.copy()
+    for label, col in raw_stats.items():
+        try:
+            stat_per_90 = df[col] / df["Matchs en 90 min"]
+            df_percentiles[label] = (stat_per_90.rank(pct=True) * 100).round(1)
+        except:
+            df_percentiles[label] = 0
+    return df_percentiles
 
-    # Calcul des per 90 minutes et percentiles
-    for label, col in RAW_STATS.items():
-        per90_col = f"{col}_per_90"
-        if per90_col not in df.columns:
-            df[per90_col] = df[col] / df["Matchs en 90 min"]
-        df[f"{col}_percentile"] = (df[per90_col].rank(pct=True) * 100).astype(int)
+def get_player_percentiles(player_name, df_percentiles):
+    player = df_percentiles[df_percentiles["Joueur"] == player_name].iloc[0]
+    return [player[label] for label in RAW_STATS.keys()]
 
-    return df
-
-# ---------------------- Affichage radar ----------------------
-
-def draw_individual_radar(player_name, df):
-    player = df[df["Joueur"] == player_name].iloc[0]
-    values = [player[f"{col}_percentile"] for col in RAW_STATS.values()]
-    values_display = [f"{v}%" for v in values]
+def plot_individual_radar(player_name, percentiles):
+    baker = PyPizza(
+        params=list(RAW_STATS.keys()),
+        background_color="#132257",
+        straight_line_color="#000000",
+        straight_line_lw=1,
+        last_circle_color="#000000",
+        last_circle_lw=1,
+        other_circle_lw=0,
+        inner_circle_size=11
+    )
 
     font_normal = FontManager()
     font_bold = FontManager()
 
-    baker = PyPizza(params=list(RAW_STATS.keys()), background_color="#132257")
-
     fig, ax = baker.make_pizza(
-        values,
-        figsize=(9, 9),
+        percentiles,
+        figsize=(10, 12),
         color_blank_space="same",
         slice_colors=SLICE_COLORS,
         value_colors=TEXT_COLORS,
         value_bck_colors=SLICE_COLORS,
+        blank_alpha=0.4,
         kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=1),
-        kwargs_params=dict(color="#ffffff", fontsize=10, fontproperties=font_bold.prop),
-        kwargs_values=dict(values=values_display, color="#ffffff", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
+        kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
+        kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=3,
+                           bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
     )
 
-    fig.text(0.5, 0.97, f"{player_name} - Radar Individuel", size=16, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig.text(0.515, 0.945, player_name, size=27, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig.text(0.515, 0.925, "Stats en percentile par 90 min - FBRef | Saison 2024-25", size=13,
+             ha="center", fontproperties=font_bold.prop, color="#ffffff")
+
     st.pyplot(fig)
 
-
-def draw_comparison_radar(player1, player2, df):
-    p1 = df[df["Joueur"] == player1].iloc[0]
-    p2 = df[df["Joueur"] == player2].iloc[0]
-
-    values1 = [p1[f"{col}_percentile"] for col in RAW_STATS.values()]
-    values2 = [p2[f"{col}_percentile"] for col in RAW_STATS.values()]
-
-    values1_display = [f"{v}%" for v in values1]
-    values2_display = [f"{v}%" for v in values2]
+def plot_comparison_radar(player1, player2, percentiles1, percentiles2):
+    baker = PyPizza(
+        params=list(RAW_STATS.keys()),
+        background_color="#EBEBE9",
+        straight_line_color="#222222",
+        straight_line_lw=1,
+        last_circle_lw=1,
+        last_circle_color="#222222",
+        other_circle_ls="-.",
+        other_circle_lw=1
+    )
 
     font_normal = FontManager()
     font_bold = FontManager()
-
-    baker = PyPizza(params=list(RAW_STATS.keys()), background_color="#ffffff")
+    font_italic = FontManager()
 
     fig, ax = baker.make_pizza(
-        values1,
-        compare_values=values2,
-        figsize=(9, 9),
-        kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222", linewidth=1, zorder=2),
-        kwargs_compare=dict(facecolor="#FF9300", edgecolor="#222222", linewidth=1, zorder=2),
-        kwargs_params=dict(color="#000000", fontsize=10, fontproperties=font_bold.prop),
-        kwargs_values=dict(values=values1_display, color="#000000", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="#1A78CF", boxstyle="round,pad=0.2", lw=1)),
-        kwargs_compare_values=dict(values=values2_display, color="#000000", fontsize=9, fontproperties=font_normal.prop, bbox=dict(edgecolor="#000000", facecolor="#FF9300", boxstyle="round,pad=0.2", lw=1))
+        percentiles1,
+        compare_values=percentiles2,
+        figsize=(10, 10),
+        kwargs_slices=dict(facecolor="#1A78CF", edgecolor="#222222", zorder=2, linewidth=1),
+        kwargs_compare=dict(facecolor="#FF9300", edgecolor="#222222", zorder=2, linewidth=1),
+        kwargs_params=dict(color="#000000", fontsize=12, fontproperties=font_normal.prop, va="center"),
+        kwargs_values=dict(color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
+                           bbox=dict(edgecolor="#000000", facecolor="#1A78CF", boxstyle="round,pad=0.2", lw=1)),
+        kwargs_compare_values=dict(color="#000000", fontsize=12, fontproperties=font_normal.prop, zorder=3,
+                                   bbox=dict(edgecolor="#000000", facecolor="#FF9300", boxstyle="round,pad=0.2", lw=1))
     )
 
-    fig_text(0.5, 0.975, f"< {player1} > vs < {player2} >", size=15, fig=fig,
-              highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}], ha="center",
-              fontproperties=font_bold.prop, color="#000000")
+    baker.adjust_texts([False]*20, offset=-0.17, adj_comp_values=True)
+
+    fig_text(0.515, 0.99, f"{player1} vs {player2}", size=17, fig=fig,
+             highlight_textprops=[{"color": '#1A78CF'}, {"color": '#FF9300'}],
+             ha="center", fontproperties=font_bold.prop, color="#000000")
+
+    fig.text(0.515, 0.942, "Stats en percentile par 90 min - FBRef | Saison 2024-25", size=15,
+             ha="center", fontproperties=font_bold.prop, color="#000000")
 
     st.pyplot(fig)
 
-# ---------------------- Streamlit UI ----------------------
+# ---------------------- Interface Streamlit ----------------------
 
-def main():
-    st.set_page_config(page_title="Radar Stats", layout="wide")
-    st.title("📊 Radar de performance des joueurs")
+df = pd.read_csv("df_BIG2025.csv")
+df_percentiles = calculate_percentiles(df, RAW_STATS)
 
-    df = load_and_prepare_data()
-    mode = st.radio("Choisissez un mode :", ["Radar individuel", "Radar comparatif"])
+st.title("📊 Radar Stats - Saison 2024-2025")
+mode = st.radio("Choisissez le type de radar:", ["Radar individuel", "Radar comparatif"])
 
-    if mode == "Radar individuel":
-        player = st.selectbox("Choisissez un joueur :", df["Joueur"].unique())
-        draw_individual_radar(player, df)
+if mode == "Radar individuel":
+    joueur = st.selectbox("Sélectionnez un joueur", df["Joueur"].unique())
+    if joueur:
+        percentiles = get_player_percentiles(joueur, df_percentiles)
+        plot_individual_radar(joueur, percentiles)
 
-    elif mode == "Radar comparatif":
-        col1, col2 = st.columns(2)
-        with col1:
-            player1 = st.selectbox("Joueur 1", df["Joueur"].unique(), key="p1")
-        with col2:
-            player2 = st.selectbox("Joueur 2", df["Joueur"].unique(), key="p2")
+elif mode == "Radar comparatif":
+    col1, col2 = st.columns(2)
+    with col1:
+        joueur1 = st.selectbox("Joueur 1", df["Joueur"].unique(), key="joueur1")
+    with col2:
+        joueur2 = st.selectbox("Joueur 2", df["Joueur"].unique(), key="joueur2")
 
-        if player1 != player2:
-            draw_comparison_radar(player1, player2, df)
-        else:
-            st.warning("Veuillez choisir deux joueurs différents pour la comparaison.")
-
-if __name__ == "__main__":
-    main()
+    if joueur1 and joueur2 and joueur1 != joueur2:
+        percentiles1 = get_player_percentiles(joueur1, df_percentiles)
+        percentiles2 = get_player_percentiles(joueur2, df_percentiles)
+        plot_comparison_radar(joueur1, joueur2, percentiles1, percentiles2)
