@@ -50,7 +50,7 @@ def calculate_percentiles(player_name, df):
             else:
                 val = player[col] / player["Matchs en 90 min"]
                 dist = df[col] / df["Matchs en 90 min"]
-            percentile = round((dist < val).mean() * 100, 1)
+                percentile = round((dist < val).mean() * 100)
         except:
             percentile = 0
         percentiles.append(percentile)
