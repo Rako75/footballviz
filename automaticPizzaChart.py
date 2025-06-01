@@ -123,59 +123,65 @@ def main():
         plot_radar(joueur1, values1, color="#1f77b4")
 
     elif joueur1 and joueur2:
-        st.subheader(f"⚔️ Radar comparatif fusionné : {joueur1} vs {joueur2}")
+    st.subheader(f"⚔️ Radar comparatif fusionné : {joueur1} vs {joueur2}")
 
-        df_j1 = df[df["Compétition"] == ligue1]
-        df_j2 = df[df["Compétition"] == ligue2]
+    df_j1 = df[df["Ligue"] == ligue1]
+    df_j2 = df[df["Ligue"] == ligue2]
 
-        values1 = calculate_percentiles(joueur1, df_j1)
-        values2 = calculate_percentiles(joueur2, df_j2)
+    values1 = calculate_percentiles(joueur1, df_j1)
+    values2 = calculate_percentiles(joueur2, df_j2)
 
-        font_normal = FontManager()
-        font_bold = FontManager()
+    font_normal = FontManager()
+    font_bold = FontManager()
 
-        baker = PyPizza(
-            params=list(RAW_STATS.keys()),
-            background_color="#132257",
-            straight_line_color="#000000",
-            straight_line_lw=1,
-            last_circle_color="#000000",
-            last_circle_lw=1,
-            other_circle_lw=0,
-            inner_circle_size=11
-        )
+    baker = PyPizza(
+        params=list(RAW_STATS.keys()),
+        background_color="#132257",
+        straight_line_color="#000000",
+        straight_line_lw=1,
+        last_circle_color="#000000",
+        last_circle_lw=1,
+        other_circle_lw=0,
+        inner_circle_size=11
+    )
 
-        fig, ax = baker.make_pizza(
-            values1,
-            figsize=(10, 12),
-            param_location=110,
-            color_blank_space="same",
-            slice_colors=SLICE_COLORS,
-            value_colors=TEXT_COLORS,
-            value_bck_colors=SLICE_COLORS,
-            blank_alpha=0.4,
-            kwargs_slices=dict(edgecolor="#000000", zorder=1, linewidth=1, alpha=0.7),
-            kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
-            kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=2,
-                               bbox=dict(edgecolor="#000000", facecolor="#FF69B4", boxstyle="round,pad=0.2", lw=1))
-        )
+    # Création du radar du joueur 1 avec labels
+    fig, ax = baker.make_pizza(
+        values1,
+        figsize=(10, 12),
+        param_location=110,
+        color_blank_space="same",
+        slice_colors=SLICE_COLORS,
+        value_colors=TEXT_COLORS,
+        value_bck_colors=SLICE_COLORS,
+        blank_alpha=0.4,
+        kwargs_slices=dict(edgecolor="#000000", zorder=1, linewidth=1, alpha=0.7),
+        kwargs_params=dict(color="#ffffff", fontsize=13, fontproperties=font_bold.prop, va="center"),
+        kwargs_values=dict(color="#ffffff", fontsize=11, fontproperties=font_normal.prop, zorder=2,
+                           bbox=dict(edgecolor="#000000", facecolor="#FF69B4", boxstyle="round,pad=0.2", lw=1))
+    )
 
-        angles = np.linspace(0, 2 * np.pi, len(values2), endpoint=False).tolist()
-        values2_extended = values2 + values2[:1]
-        angles_extended = angles + angles[:1]
-        ax.plot(angles_extended, values2_extended, color="#00CED1", linewidth=2.5, linestyle="--", zorder=5, label=joueur2)
+    # Ajout du polygone du joueur 2 uniquement
+    angles = np.linspace(0, 2 * np.pi, len(values2), endpoint=False).tolist()
+    values2_extended = values2 + values2[:1]
+    angles_extended = angles + angles[:1]
 
-        fig.text(0.515, 0.95, f"{joueur1} vs {joueur2}", size=24, ha="center", fontproperties=font_bold.prop, color="#ffffff")
-        fig.text(0.515, 0.925, "Radar comparatif - Stats par 90 min - FBRef | Saison 2024-25", size=13,
-                 ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    ax.plot(angles_extended, values2_extended, color="#00CED1", linewidth=2.5, linestyle="-", zorder=5)
+    ax.fill(angles_extended, values2_extended, color="#00CED1", alpha=0.3, zorder=4)
 
-        legend_elements = [
-            plt.Line2D([0], [0], color="#FF69B4", lw=10, label=joueur1),
-            plt.Line2D([0], [0], color="#00CED1", lw=3, linestyle='--', label=joueur2)
-        ]
-        ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=2, frameon=False, fontsize=12)
+    # Titres et légende
+    fig.text(0.515, 0.95, f"{joueur1} vs {joueur2}", size=24, ha="center", fontproperties=font_bold.prop, color="#ffffff")
+    fig.text(0.515, 0.925, "Radar comparatif - Stats par 90 min - FBRef | Saison 2024-25", size=13,
+             ha="center", fontproperties=font_bold.prop, color="#ffffff")
 
-        st.pyplot(fig)
+    legend_elements = [
+        plt.Line2D([0], [0], color="#FF69B4", lw=10, label=joueur1),
+        plt.Line2D([0], [0], color="#00CED1", lw=10, label=joueur2)
+    ]
+    ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=2, frameon=False, fontsize=12)
+
+    st.pyplot(fig)
+
 
 
 if __name__ == "__main__":
