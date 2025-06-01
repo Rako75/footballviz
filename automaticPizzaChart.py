@@ -42,6 +42,14 @@ def calculate_percentiles(player_name, df):
     player = df[df["Joueur"] == player_name].iloc[0]
     percentiles = []
 
+    # Statistiques où un score bas est meilleur
+    NEGATIVE_STATS = [
+        "Cartons jaunes",
+        "Cartons rouges",
+        "Ballons perdus sous la pression d’un adversaire",
+        "Ballons perdus en conduite"
+    ]
+
     for label, col in RAW_STATS.items():
         try:
             if col not in df.columns or pd.isna(player[col]):
@@ -63,11 +71,17 @@ def calculate_percentiles(player_name, df):
                         percentile = 0
                     else:
                         percentile = round((dist < val).mean() * 100)
+            
+            # Inversion du percentile pour les stats négatives
+            if col in NEGATIVE_STATS:
+                percentile = 100 - percentile
+
         except Exception as e:
             percentile = 0
         percentiles.append(percentile)
 
     return percentiles
+
 
 
 # ---------------------- APP STREAMLIT ----------------------
