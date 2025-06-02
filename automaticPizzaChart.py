@@ -73,7 +73,7 @@ def calculate_percentiles(player_name, df):
 # ---------------------- APP STREAMLIT ----------------------
 
 st.set_page_config(layout="wide", page_title="Radar de joueurs")
-st.title("📊 Radar de performance - Rang Percentile - Top 5 Championnat Européen  - Saison 2024/25")
+st.title("📊 Radar de performance - Top 5 Championnat Européen  - Saison 2024/25")
 
 # Charger les données
 df = pd.read_csv("df_BIG2025.csv", sep=",")
