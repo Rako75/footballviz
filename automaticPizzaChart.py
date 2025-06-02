@@ -185,7 +185,7 @@ elif mode == "Radar comparatif":
         fig.text(0.515, 0.99, f"{joueur1} vs {joueur2}", size=24, ha="center",
                  fontproperties=font_bold.prop, color="#ffffff")
 
-        fig.text(0.515, 0.955, "Radar comparatif - Stats par 90 min | FBRef | Saison 2024-25",
+        fig.text(0.515, 0.955, "Radar comparatif - Rang Percentile - Top 5 Championnat Européen | Saison 2024-25 | @AlexRakotomalala",
                  size=13, ha="center", fontproperties=font_bold.prop, color="#ffffff")
 
         legend_p1 = mpatches.Patch(color=COLOR_1, label=joueur1)
