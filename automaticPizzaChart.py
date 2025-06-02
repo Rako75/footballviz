@@ -125,7 +125,7 @@ if mode == "Radar individuel":
         )
 
         fig.text(0.515, 0.95, joueur1, size=24, ha="center", fontproperties=font_bold.prop, color="#ffffff")
-        fig.text(0.515, 0.925, "Rang Percentile - FBRef | Saison 2024-25", size=13,
+        fig.text(0.515, 0.925, "Radar Individuel | Percentile | Saison 2024-25", size=13,
                  ha="center", fontproperties=font_bold.prop, color="#ffffff")
         st.pyplot(fig)
 
