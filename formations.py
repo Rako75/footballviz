@@ -82,24 +82,43 @@ class StreamlitFormationAnalyzer:
         """Prépare les données pour l'analyse"""
         self.events_df = events_df.copy()
         
-        # Extraction des coordonnées
-        self.events_df['x'] = self.events_df['location'].apply(
-            lambda loc: loc[0] if isinstance(loc, list) and len(loc) >= 2 else np.nan
-        )
-        self.events_df['y'] = self.events_df['location'].apply(
-            lambda loc: loc[1] if isinstance(loc, list) and len(loc) >= 2 else np.nan
-        )
+        # Extraction des coordonnées avec vérification
+        def extract_coordinate(loc, index):
+            if isinstance(loc, (list, tuple)) and len(loc) > index:
+                return loc[index]
+            elif pd.notna(loc):
+                try:
+                    return float(loc)
+                except:
+                    return np.nan
+            return np.nan
+        
+        self.events_df['x'] = self.events_df['location'].apply(lambda loc: extract_coordinate(loc, 0))
+        self.events_df['y'] = self.events_df['location'].apply(lambda loc: extract_coordinate(loc, 1))
         
         # Filtrage des données valides
-        self.events_df = self.events_df[
+        valid_mask = (
             (self.events_df['x'].notna()) & 
             (self.events_df['y'].notna()) &
-            (self.events_df['player'].notna())
-        ].copy()
+            (self.events_df['player'].notna()) &
+            (self.events_df['x'] >= 0) &
+            (self.events_df['x'] <= 120) &
+            (self.events_df['y'] >= 0) &
+            (self.events_df['y'] <= 80)
+        )
+        
+        self.events_df = self.events_df[valid_mask].copy()
+        
+        if len(self.events_df) == 0:
+            st.error("❌ Aucune donnée de position valide trouvée!")
+            return False
         
         # Plage des minutes
         self.min_minute = int(self.events_df['minute'].min())
         self.max_minute = int(self.events_df['minute'].max())
+        
+        st.sidebar.success(f"✅ {len(self.events_df)} événements avec positions valides")
+        st.sidebar.info(f"📅 Minutes disponibles: {self.min_minute} à {self.max_minute}")
         
         return True
     
@@ -154,7 +173,8 @@ class StreamlitFormationAnalyzer:
                 avg_pos = avg_pos.join(positions)
                 
                 # Top 11 joueurs
-                avg_pos = avg_pos.nlargest(11, 'actions')
+                if len(avg_pos) > 11:
+                    avg_pos = avg_pos.nlargest(11, 'actions')
                 
                 formation = _self.get_formation_from_positions(avg_pos)
                 compactness = _self.calculate_team_compactness(avg_pos)[0]
@@ -207,6 +227,10 @@ class StreamlitFormationAnalyzer:
     def calculate_team_compactness(self, positions_df):
         """Calcule la compacité"""
         if len(positions_df) < 2:
+            return 0, 0
+        
+        # Vérifier que les colonnes x et y existent
+        if 'x' not in positions_df.columns or 'y' not in positions_df.columns:
             return 0, 0
         
         coords = positions_df[['x', 'y']].values
@@ -375,7 +399,13 @@ def main():
                 # Affichage des informations du match
                 teams = events_df['team'].unique()
                 st.sidebar.write(f"**Équipes:** {teams[0]} vs {teams[1]}")
-                st.sidebar.write(f"**Événements:** {len(events_df)}")
+                st.sidebar.write(f"**Événements totaux:** {len(events_df)}")
+                
+                # Test des coordonnées
+                events_with_coords = events_df[events_df['location'].notna()]
+                st.sidebar.write(f"**Événements avec position:** {len(events_with_coords)}")
+            else:
+                st.sidebar.error("❌ Erreur lors du chargement des données")
     
     # Vérification si les données sont chargées
     if 'data_loaded' not in st.session_state:
