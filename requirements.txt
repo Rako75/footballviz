@@ -16,3 +16,5 @@ lxml
 mplsoccer
 pandas
 highlight_text
+statsbombpy
+scipy
