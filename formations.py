@@ -123,9 +123,12 @@ class StreamlitFormationAnalyzer:
         return True
     
     @st.cache_data
-    def precompute_positions(_self, events_df, window_size):
+    def precompute_positions(_self, prepared_events_df, window_size):
         """Pré-calcule toutes les positions (avec cache)"""
         positions_timeline = {}
+        
+        # Utiliser les données déjà préparées
+        events_df = prepared_events_df.copy()
         
         min_minute = int(events_df['minute'].min())
         max_minute = int(events_df['minute'].max())
@@ -159,6 +162,11 @@ class StreamlitFormationAnalyzer:
                 team_data = window_data[window_data['team_id'] == team_id]
                 team_name = team_data['team'].iloc[0]
                 
+                # Vérifier que les colonnes existent
+                if 'x' not in team_data.columns or 'y' not in team_data.columns:
+                    st.error(f"❌ Colonnes x,y manquantes pour {team_name} à la minute {minute}")
+                    continue
+                
                 # Positions moyennes
                 avg_pos = team_data.groupby('player').agg({
                     'x': 'mean',
@@ -167,6 +175,9 @@ class StreamlitFormationAnalyzer:
                 }).rename(columns={'player_id': 'actions'})
                 
                 avg_pos = avg_pos[avg_pos['actions'] >= 3]
+                
+                if len(avg_pos) == 0:
+                    continue
                 
                 # Positions des joueurs
                 positions = team_data.groupby('player')['position'].first()
