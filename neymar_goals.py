@@ -189,21 +189,22 @@ def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts", available_vide
     
     return None
 
-def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None):
+def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, season_colors=None):
     """Crée le terrain de football avec les buts de Neymar colorés par saison"""
     fig = go.Figure()
     
     # Dimensions du terrain
     pitch_length, pitch_width = 120, 80
     
-    # Palette de couleurs pour les saisons
-    season_colors = {
-        '2013-14': '#FF6B6B',  # Rouge corail
-        '2014-15': '#4ECDC4',  # Turquoise
-        '2015-16': '#45B7D1',  # Bleu ciel
-        '2016-17': '#96CEB4',  # Vert menthe
-        '2017-18': '#FFEAA7'   # Jaune pastel
-    }
+    # Palette de couleurs par défaut si non fournie
+    if season_colors is None:
+        season_colors = {
+            '2013-14': '#FF6B6B',  # Rouge corail
+            '2014-15': '#4ECDC4',  # Turquoise
+            '2015-16': '#45B7D1',  # Bleu ciel
+            '2016-17': '#96CEB4',  # Vert menthe
+            '2017-18': '#FFEAA7'   # Jaune pastel
+        }
     
     # Si la colonne season n'existe pas, créer une saison par défaut
     if 'season' not in df_goals.columns:
@@ -479,6 +480,15 @@ def main():
     st.markdown('<h1 class="main-header">⚽ Neymar Jr</h1>', unsafe_allow_html=True)
     st.markdown('<h2 class="sub-header">Tous ses buts en LaLiga (2013-2017)</h2>', unsafe_allow_html=True)
     
+    # Définition des couleurs de saisons (disponible globalement dans main)
+    season_colors = {
+        '2013-14': '#FF6B6B',  # Rouge corail
+        '2014-15': '#4ECDC4',  # Turquoise
+        '2015-16': '#45B7D1',  # Bleu ciel
+        '2016-17': '#96CEB4',  # Vert menthe
+        '2017-18': '#FFEAA7'   # Jaune pastel
+    }
+    
     # Section de diagnostic
     with st.expander("🔧 Diagnostic système", expanded=False):
         st.write("**Répertoire de travail actuel:**", os.getcwd())
@@ -632,7 +642,7 @@ def main():
             st.session_state.selected_goal = None
         
         # Créer le graphique avec la variable season_colors disponible
-        fig = create_pitch_figure(filtered_df, st.session_state.selected_goal, available_videos)
+        fig = create_pitch_figure(filtered_df, st.session_state.selected_goal, available_videos, season_colors)
         
         # Sélecteur de but alternatif avec indication de saison
         goal_options = []
