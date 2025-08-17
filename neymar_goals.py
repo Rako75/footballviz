@@ -99,22 +99,38 @@ def load_data():
         df_goals['Y'] = pd.to_numeric(df_goals['Y'], errors='coerce')
         df_goals['xG'] = pd.to_numeric(df_goals['xG'], errors='coerce')
         
-        # Normalisation des coordonnées (si elles sont en format 0-1, les convertir)
+        # Normalisation des coordonnées POUR ORIENTER VERS LE BUT ADVERSE
+        # Si les coordonnées sont en format 0-1, les convertir
         if df_goals['X'].max() <= 1:
             df_goals['X'] = df_goals['X'] * 120
         if df_goals['Y'].max() <= 1:
             df_goals['Y'] = df_goals['Y'] * 80
+            
+        # CORRECTION IMPORTANTE : S'assurer que les buts sont orientés vers le but adverse (X=120)
+        # Si la majorité des buts sont du côté gauche du terrain, on inverse X
+        goals_in_attacking_half = len(df_goals[df_goals['X'] > 60])
+        goals_in_defensive_half = len(df_goals[df_goals['X'] <= 60])
         
-        # Ajout d'informations supplémentaires
+        if goals_in_defensive_half > goals_in_attacking_half:
+            # Les buts sont majoritairement du côté défensif, on inverse X
+            df_goals['X'] = 120 - df_goals['X']
+            st.info("🔄 Coordonnées X inversées pour orienter vers le but adverse")
+        
+        # Ajout d'informations supplémentaires (distance calculée vers le but adverse)
         df_goals['distance_but'] = np.sqrt((120 - df_goals['X'])**2 + (40 - df_goals['Y'])**2) * 0.9144
+        
+        # Redéfinition des zones basées sur l'orientation correcte
         df_goals['zone'] = df_goals['X'].apply(lambda x: 
-            'Surface' if x > 103.5 else 
-            'Zone dangereuse' if x > 90 else 
-            'Milieu offensif' if x > 60 else 'Autres')
+            'Surface de réparation' if x > 103.5 else 
+            'Zone dangereuse (16-30m)' if x > 90 else 
+            'Milieu offensif (30-60m)' if x > 60 else 
+            'Loin du but (>60m)')
         
         # Créer un ID si manquant
         if 'id' not in df_goals.columns:
             df_goals['id'] = range(1, len(df_goals) + 1)
+        
+        st.info(f"📊 Répartition des buts: {len(df_goals[df_goals['X'] > 60])} en zone offensive, {len(df_goals[df_goals['X'] <= 60])} en zone défensive")
         
         return df_goals
         
@@ -212,10 +228,10 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
         df_goals['season'] = '2013-17'
         season_colors = {'2013-17': '#FF6B6B'}
     
-    # Dessin du terrain (code identique)
+    # Dessin du terrain
     # Contour principal
     fig.add_shape(type="rect", x0=0, y0=0, x1=pitch_length, y1=pitch_width,
-                  line=dict(color="white", width=3), fillcolor="green", opacity=0.3)
+                  line=dict(color="white", width=3), fillcolor="green", opacity=0.8)
     
     # Ligne médiane
     fig.add_shape(type="line", x0=pitch_length/2, y0=0, x1=pitch_length/2, y1=pitch_width,
@@ -226,57 +242,100 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
                   x1=pitch_length/2+9.15, y1=pitch_width/2+9.15,
                   line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)")
     
+    # Point central
+    fig.add_trace(go.Scatter(x=[pitch_length/2], y=[pitch_width/2],
+                            mode='markers', marker=dict(color='white', size=4),
+                            showlegend=False, hoverinfo='skip'))
+    
     # Surfaces de réparation
     penalty_box_length = 16.5
     penalty_box_width = 40.32
     penalty_box_y_start = (pitch_width - penalty_box_width) / 2
     
+    # Surface droite (attaque - où Neymar marque)
     fig.add_shape(type="rect", 
                   x0=pitch_length-penalty_box_length, y0=penalty_box_y_start,
                   x1=pitch_length, y1=penalty_box_y_start + penalty_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(255,0,0,0.1)")
+                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
     
     # Surface gauche (défense)
     fig.add_shape(type="rect", 
                   x0=0, y0=penalty_box_y_start,
                   x1=penalty_box_length, y1=penalty_box_y_start + penalty_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)")
+                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
     
-    # Surfaces de but
+    # Surfaces de but (6 yards)
     goal_box_length = 5.5
     goal_box_width = 18.32
     goal_box_y_start = (pitch_width - goal_box_width) / 2
     
-    # Surface de but droite
+    # Surface de but droite (attaque)
     fig.add_shape(type="rect", 
                   x0=pitch_length-goal_box_length, y0=goal_box_y_start,
                   x1=pitch_length, y1=goal_box_y_start + goal_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)")
+                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
     
-    # Surface de but gauche
+    # Surface de but gauche (défense)
     fig.add_shape(type="rect", 
                   x0=0, y0=goal_box_y_start,
                   x1=goal_box_length, y1=goal_box_y_start + goal_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)")
+                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
     
-    # Buts
+    # Buts (poteaux)
     goal_width = 7.32
     goal_y_start = (pitch_width - goal_width) / 2
     
-    # But droit
+    # But droit (où Neymar marque)
     fig.add_shape(type="line", x0=pitch_length, y0=goal_y_start,
                   x1=pitch_length, y1=goal_y_start + goal_width,
-                  line=dict(color="white", width=4))
+                  line=dict(color="yellow", width=6))
     
-    # But gauche
+    # But gauche (défense)
     fig.add_shape(type="line", x0=0, y0=goal_y_start,
                   x1=0, y1=goal_y_start + goal_width,
                   line=dict(color="white", width=4))
     
     # Points de penalty
     fig.add_trace(go.Scatter(x=[pitch_length-11, 11], y=[pitch_width/2, pitch_width/2],
-                            mode='markers', marker=dict(color='white', size=8),
+                            mode='markers', marker=dict(color='white', size=6),
                             showlegend=False, hoverinfo='skip'))
+    
+    # Demi-cercles de penalty (arcs)
+    import numpy as np
+    
+    # Arc droit (attaque)
+    theta_right = np.linspace(-np.pi/2, np.pi/2, 50)
+    arc_x_right = pitch_length - 11 + 9.15 * np.cos(theta_right)
+    arc_y_right = pitch_width/2 + 9.15 * np.sin(theta_right)
+    
+    # Filtrer pour ne garder que la partie hors de la surface
+    valid_right = arc_x_right <= pitch_length - penalty_box_length
+    
+    fig.add_trace(go.Scatter(
+        x=arc_x_right[valid_right],
+        y=arc_y_right[valid_right],
+        mode='lines',
+        line=dict(color='white', width=2),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
+    
+    # Arc gauche (défense)
+    theta_left = np.linspace(np.pi/2, 3*np.pi/2, 50)
+    arc_x_left = 11 + 9.15 * np.cos(theta_left)
+    arc_y_left = pitch_width/2 + 9.15 * np.sin(theta_left)
+    
+    # Filtrer pour ne garder que la partie hors de la surface
+    valid_left = arc_x_left >= penalty_box_length
+    
+    fig.add_trace(go.Scatter(
+        x=arc_x_left[valid_left],
+        y=arc_y_left[valid_left],
+        mode='lines',
+        line=dict(color='white', width=2),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
     
     # Vérifier quels buts ont des vidéos disponibles
     df_goals_with_videos = df_goals.copy()
@@ -385,9 +444,9 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
     # Configuration du graphique
     fig.update_layout(
         title=dict(
-            text="<b>Neymar Jr - Tous ses buts en LaLiga (2013-2017)</b>",
+            text="<b>Neymar Jr - Tous ses buts en LaLiga (2013-2017)</b><br><sub>🥅 But adverse à droite (jaune) • Vue depuis le camp du Barça</sub>",
             x=0.5,
-            font=dict(size=24, color="darkblue")
+            font=dict(size=20, color="darkblue")
         ),
         xaxis=dict(
             range=[-5, 125],
@@ -405,10 +464,17 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
             scaleanchor="x",
             scaleratio=1
         ),
-        plot_bgcolor='darkgreen',
+        plot_bgcolor='rgba(34, 139, 34, 0.8)',  # Vert gazon plus réaliste
         paper_bgcolor='white',
-        height=600,
-        showlegend=True
+        height=650,
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
     )
     
     return fig
@@ -616,6 +682,11 @@ def main():
                 <strong>🎥 Statut vidéo:</strong><br>
                 <span style='color: gold;'>🟡 Sélectionné</span> | 
                 <span style='color: lightgray;'>⚪ Sans vidéo</span>
+            </div>
+            <div style='text-align: center;'>
+                <strong>🏟️ Orientation:</strong><br>
+                <span style='color: yellow;'>🥅 But adverse (attaque)</span> | 
+                <span style='color: white;'>🥅 But Barça (défense)</span>
             </div>
         """
         
