@@ -190,11 +190,26 @@ def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts", available_vide
     return None
 
 def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None):
-    """Crée le terrain de football avec les buts de Neymar"""
+    """Crée le terrain de football avec les buts de Neymar colorés par saison"""
     fig = go.Figure()
     
     # Dimensions du terrain
     pitch_length, pitch_width = 120, 80
+    
+    # Palette de couleurs pour les saisons
+    season_colors = {
+        '2013-14': '#FF6B6B',  # Rouge corail
+        '2014-15': '#4ECDC4',  # Turquoise
+        '2015-16': '#45B7D1',  # Bleu ciel
+        '2016-17': '#96CEB4',  # Vert menthe
+        '2017-18': '#FFEAA7'   # Jaune pastel
+    }
+    
+    # Si la colonne season n'existe pas, créer une saison par défaut
+    if 'season' not in df_goals.columns:
+        df_goals = df_goals.copy()
+        df_goals['season'] = '2013-17'
+        season_colors = {'2013-17': '#FF6B6B'}
     
     # Dessin du terrain (code identique)
     # Contour principal
@@ -268,77 +283,103 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None):
         lambda row: find_video_file(row, available_videos=available_videos) is not None, axis=1
     )
     
-    # Séparer les buts avec et sans vidéos
-    goals_with_video = df_goals_with_videos[df_goals_with_videos['has_video']]
-    goals_without_video = df_goals_with_videos[~df_goals_with_videos['has_video']]
+    # Obtenir les saisons uniques et créer des couleurs automatiquement si nécessaire
+    unique_seasons = sorted(df_goals_with_videos['season'].unique())
     
-    # Affichage des buts SANS vidéo (gris)
-    if not goals_without_video.empty:
-        colors_no_video = []
-        sizes_no_video = []
-        texts_no_video = []
-        
-        for _, goal in goals_without_video.iterrows():
-            goal_id = goal['id']
-            if selected_goal_id and goal_id == selected_goal_id:
-                colors_no_video.append('gold')
-                sizes_no_video.append(max(15, 30 * goal['xG']) * 1.5)
-            else:
-                colors_no_video.append('lightgray')
-                sizes_no_video.append(max(10, 20 * goal['xG']))
-            
-            texts_no_video.append(f"But #{goal_id} ❌ SANS VIDÉO<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}")
-        
-        fig.add_trace(go.Scatter(
-            x=goals_without_video['X'],
-            y=goals_without_video['Y'],
-            mode='markers',
-            marker=dict(
-                color=colors_no_video,
-                size=sizes_no_video,
-                line=dict(color='darkgray', width=1),
-                opacity=0.6
-            ),
-            text=texts_no_video,
-            hovertemplate='%{text}<extra></extra>',
-            customdata=goals_without_video['id'],
-            name='Buts sans vidéo',
-            legendgroup='no_video'
-        ))
+    # Si on a plus de saisons que de couleurs prédéfinies, générer des couleurs supplémentaires
+    if len(unique_seasons) > len(season_colors):
+        import plotly.express as px
+        color_palette = px.colors.qualitative.Set3
+        for i, season in enumerate(unique_seasons):
+            if season not in season_colors:
+                season_colors[season] = color_palette[i % len(color_palette)]
     
-    # Affichage des buts AVEC vidéo (vert)
-    if not goals_with_video.empty:
-        colors_with_video = []
-        sizes_with_video = []
-        texts_with_video = []
+    # Grouper par saison et statut vidéo pour créer des traces séparées
+    for season in unique_seasons:
+        season_data = df_goals_with_videos[df_goals_with_videos['season'] == season]
         
-        for _, goal in goals_with_video.iterrows():
-            goal_id = goal['id']
-            if selected_goal_id and goal_id == selected_goal_id:
-                colors_with_video.append('gold')
-                sizes_with_video.append(max(15, 30 * goal['xG']) * 1.5)
-            else:
-                colors_with_video.append('limegreen')
-                sizes_with_video.append(max(10, 20 * goal['xG']))
+        if season_data.empty:
+            continue
             
-            texts_with_video.append(f"But #{goal_id} 🎥 AVEC VIDÉO<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}")
+        # Séparer les buts avec et sans vidéos pour cette saison
+        season_with_video = season_data[season_data['has_video']]
+        season_without_video = season_data[~season_data['has_video']]
         
-        fig.add_trace(go.Scatter(
-            x=goals_with_video['X'],
-            y=goals_with_video['Y'],
-            mode='markers',
-            marker=dict(
-                color=colors_with_video,
-                size=sizes_with_video,
-                line=dict(color='darkgreen', width=2),
-                opacity=0.9
-            ),
-            text=texts_with_video,
-            hovertemplate='%{text}<extra></extra>',
-            customdata=goals_with_video['id'],
-            name='Buts avec vidéo',
-            legendgroup='with_video'
-        ))
+        base_color = season_colors.get(season, '#999999')
+        
+        # Buts SANS vidéo pour cette saison (couleur atténuée)
+        if not season_without_video.empty:
+            colors_no_video = []
+            sizes_no_video = []
+            texts_no_video = []
+            opacities_no_video = []
+            
+            for _, goal in season_without_video.iterrows():
+                goal_id = goal['id']
+                if selected_goal_id and goal_id == selected_goal_id:
+                    colors_no_video.append('gold')
+                    sizes_no_video.append(max(15, 30 * goal['xG']) * 1.5)
+                    opacities_no_video.append(1.0)
+                else:
+                    # Couleur atténuée pour les buts sans vidéo
+                    colors_no_video.append('lightgray')
+                    sizes_no_video.append(max(8, 15 * goal['xG']))
+                    opacities_no_video.append(0.4)
+                
+                texts_no_video.append(f"But #{goal_id} - {season} ❌<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>SANS VIDÉO")
+            
+            fig.add_trace(go.Scatter(
+                x=season_without_video['X'],
+                y=season_without_video['Y'],
+                mode='markers',
+                marker=dict(
+                    color=colors_no_video,
+                    size=sizes_no_video,
+                    line=dict(color='darkgray', width=1),
+                    opacity=0.6
+                ),
+                text=texts_no_video,
+                hovertemplate='%{text}<extra></extra>',
+                customdata=season_without_video['id'],
+                name=f'{season} (sans vidéo)',
+                legendgroup=f'{season}_no_video',
+                visible=True
+            ))
+        
+        # Buts AVEC vidéo pour cette saison (couleur vive)
+        if not season_with_video.empty:
+            colors_with_video = []
+            sizes_with_video = []
+            texts_with_video = []
+            
+            for _, goal in season_with_video.iterrows():
+                goal_id = goal['id']
+                if selected_goal_id and goal_id == selected_goal_id:
+                    colors_with_video.append('gold')
+                    sizes_with_video.append(max(15, 30 * goal['xG']) * 1.5)
+                else:
+                    colors_with_video.append(base_color)
+                    sizes_with_video.append(max(10, 20 * goal['xG']))
+                
+                texts_with_video.append(f"But #{goal_id} - {season} 🎥<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>AVEC VIDÉO")
+            
+            fig.add_trace(go.Scatter(
+                x=season_with_video['X'],
+                y=season_with_video['Y'],
+                mode='markers',
+                marker=dict(
+                    color=colors_with_video,
+                    size=sizes_with_video,
+                    line=dict(color='white', width=2),
+                    opacity=0.9
+                ),
+                text=texts_with_video,
+                hovertemplate='%{text}<extra></extra>',
+                customdata=season_with_video['id'],
+                name=f'{season} (avec vidéo)',
+                legendgroup=f'{season}_with_video',
+                visible=True
+            ))
     
     # Configuration du graphique
     fig.update_layout(
@@ -558,25 +599,47 @@ def main():
     with col_main:
         st.subheader("🏟️ Terrain - Cliquez sur un but pour voir la vidéo")
         
-        # Légende des couleurs
-        st.markdown("""
-        <div style='display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; font-size: 0.9rem;'>
-            <span style='color: limegreen;'>🟢 <strong>Buts avec vidéo</strong></span>
-            <span style='color: lightgray;'>⚪ <strong>Buts sans vidéo</strong></span>
-            <span style='color: gold;'>🟡 <strong>But sélectionné</strong></span>
-        </div>
-        """, unsafe_allow_html=True)
+        # Légende des couleurs améliorée
+        legend_html = """
+        <div style='display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 0.9rem; flex-wrap: wrap;'>
+            <div style='text-align: center;'>
+                <strong>🎥 Statut vidéo:</strong><br>
+                <span style='color: gold;'>🟡 Sélectionné</span> | 
+                <span style='color: lightgray;'>⚪ Sans vidéo</span>
+            </div>
+        """
+        
+        # Ajouter les couleurs de saison à la légende
+        if 'season' in filtered_df.columns:
+            unique_seasons = sorted(filtered_df['season'].unique())
+            if len(unique_seasons) > 1:
+                legend_html += """
+                <div style='text-align: center;'>
+                    <strong>📅 Saisons:</strong><br>
+                """
+                for season in unique_seasons:
+                    color = season_colors.get(season, '#999999')
+                    legend_html += f'<span style="color: {color}; font-weight: bold;">⚫ {season}</span> '
+                
+                legend_html += "</div>"
+        
+        legend_html += "</div>"
+        
+        st.markdown(legend_html, unsafe_allow_html=True)
         
         # Initialiser la session state
         if 'selected_goal' not in st.session_state:
             st.session_state.selected_goal = None
         
-        # Créer le graphique
+        # Créer le graphique avec la variable season_colors disponible
         fig = create_pitch_figure(filtered_df, st.session_state.selected_goal, available_videos)
         
-        # Sélecteur de but alternatif
-        goal_options = [f"But #{row['id']} - Minute {row['minute']} ({'🎥' if row['has_video'] else '❌'})" 
-                       for _, row in filtered_df.iterrows()]
+        # Sélecteur de but alternatif avec indication de saison
+        goal_options = []
+        for _, row in filtered_df.iterrows():
+            season_info = f" ({row['season']})" if 'season' in row else ""
+            video_status = '🎥' if row['has_video'] else '❌'
+            goal_options.append(f"But #{row['id']}{season_info} - Minute {row['minute']} {video_status}")
         
         selected_option = st.selectbox(
             "Ou sélectionnez un but directement:",
@@ -591,19 +654,14 @@ def main():
         # Afficher le graphique
         selected_points = st.plotly_chart(fig, use_container_width=True, on_select="rerun")
         
-        # Gérer les clics (code simplifié)
+        # Gérer les clics (méthode améliorée pour les traces multiples)
         if selected_points and 'selection' in selected_points:
             selection = selected_points['selection']
             if 'points' in selection and len(selection['points']) > 0:
-                point_index = selection['points'][0]['point_index']
-                curve_number = selection['points'][0]['curve_number']
-                
-                if curve_number == 1 and point_index < len(goals_without_videos):
-                    selected_goal_id = goals_without_videos.iloc[point_index]['id']
-                    st.session_state.selected_goal = selected_goal_id
-                    st.rerun()
-                elif curve_number == 2 and point_index < len(goals_with_videos):
-                    selected_goal_id = goals_with_videos.iloc[point_index]['id']
+                # Récupérer les données personnalisées du point cliqué
+                point_data = selection['points'][0]
+                if 'customdata' in point_data:
+                    selected_goal_id = point_data['customdata']
                     st.session_state.selected_goal = selected_goal_id
                     st.rerun()
     
@@ -617,6 +675,30 @@ def main():
         zone_stats.columns = ['Nombre', 'xG moyen']
         st.dataframe(zone_stats)
         
+        # Statistiques par saison si disponible
+        if 'season' in filtered_df.columns and len(filtered_df['season'].unique()) > 1:
+            st.subheader("📅 Statistiques par Saison")
+            
+            season_stats = filtered_df.groupby('season').agg({
+                'id': 'count',
+                'xG': ['mean', 'sum']
+            }).round(3)
+            season_stats.columns = ['Buts', 'xG moyen', 'xG total']
+            st.dataframe(season_stats)
+            
+            # Graphique des buts par saison
+            season_counts = filtered_df['season'].value_counts().sort_index()
+            fig_season = px.bar(
+                x=season_counts.index,
+                y=season_counts.values,
+                title="Buts par saison",
+                labels={'x': 'Saison', 'y': 'Nombre de buts'},
+                color=season_counts.values,
+                color_continuous_scale='viridis'
+            )
+            fig_season.update_layout(showlegend=False, height=300)
+            st.plotly_chart(fig_season, use_container_width=True)
+        
         # Graphique des zones
         if len(zone_stats) > 0:
             fig_pie = px.pie(
@@ -624,6 +706,7 @@ def main():
                 names=zone_stats.index,
                 title="Répartition par zone"
             )
+            fig_pie.update_layout(height=300)
             st.plotly_chart(fig_pie, use_container_width=True)
     
     # Section vidéo améliorée
