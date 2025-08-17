@@ -1,0 +1,66 @@
+id;minute;X;Y;xG;h_a;situation;season;shotType;h_team;a_team;h_goals;a_goals;date;player_assisted;video_but
+1;4;117.8;40.3;0.68514305;h;OpenPlay;2013;RightFoot;Barcelona;Real Sociedad;4;1;24/09/2013;Alexis Sánchez;vs Real Sociedad 24 Sept 2013
+2;18;112.0;28.6;0.038283277;h;OpenPlay;2013;RightFoot;Barcelona;Real Madrid;2;1;26/10/2013;Andrés Iniesta;vs Real Madrid 26 Oct 2013
+3;34;109.8;37.4;0.43852153;a;OpenPlay;2013;RightFoot;Real Betis;Barcelona;1;4;10/11/2013;Cesc Fàbregas;vs Real Betis 10 Nov 2013
+4;88;92.4;44.2;0.028015273;h;OpenPlay;2014;RightFoot;Barcelona;Rayo Vallecano;0;6;15/02/2014;Andrés Iniesta;vs Rayo Vallecano 15 Fev 2014
+5;5;116.2;40.2;0.9064407;h;OpenPlay;2014;RightFoot;Barcelona;Celta Vigo;3;0;26/03/2014;Alexis Sánchez;vs 1er But Celta Vigo 26 Mar 2014
+6;66;111.5;29.0;0.104000695;h;OpenPlay;2014;LeftFoot;Barcelona;Celta Vigo;3;0;26/03/2014;Alexis Sánchez;vs 2e but Celta Vigo 26 Mar 2014
+7;78;0.88;0.59;0.34036099910736084;h;OpenPlay;2014;LeftFoot;Barcelona;Athletic Club;2;0;13/09/2014;Lionel Messi;vs 1er but Athletic Club 13 Sept 2014
+8;83;0.8959999847412109;0.48900001525878906;0.4520849883556366;h;OpenPlay;2014;RightFoot;Barcelona;Athletic Club;2;0;13/09/2014;Lionel Messi;vs 2e but Athletic Club 13 Sept 2014
+9;33;0.9159999847412109;0.375;0.5665929913520813;a;OpenPlay;2014;RightFoot;Levante;Barcelona;0;5;21/09/2014;Lionel Messi;vs Levante 21 Sept 2014
+10;25;0.88;0.5320000076293945;0.4133729934692383;h;OpenPlay;2014;RightFoot;Barcelona;Granada;6;0;27/09/2014;;vs 1er but Granada 27 Sept 2014
+11;44;0.915;0.6040000152587891;0.474234014749527;h;OpenPlay;2014;RightFoot;Barcelona;Granada;6;0;27/09/2014;;vs 2eme but Granada 27 Sept 2014
+12;65;0.9169999694824219;0.5379999923706055;0.5598710179328918;h;OpenPlay;2014;RightFoot;Barcelona;Granada;6;0;27/09/2014;Lionel Messi;vs 3eme but Granada 27 Sept 2014
+13;35;0.8819999694824219;0.3770000076293945;0.10397399961948395;a;OpenPlay;2014;RightFoot;Rayo Vallecano;Barcelona;0;2;04/10/2014;Munir;vs Rayo Vallecano 4 Oct 2014
+14;71;0.8719999694824219;0.47;0.07955340296030045;h;OpenPlay;2014;RightFoot;Barcelona;Eibar;3;0;18/10/2014;Dani Alves;vs Eibar 18 Oct 2014
+15;3;0.850999984741211;0.5059999847412109;0.06567300111055374;a;OpenPlay;2014;RightFoot;Real Madrid;Barcelona;3;1;25/10/2014;Luis Suárez;vs Real Madrid 25 Oct 2014
+16;72;0.9490000152587891;0.49900001525878906;0.6045920252799988;a;OpenPlay;2014;RightFoot;Almeria;Barcelona;1;2;08/11/2014;Luis Suárez;vs Almeria 8 Nov 2014
+17;48;0.9069999694824219;0.47200000762939454;0.1076589971780777;h;SetPiece;2014;Head;Barcelona;Sevilla;5;1;22/11/2014;Xavi;vs Sevilla 22 Nov 2014
+18;11;0.9590000152587891;0.5320000076293945;0.560886025428772;h;OpenPlay;2014;LeftFoot;Barcelona;Atletico Madrid;3;1;11/01/2015;Luis Suárez;vs Atletico Madrid 11 Jan 2015
+19;68;0.9059999847412109;0.615999984741211;0.47817298769950867;a;OpenPlay;2014;RightFoot;Elche;Barcelona;0;6;24/01/2015;Lionel Messi;vs 1er but Elche 24 Jan 2015
+20;70;0.9130000305175782;0.54;0.5885990262031555;a;OpenPlay;2014;RightFoot;Elche;Barcelona;0;6;24/01/2015;Lionel Messi;vs 2eme but Elche 24 Jan 2015
+21;44;0.9159999847412109;0.5320000076293945;0.493928998708725;h;OpenPlay;2014;RightFoot;Barcelona;Villarreal;3;2;01/02/2015;;vs Villarreal 1 Fev 2015
+22;63;0.86;0.6409999847412109;0.0859202966094017;a;OpenPlay;2014;RightFoot;Athletic Club;Barcelona;2;5;08/02/2015;Lionel Messi;vs Athletic Club 8 Fev 2015
+23;16;0.9630000305175781;0.575;0.4185430109500885;h;OpenPlay;2014;RightFoot;Barcelona;Levante;5;0;15/02/2015;Lionel Messi;vs Levante 15 Fev 2015
+24;30;0.8159999847412109;0.7069999694824218;0.08361320197582245;a;DirectFreekick;2014;RightFoot;Sevilla;Barcelona;2;2;11/04/2015;;vs Sevilla 11 Avr 2015
+25;16;0.9159999847412109;0.4779999923706055;0.5220490097999573;a;OpenPlay;2014;RightFoot;Espanyol;Barcelona;0;2;25/04/2015;Jordi Alba;vs Espanyol 25 Avr 2015
+26;27;0.885;0.5609999847412109;0.4370880126953125;h;OpenPlay;2014;RightFoot;Barcelona;Getafe;6;0;28/04/2015;Luis Suárez;vs Getafe 28 Avr 2015
+27;84;0.885;0.5;0.7432780265808105;a;Penalty;2014;RightFoot;Cordoba;Barcelona;0;8;02/05/2015;;vs Cordoba 2 Mai 2015
+28;50;0.965999984741211;0.5879999923706055;0.39323899149894714;h;OpenPlay;2014;Head;Barcelona;Real Sociedad;2;0;09/05/2015;;vs Real Sociedad 9 Mai 2015
+29;54;0.7390000152587891;0.57;0.0619162991642952;a;DirectFreekick;2015;RightFoot;Atletico Madrid;Barcelona;1;2;12/09/2015;;vs Atletico Madrid 12 Sept 2015
+30;55;0.9730000305175781;0.5479999923706055;0.15593700110912323;h;OpenPlay;2015;RightFoot;Barcelona;Levante;4;1;20/09/2015;;vs Levante 20 Sept 2015
+31;79;0.9419999694824219;0.3220000076293945;0.07434699684381485;a;OpenPlay;2015;RightFoot;Celta Vigo;Barcelona;4;1;23/09/2015;Lionel Messi;vs Celta Vigo 23 Sept 2015
+32;73;0.885;0.5;0.7432780265808105;a;Penalty;2015;RightFoot;Sevilla;Barcelona;2;1;03/10/2015;;vs Sevilla 3 Oct 2015
+33;21;0.885;0.5;0.7432780265808105;h;Penalty;2015;RightFoot;Barcelona;Rayo Vallecano;5;2;17/10/2015;;vs 1er but Rayo Vallecano 17 Oct 2015
+34;31;0.885;0.5;0.743149995803833;h;Penalty;2015;RightFoot;Barcelona;Rayo Vallecano;5;2;17/10/2015;;vs 2eme but Rayo Vallecano 17 Oct 2015
+35;68;0.9530000305175781;0.6120000076293945;0.3634609878063202;h;OpenPlay;2015;LeftFoot;Barcelona;Rayo Vallecano;5;2;17/10/2015;;vs 3eme but Rayo Vallecano 17 Oct 2015
+36;69;0.9690000152587891;0.54;0.8689939975738525;h;OpenPlay;2015;LeftFoot;Barcelona;Rayo Vallecano;5;2;17/10/2015;Luis Suárez;vs 4eme but Rayo Vallecano 17 Oct 2015
+37;57;0.905;0.6140000152587891;0.3144429922103882;a;OpenPlay;2015;LeftFoot;Getafe;Barcelona;0;2;31/10/2015;Sergi Roberto;vs Getafe 31 Oct 2015
+38;59;0.9169999694824219;0.5879999923706055;0.41238299012184143;h;OpenPlay;2015;LeftFoot;Barcelona;Villarreal;3;0;08/11/2015;Sergio Busquets;vs 1er but Villarreal 8 Nov 2015
+39;84;0.8780000305175781;0.534000015258789;0.13381199538707733;h;OpenPlay;2015;RightFoot;Barcelona;Villarreal;3;0;08/11/2015;Luis Suárez;vs 2eme but Villarreal 8 Nov 2015
+40;38;0.9430000305175781;0.6430000305175781;0.3765609860420227;a;OpenPlay;2015;LeftFoot;Real Madrid;Barcelona;0;4;21/11/2015;Andrés Iniesta;vs Real Madrid 21 Nov 2015
+41;21;0.895;0.46;0.32518699765205383;h;OpenPlay;2015;LeftFoot;Barcelona;Real Sociedad;4;0;28/11/2015;Dani Alves;vs 1er but Real Sociedad 28 Nov 2015
+42;52;0.909000015258789;0.515;0.5311300158500671;h;OpenPlay;2015;LeftFoot;Barcelona;Real Sociedad;4;0;28/11/2015;Jeremy Mathieu;vs 2eme but Real Sociedad 28 Nov 2015
+43;82;0.9769999694824218;0.5609999847412109;0.6610339879989624;h;OpenPlay;2015;RightFoot;Barcelona;Granada;4;0;09/01/2016;Luis Suárez;vs Granada 9 Jan 2016
+44;30;0.870999984741211;0.634000015258789;0.3446289896965027;h;OpenPlay;2015;LeftFoot;Barcelona;Athletic Club;6;0;17/01/2016;Luis Suárez;vs Athletic Club 17 Jan 2016
+45;90;0.9309999847412109;0.6659999847412109;0.4304389953613281;h;OpenPlay;2015;LeftFoot;Barcelona;Celta Vigo;6;1;14/02/2016;Luis Suárez;vs Celta Vigo 14 Fev 2016
+46;38;0.96;0.534000015258789;0.6441320180892944;a;OpenPlay;2015;LeftFoot;Las Palmas;Barcelona;1;2;20/02/2016;;vs Las Palmas 20 Fev 2016
+47;31;0.8880000305175781;0.615999984741211;0.46707600355148315;h;OpenPlay;2015;RightFoot;Barcelona;Getafe;6;0;12/03/2016;Lionel Messi;vs 1er but Getafe 12 Mar 2016
+48;50;0.9019999694824219;0.46599998474121096;0.5612760186195374;h;OpenPlay;2015;RightFoot;Barcelona;Getafe;6;0;12/03/2016;Lionel Messi;vs 2eme but Getafe 12 Mar 2016
+49;40;0.885;0.5;0.7432780265808105;a;Penalty;2015;RightFoot;Villarreal;Barcelona;2;2;20/03/2016;;vs Villarreal 20 Mar 2016
+50;80;0.9490000152587891;0.5709999847412109;0.5303459763526917;a;OpenPlay;2015;LeftFoot;Deportivo La Coruna;Barcelona;0;8;20/04/2016;Luis Suárez;vs Deportivo La Coruna 20 Avr 2016
+51;85;0.885;0.5;0.743149995803833;h;Penalty;2015;RightFoot;Barcelona;Sporting Gijon;6;0;23/04/2016;;vs Sporting Gijon 23 Avr 2016
+52;82;0.9340000152587891;0.57;0.5371530055999756;h;OpenPlay;2015;RightFoot;Barcelona;Espanyol;5;0;08/05/2016;Luis Suárez;vs Espanyol 8 Mai 2016
+53;43;0.9319999694824219;0.5459999847412109;0.5874289870262146;a;OpenPlay;2016;RightFoot;Leganes;Barcelona;1;5;17/09/2016;Luis Suárez;vs Leganes 17 Sept 2016
+54;80;0.9540000152587891;0.46;0.944212019443512;a;OpenPlay;2016;RightFoot;Sporting Gijon;Barcelona;0;5;24/09/2016;;vs 1er but Sporting Gijon 24 Sept 2016
+55;87;0.9130000305175782;0.63;0.46076101064682007;a;OpenPlay;2016;LeftFoot;Sporting Gijon;Barcelona;0;5;24/09/2016;Denis Suárez;vs 2eme but Sporting Gijon 24 Sept 2016
+56;63;0.885;0.5;0.743149995803833;a;Penalty;2016;RightFoot;Celta Vigo;Barcelona;4;3;02/10/2016;;vs Celta Vigo 2 Oct 2016
+57;90;0.8819999694824219;0.5729999923706055;0.365106999874115;a;OpenPlay;2016;RightFoot;Eibar;Barcelona;0;4;22/01/2017;Aleix Vidal;vs Eibar 22 Jan 2017
+58;39;0.955999984741211;0.55;0.6116600036621094;a;OpenPlay;2016;LeftFoot;Alaves;Barcelona;0;6;11/02/2017;Luis Suárez;vs Alaves 11 Fev 2017
+59;65;0.8;0.2610000038146973;0.06338869780302048;h;DirectFreekick;2016;RightFoot;Barcelona;Sporting Gijon;6;1;01/03/2017;;vs Sporting Gijon 1 Mar 2017
+60;39;0.9059999847412109;0.5990000152587891;0.4121370017528534;h;OpenPlay;2016;RightFoot;Barcelona;Celta Vigo;5;0;04/03/2017;Lionel Messi;vs Celta Vigo 4 Mar 2017
+61;90;0.9390000152587891;0.5359999847412109;0.5981230139732361;a;OpenPlay;2016;LeftFoot;Granada;Barcelona;1;4;02/04/2017;Paco Alcácer;vs Granada 2 Avr 2017
+62;20;0.955999984741211;0.524000015258789;0.6522570252418518;h;OpenPlay;2016;RightFoot;Barcelona;Villarreal;4;1;06/05/2017;;vs Villarreal 6 Mai 2017
+63;24;0.9119999694824219;0.43400001525878906;0.4545080065727234;a;OpenPlay;2016;RightFoot;Las Palmas;Barcelona;1;4;14/05/2017;Luis Suárez;vs 1er but Las Palmas 14 Mai 2017
+64;66;0.955;0.555;0.1486780047416687;a;OpenPlay;2016;Head;Las Palmas;Barcelona;1;4;14/05/2017;Ivan Rakitic;vs 2eme but Las Palmas 14 Mai 2017
+65;70;0.9619999694824218;0.6459999847412109;0.09816490113735199;a;OpenPlay;2016;RightFoot;Las Palmas;Barcelona;1;4;14/05/2017;Jordi Alba;vs 3eme but Las Palmas 14 Mai 2017
