@@ -116,162 +116,137 @@ def load_data():
         return None
 
 def create_pitch():
-    """Crée le terrain de football en orientation verticale"""
+    """Crée le terrain de football avec un contraste élevé"""
     fig = go.Figure()
     
-    # Dimensions du terrain en vertical (on inverse largeur et hauteur)
-    pitch_width = 120  # Maintenant la largeur (horizontal)
-    pitch_length = 80  # Maintenant la longueur (vertical)
+    # Dimensions du terrain
+    pitch_length = 120
+    pitch_width = 80
     
-    # Couleur du terrain (identique au code original)
-    pitch_color = '#2d5a2d'
-    line_color = 'white'
-    line_width = 3
-    
-    # Terrain avec la même couleur que l'original (en vertical)
+    # Terrain avec contraste élevé - vert foncé
     fig.add_shape(
         type="rect",
-        x0=0, y0=0, x1=pitch_width, y1=pitch_length,
-        fillcolor=pitch_color,
-        line=dict(color=line_color, width=line_width)
+        x0=0, y0=0, x1=pitch_length, y1=pitch_width,
+        fillcolor="rgba(15, 80, 15, 1)",  # Vert très foncé
+        line=dict(color="white", width=4)
     )
     
-    # Ligne médiane (maintenant horizontale)
+    # Ligne médiane
     fig.add_shape(
         type="line",
-        x0=0, y0=pitch_length/2, x1=pitch_width, y1=pitch_length/2,
-        line=dict(color=line_color, width=line_width)
+        x0=pitch_length/2, y0=0, x1=pitch_length/2, y1=pitch_width,
+        line=dict(color="white", width=4)
     )
     
     # Cercle central
     fig.add_shape(
         type="circle",
         xref="x", yref="y",
-        x0=pitch_width/2-9.15, y0=pitch_length/2-9.15,
-        x1=pitch_width/2+9.15, y1=pitch_length/2+9.15,
-        line=dict(color=line_color, width=line_width),
+        x0=pitch_length/2-9.15, y0=pitch_width/2-9.15,
+        x1=pitch_length/2+9.15, y1=pitch_width/2+9.15,
+        line=dict(color="white", width=4),
         fillcolor="rgba(0,0,0,0)"
     )
     
     # Point central
     fig.add_trace(go.Scatter(
-        x=[pitch_width/2], y=[pitch_length/2],
+        x=[pitch_length/2], y=[pitch_width/2],
         mode='markers',
-        marker=dict(color=line_color, size=8),
+        marker=dict(color='white', size=12),
         showlegend=False,
         hoverinfo='skip'
     ))
     
-    # Surface de réparation (côté haut - attaque de Neymar)
-    penalty_width = 40.32
-    penalty_height = 16.5
-    penalty_x = (pitch_width - penalty_width) / 2
-    penalty_y = pitch_length - penalty_height
+    # Surface de réparation droite (zone d'attaque de Neymar)
+    penalty_area_width = 40.32
+    penalty_area_length = 16.5
+    penalty_y = (pitch_width - penalty_area_width) / 2
     
     fig.add_shape(
         type="rect",
-        x0=penalty_x, y0=penalty_y,
-        x1=penalty_x + penalty_width, y1=pitch_length,
-        line=dict(color=line_color, width=line_width),
+        x0=pitch_length-penalty_area_length, y0=penalty_y,
+        x1=pitch_length, y1=penalty_y+penalty_area_width,
+        line=dict(color="white", width=4),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # Surface de but (côté haut)
+    # Surface de but droite
     goal_area_width = 18.32
-    goal_area_height = 5.5
-    goal_area_x = (pitch_width - goal_area_width) / 2
-    goal_area_y = pitch_length - goal_area_height
+    goal_area_length = 5.5
+    goal_y = (pitch_width - goal_area_width) / 2
     
     fig.add_shape(
         type="rect",
-        x0=goal_area_x, y0=goal_area_y,
-        x1=goal_area_x + goal_area_width, y1=pitch_length,
-        line=dict(color=line_color, width=line_width),
+        x0=pitch_length-goal_area_length, y0=goal_y,
+        x1=pitch_length, y1=goal_y+goal_area_width,
+        line=dict(color="white", width=4),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # But haut
+    # Buts
     goal_width = 7.32
-    goal_x = (pitch_width - goal_width) / 2
+    goal_y_pos = (pitch_width - goal_width) / 2
     
+    # But droit (attaque)
     fig.add_shape(
         type="line",
-        x0=goal_x, y0=pitch_length,
-        x1=goal_x + goal_width, y1=pitch_length,
-        line=dict(color=line_color, width=line_width + 2)
+        x0=pitch_length, y0=goal_y_pos,
+        x1=pitch_length, y1=goal_y_pos+goal_width,
+        line=dict(color="white", width=8)
     )
     
-    # Point de penalty haut
-    penalty_spot_x = pitch_width / 2
-    penalty_spot_y = pitch_length - 11
-    
+    # Point de penalty droit
     fig.add_trace(go.Scatter(
-        x=[penalty_spot_x], y=[penalty_spot_y],
+        x=[pitch_length-11], y=[pitch_width/2],
         mode='markers',
-        marker=dict(color=line_color, size=10),
+        marker=dict(color='white', size=12, symbol='circle'),
         showlegend=False,
         hoverinfo='skip'
     ))
     
-    # Arc de penalty haut
-    theta = np.linspace(np.radians(-52), np.radians(-128), 50)
-    arc_x = penalty_spot_x + 9.15 * np.cos(theta)
-    arc_y = penalty_spot_y + 9.15 * np.sin(theta)
+    # Arc de penalty droit
+    theta = np.linspace(0.6, 2.54, 50)
+    arc_x = pitch_length - 11 + 9.15 * np.cos(theta)
+    arc_y = pitch_width/2 + 9.15 * np.sin(theta)
     
     fig.add_trace(go.Scatter(
         x=arc_x, y=arc_y,
         mode='lines',
-        line=dict(color=line_color, width=line_width),
+        line=dict(color='white', width=4),
         showlegend=False,
         hoverinfo='skip'
     ))
     
-    # Surface de réparation (côté bas - défense)
+    # Surface de réparation gauche
     fig.add_shape(
         type="rect",
-        x0=penalty_x, y0=0,
-        x1=penalty_x + penalty_width, y1=penalty_height,
-        line=dict(color=line_color, width=line_width),
+        x0=0, y0=penalty_y,
+        x1=penalty_area_length, y1=penalty_y+penalty_area_width,
+        line=dict(color="white", width=4),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # Surface de but (côté bas)
+    # Surface de but gauche
     fig.add_shape(
         type="rect",
-        x0=goal_area_x, y0=0,
-        x1=goal_area_x + goal_area_width, y1=goal_area_height,
-        line=dict(color=line_color, width=line_width),
-        fillcolor="rgba(0,0,0,0)"
+        x0=0, y0=goal_y,
+        x1=goal_area_length, y1=goal_y+goal_area_width,
+        line=dict(color="white", width=4)
     )
     
-    # But bas
+    # But gauche
     fig.add_shape(
         type="line",
-        x0=goal_x, y0=0,
-        x1=goal_x + goal_width, y1=0,
-        line=dict(color=line_color, width=line_width + 2)
+        x0=0, y0=goal_y_pos,
+        x1=0, y1=goal_y_pos+goal_width,
+        line=dict(color="white", width=8)
     )
     
-    # Point de penalty bas
-    penalty_spot_y_bottom = 11
-    
+    # Point de penalty gauche
     fig.add_trace(go.Scatter(
-        x=[penalty_spot_x], y=[penalty_spot_y_bottom],
+        x=[11], y=[pitch_width/2],
         mode='markers',
-        marker=dict(color=line_color, size=10),
-        showlegend=False,
-        hoverinfo='skip'
-    ))
-    
-    # Arc de penalty bas
-    theta_bottom = np.linspace(np.radians(52), np.radians(128), 50)
-    arc_x_bottom = penalty_spot_x + 9.15 * np.cos(theta_bottom)
-    arc_y_bottom = penalty_spot_y_bottom + 9.15 * np.sin(theta_bottom)
-    
-    fig.add_trace(go.Scatter(
-        x=arc_x_bottom, y=arc_y_bottom,
-        mode='lines',
-        line=dict(color=line_color, width=line_width),
+        marker=dict(color='white', size=12),
         showlegend=False,
         hoverinfo='skip'
     ))
@@ -498,16 +473,16 @@ def main():
             text += f"<i>🖱️ Cliquez pour voir la vidéo</i>"
             hover_text.append(text)
         
-        # Scatter plot des buts avec le même style que matplotlib
+        # Scatter plot des buts avec meilleur contraste
         fig.add_trace(go.Scatter(
             x=filtered_df['X'],
             y=filtered_df['Y'],
             mode='markers',
             marker=dict(
-                size=[max(20, 30 * row['xG']) for _, row in filtered_df.iterrows()],  # Taille basée sur xG
-                color='red',  # Couleur rouge comme dans matplotlib
-                opacity=0.85,  # Même alpha que matplotlib
-                line=dict(width=2, color='white'),  # Contour blanc
+                size=sizes,
+                color=colors,
+                opacity=0.9,
+                line=dict(width=3, color='white'),
                 symbol='circle'
             ),
             text=hover_text,
@@ -516,42 +491,31 @@ def main():
             name="Buts"
         ))
     
-    # Configuration du layout pour reproduire l'apparence matplotlib
+    # Configuration du layout pour un terrain plus grand et centré
     fig.update_layout(
-        plot_bgcolor='#0C0D0E',  # Même couleur de fond que matplotlib
-        paper_bgcolor='#0C0D0E',
+        plot_bgcolor='rgba(0, 0, 0, 1)',  # Fond noir pour contraste
+        paper_bgcolor='rgba(0, 0, 0, 1)',
         xaxis=dict(
-            range=[-15, 135],  # Même range que matplotlib
+            range=[-3, 123],
             showgrid=False,
             showticklabels=False,
             zeroline=False
         ),
         yaxis=dict(
-            range=[-15, 95],   # Même range que matplotlib
+            range=[-3, 83],
             showgrid=False,
             showticklabels=False,
             zeroline=False,
             scaleanchor="x",
             scaleratio=1
         ),
-        height=700,
+        height=700,  # Plus grand
         margin=dict(l=20, r=20, t=20, b=20),
         showlegend=False
     )
     
     # Affichage du terrain avec événements de sélection
     event = st.plotly_chart(fig, use_container_width=True, key="pitch", on_select="rerun")
-    
-    # Debug: Afficher le nombre de buts filtrés
-    if len(filtered_df) > 0:
-        st.info(f"🎯 {len(filtered_df)} buts affichés sur le terrain")
-        
-        # Debug: Afficher quelques coordonnées pour vérification
-        with st.expander("🔍 Debug - Coordonnées des buts", expanded=False):
-            sample_coords = filtered_df[['id', 'X', 'Y', 'xG']].head(5)
-            st.dataframe(sample_coords)
-    else:
-        st.warning("⚠️ Aucun but à afficher avec les filtres actuels")
     
     # Gestion des clics sur le terrain
     if event and event.selection and len(event.selection.points) > 0:
