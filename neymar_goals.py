@@ -75,11 +75,30 @@ def load_data():
         st.error(f"Erreur lors du chargement des données : {e}")
         return None
 
-def find_video_file(goal_id, video_folder="Neymar_LaLiga_Buts"):
-    """Recherche le fichier vidéo correspondant au but"""
-    video_extensions = ['.mp4', '.mov', '.MP4', '.MOV']
+def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts"):
+    """Recherche le fichier vidéo correspondant au but en utilisant la colonne 'video_but'"""
     
-    if os.path.exists(video_folder):
+    # Si video_but est disponible et non vide
+    if 'video_but' in goal_data and pd.notna(goal_data['video_but']) and str(goal_data['video_but']).strip():
+        video_filename = str(goal_data['video_but']).strip()
+        video_path = os.path.join(video_folder, video_filename)
+        
+        if os.path.exists(video_path):
+            return video_path
+        
+        # Si le fichier exact n'existe pas, essayer sans extension puis rajouter .mov ou .mp4
+        base_name = os.path.splitext(video_filename)[0]
+        for ext in ['.mov', '.mp4', '.MOV', '.MP4']:
+            video_path_alt = os.path.join(video_folder, base_name + ext)
+            if os.path.exists(video_path_alt):
+                return video_path_alt
+    
+    # Fallback : essayer avec l'ID du but si video_but n'est pas disponible
+    goal_id = goal_data['id'] if 'id' in goal_data else goal_data.get('goal_id', '')
+    
+    if os.path.exists(video_folder) and goal_id:
+        video_extensions = ['.mp4', '.mov', '.MP4', '.MOV']
+        
         for ext in video_extensions:
             # Essayer différents formats de nommage
             possible_names = [
@@ -172,8 +191,8 @@ def create_pitch_figure(df_goals, selected_goal_id=None):
     
     # Vérifier quels buts ont des vidéos disponibles
     df_goals_with_videos = df_goals.copy()
-    df_goals_with_videos['has_video'] = df_goals_with_videos['id'].apply(
-        lambda goal_id: find_video_file(goal_id) is not None
+    df_goals_with_videos['has_video'] = df_goals_with_videos.apply(
+        lambda row: find_video_file(row) is not None, axis=1
     )
     
     # Séparer les buts avec et sans vidéos pour différents affichages
@@ -334,8 +353,8 @@ def main():
     
     # Appliquer le filtre vidéo
     if video_filter != "Tous les buts":
-        filtered_df['has_video'] = filtered_df['id'].apply(
-            lambda goal_id: find_video_file(goal_id) is not None
+        filtered_df['has_video'] = filtered_df.apply(
+            lambda row: find_video_file(row) is not None, axis=1
         )
         
         if video_filter == "Avec vidéo uniquement":
@@ -349,8 +368,8 @@ def main():
     
     # Vérifier les vidéos disponibles pour les statistiques
     filtered_df_with_videos = filtered_df.copy()
-    filtered_df_with_videos['has_video'] = filtered_df_with_videos['id'].apply(
-        lambda goal_id: find_video_file(goal_id) is not None
+    filtered_df_with_videos['has_video'] = filtered_df_with_videos.apply(
+        lambda row: find_video_file(row) is not None, axis=1
     )
     
     goals_with_videos = filtered_df_with_videos[filtered_df_with_videos['has_video']]
@@ -465,11 +484,12 @@ def main():
         col_video, col_details = st.columns([2, 1])
         
         with col_video:
-            # Rechercher le fichier vidéo
-            video_file = find_video_file(st.session_state.selected_goal)
+            # Rechercher le fichier vidéo en utilisant les données complètes de la ligne
+            video_file = find_video_file(selected_goal_data)
             
             if video_file:
                 st.markdown('<div class="video-container">', unsafe_allow_html=True)
+                st.success(f"🎥 Vidéo trouvée : {os.path.basename(video_file)}")
                 try:
                     with open(video_file, 'rb') as video_file_obj:
                         video_bytes = video_file_obj.read()
@@ -479,6 +499,10 @@ def main():
                 st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.warning(f"Vidéo non trouvée pour le but #{st.session_state.selected_goal}")
+                if pd.notna(selected_goal_data.get('video_but')):
+                    st.info(f"Nom attendu : {selected_goal_data['video_but']}")
+                else:
+                    st.info("Aucun nom de vidéo spécifié dans la colonne 'video_but'")
                 st.info("Vérifiez que le dossier 'Neymar_LaLiga_Buts' contient le fichier vidéo correspondant")
         
         with col_details:
@@ -493,6 +517,8 @@ def main():
             st.write(f"**Score :** {selected_goal_data['h_goals']}-{selected_goal_data['a_goals']}")
             if pd.notna(selected_goal_data['player_assisted']):
                 st.write(f"**Passeur :** {selected_goal_data['player_assisted']}")
+            if pd.notna(selected_goal_data.get('video_but')):
+                st.write(f"**Fichier vidéo :** {selected_goal_data['video_but']}")
             st.markdown('</div>', unsafe_allow_html=True)
         
         # Bouton pour désélectionner
@@ -505,8 +531,8 @@ def main():
     st.subheader("📋 Liste détaillée des buts")
     
     # Préparer les données pour affichage
-    display_df = filtered_df[['id', 'minute', 'season', 'h_team', 'a_team', 'xG', 'shotType', 'zone', 'distance_but']].copy()
-    display_df.columns = ['ID', 'Minute', 'Saison', 'Équipe dom.', 'Équipe ext.', 'xG', 'Type tir', 'Zone', 'Distance (m)']
+    display_df = filtered_df[['id', 'minute', 'season', 'h_team', 'a_team', 'xG', 'shotType', 'zone', 'distance_but', 'video_but']].copy()
+    display_df.columns = ['ID', 'Minute', 'Saison', 'Équipe dom.', 'Équipe ext.', 'xG', 'Type tir', 'Zone', 'Distance (m)', 'Fichier vidéo']
     display_df = display_df.round({'xG': 3, 'Distance (m)': 1})
     
     st.dataframe(
