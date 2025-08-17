@@ -170,37 +170,83 @@ def create_pitch_figure(df_goals, selected_goal_id=None):
                             mode='markers', marker=dict(color='white', size=8),
                             showlegend=False, hoverinfo='skip'))
     
-    # Affichage des buts
-    colors = []
-    sizes = []
-    texts = []
+    # Vérifier quels buts ont des vidéos disponibles
+    df_goals_with_videos = df_goals.copy()
+    df_goals_with_videos['has_video'] = df_goals_with_videos['id'].apply(
+        lambda goal_id: find_video_file(goal_id) is not None
+    )
     
-    for _, goal in df_goals.iterrows():
-        goal_id = goal['id']
-        if selected_goal_id and goal_id == selected_goal_id:
-            colors.append('gold')
-            sizes.append(max(15, 30 * goal['xG']) * 1.5)  # But sélectionné plus grand
-        else:
-            colors.append('red')
-            sizes.append(max(10, 20 * goal['xG']))
+    # Séparer les buts avec et sans vidéos pour différents affichages
+    goals_with_video = df_goals_with_videos[df_goals_with_videos['has_video']]
+    goals_without_video = df_goals_with_videos[~df_goals_with_videos['has_video']]
+    
+    # Affichage des buts SANS vidéo (gris)
+    if not goals_without_video.empty:
+        colors_no_video = []
+        sizes_no_video = []
+        texts_no_video = []
         
-        texts.append(f"But #{goal_id}<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>Adversaire: {goal['a_team'] if goal['h_a'] == 'h' else goal['h_team']}")
+        for _, goal in goals_without_video.iterrows():
+            goal_id = goal['id']
+            if selected_goal_id and goal_id == selected_goal_id:
+                colors_no_video.append('gold')
+                sizes_no_video.append(max(15, 30 * goal['xG']) * 1.5)
+            else:
+                colors_no_video.append('lightgray')
+                sizes_no_video.append(max(10, 20 * goal['xG']))
+            
+            texts_no_video.append(f"But #{goal_id} ❌ SANS VIDÉO<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>Adversaire: {goal['a_team'] if goal['h_a'] == 'h' else goal['h_team']}")
+        
+        fig.add_trace(go.Scatter(
+            x=goals_without_video['X'],
+            y=goals_without_video['Y'],
+            mode='markers',
+            marker=dict(
+                color=colors_no_video,
+                size=sizes_no_video,
+                line=dict(color='darkgray', width=1),
+                opacity=0.6
+            ),
+            text=texts_no_video,
+            hovertemplate='%{text}<extra></extra>',
+            customdata=goals_without_video['id'],
+            name='Buts sans vidéo',
+            legendgroup='no_video'
+        ))
     
-    fig.add_trace(go.Scatter(
-        x=df_goals['X'],
-        y=df_goals['Y'],
-        mode='markers',
-        marker=dict(
-            color=colors,
-            size=sizes,
-            line=dict(color='white', width=1),
-            opacity=0.8
-        ),
-        text=texts,
-        hovertemplate='%{text}<extra></extra>',
-        customdata=df_goals['id'],
-        name='Buts de Neymar'
-    ))
+    # Affichage des buts AVEC vidéo (vert/rouge/doré)
+    if not goals_with_video.empty:
+        colors_with_video = []
+        sizes_with_video = []
+        texts_with_video = []
+        
+        for _, goal in goals_with_video.iterrows():
+            goal_id = goal['id']
+            if selected_goal_id and goal_id == selected_goal_id:
+                colors_with_video.append('gold')
+                sizes_with_video.append(max(15, 30 * goal['xG']) * 1.5)
+            else:
+                colors_with_video.append('limegreen')  # Vert pour les buts avec vidéo
+                sizes_with_video.append(max(10, 20 * goal['xG']))
+            
+            texts_with_video.append(f"But #{goal_id} 🎥 AVEC VIDÉO<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>Adversaire: {goal['a_team'] if goal['h_a'] == 'h' else goal['h_team']}")
+        
+        fig.add_trace(go.Scatter(
+            x=goals_with_video['X'],
+            y=goals_with_video['Y'],
+            mode='markers',
+            marker=dict(
+                color=colors_with_video,
+                size=sizes_with_video,
+                line=dict(color='darkgreen', width=2),
+                opacity=0.9
+            ),
+            text=texts_with_video,
+            hovertemplate='%{text}<extra></extra>',
+            customdata=goals_with_video['id'],
+            name='Buts avec vidéo',
+            legendgroup='with_video'
+        ))
     
     # Configuration du graphique
     fig.update_layout(
@@ -264,6 +310,12 @@ def main():
         default=shot_types
     )
     
+    # Filtre par disponibilité vidéo
+    video_filter = st.sidebar.selectbox(
+        "🎥 Disponibilité vidéo",
+        ["Tous les buts", "Avec vidéo uniquement", "Sans vidéo uniquement"]
+    )
+    
     # Filtre par xG
     min_xg = st.sidebar.slider(
         "xG minimum",
@@ -280,23 +332,47 @@ def main():
         (df_goals['xG'] >= min_xg)
     ]
     
+    # Appliquer le filtre vidéo
+    if video_filter != "Tous les buts":
+        filtered_df['has_video'] = filtered_df['id'].apply(
+            lambda goal_id: find_video_file(goal_id) is not None
+        )
+        
+        if video_filter == "Avec vidéo uniquement":
+            filtered_df = filtered_df[filtered_df['has_video']]
+        elif video_filter == "Sans vidéo uniquement":
+            filtered_df = filtered_df[~filtered_df['has_video']]
+    
     if filtered_df.empty:
         st.warning("Aucun but ne correspond aux critères sélectionnés.")
         return
     
+    # Vérifier les vidéos disponibles pour les statistiques
+    filtered_df_with_videos = filtered_df.copy()
+    filtered_df_with_videos['has_video'] = filtered_df_with_videos['id'].apply(
+        lambda goal_id: find_video_file(goal_id) is not None
+    )
+    
+    goals_with_videos = filtered_df_with_videos[filtered_df_with_videos['has_video']]
+    goals_without_videos = filtered_df_with_videos[~filtered_df_with_videos['has_video']]
+    
     # Métriques principales
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric("Nombre de buts", len(filtered_df))
     
     with col2:
-        st.metric("xG Total", f"{filtered_df['xG'].sum():.2f}")
+        st.metric("🎥 Avec vidéo", len(goals_with_videos), 
+                 delta=f"{len(goals_with_videos)/len(filtered_df)*100:.1f}%")
     
     with col3:
-        st.metric("xG moyen", f"{filtered_df['xG'].mean():.3f}")
+        st.metric("❌ Sans vidéo", len(goals_without_videos))
     
     with col4:
+        st.metric("xG Total", f"{filtered_df['xG'].sum():.2f}")
+    
+    with col5:
         st.metric("Distance moyenne", f"{filtered_df['distance_but'].mean():.1f}m")
     
     st.divider()
@@ -306,6 +382,15 @@ def main():
     
     with col_main:
         st.subheader("🏟️ Terrain - Cliquez sur un but pour voir la vidéo")
+        
+        # Légende des couleurs
+        st.markdown("""
+        <div style='display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; font-size: 0.9rem;'>
+            <span style='color: limegreen;'>🟢 <strong>Buts avec vidéo</strong></span>
+            <span style='color: lightgray;'>⚪ <strong>Buts sans vidéo</strong></span>
+            <span style='color: gold;'>🟡 <strong>But sélectionné</strong></span>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Initialiser la session state pour le but sélectionné
         if 'selected_goal' not in st.session_state:
@@ -321,9 +406,20 @@ def main():
         if selected_points and 'selection' in selected_points:
             selection = selected_points['selection']
             if 'points' in selection and len(selection['points']) > 0:
+                # Récupérer l'index du point cliqué
                 point_index = selection['points'][0]['point_index']
-                if point_index < len(filtered_df):
-                    selected_goal_id = filtered_df.iloc[point_index]['id']
+                curve_number = selection['points'][0]['curve_number']
+                
+                # Déterminer quel dataset a été cliqué (avec ou sans vidéo)
+                if curve_number == 1:  # Buts sans vidéo (premier trace ajouté)
+                    goals_subset = goals_without_videos
+                elif curve_number == 2:  # Buts avec vidéo (deuxième trace ajouté)
+                    goals_subset = goals_with_videos
+                else:
+                    goals_subset = filtered_df  # Fallback
+                
+                if point_index < len(goals_subset):
+                    selected_goal_id = goals_subset.iloc[point_index]['id']
                     st.session_state.selected_goal = selected_goal_id
                     st.rerun()
     
@@ -336,6 +432,18 @@ def main():
         }).round(3)
         zone_stats.columns = ['Nombre', 'xG moyen']
         st.dataframe(zone_stats)
+        
+        # Statistiques vidéos
+        st.subheader("🎥 État des Vidéos")
+        video_stats = pd.DataFrame({
+            'Statut': ['Avec vidéo', 'Sans vidéo'],
+            'Nombre': [len(goals_with_videos), len(goals_without_videos)],
+            'Pourcentage': [
+                f"{len(goals_with_videos)/len(filtered_df)*100:.1f}%",
+                f"{len(goals_without_videos)/len(filtered_df)*100:.1f}%"
+            ]
+        })
+        st.dataframe(video_stats, hide_index=True)
         
         # Graphique en secteurs des zones
         fig_pie = px.pie(
