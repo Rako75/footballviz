@@ -782,7 +782,7 @@ def main():
     ), unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()_html=True)
+    main()_html=True
                 else:
                     st.info("📹 Vidéo en cours de chargement...")
             
