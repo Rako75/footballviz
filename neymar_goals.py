@@ -98,26 +98,37 @@ def normalize_coordinates(x, y):
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
         # Système normalisé (0-1)
-        # X semble représenter la distance au but (1 = très proche du but)
-        # Y semble représenter la position latérale (0-1 = largeur de la surface)
+        # X semble représenter la distance au but (plus proche de 1 = près du but)
+        # Y semble représenter la position latérale (0-1 = largeur)
         
-        # Convertir en coordonnées de la surface de réparation
-        x_penalty = y * penalty_width  # Position latérale
-        y_penalty = (1 - x) * penalty_depth  # Distance au but (0 = ligne de but, 16.5 = limite de surface)
+        # Mapping plus précis basé sur l'analyse des données
+        # X: 0.74-0.96 -> on mappe sur toute la profondeur de la surface
+        # Y: 0.26-0.62 -> on mappe sur toute la largeur de la surface
+        
+        x_penalty = (y - 0.26) / (0.62 - 0.26) * penalty_width  # Position latérale
+        y_penalty = (1 - x) * penalty_depth  # Distance au but (inversée)
+        
+        # S'assurer que les coordonnées restent dans la surface
+        x_penalty = max(0, min(penalty_width, x_penalty))
+        y_penalty = max(0, min(penalty_depth, y_penalty))
         
     else:
-        # Système en yards/mètres
-        if x > 50:  # Système yards
-            # Normaliser et ajuster pour la surface de réparation
-            x_normalized = min(max((120 - x) / 16.5, 0), 1)  # Distance normalisée au but
-            y_normalized = min(max(y / 80, 0), 1)  # Position latérale normalisée
-        else:
-            # Valeurs plus petites
-            x_normalized = min(max(x / 16.5, 0), 1)
-            y_normalized = min(max(y / 40, 0), 1)
+        # Système en yards (terrain entier 120x80 yards)
+        # X: 92-118 yards depuis la ligne de touche gauche
+        # Y: 28-44 yards depuis la ligne de fond
         
-        x_penalty = y_normalized * penalty_width
-        y_penalty = x_normalized * penalty_depth
+        # Convertir en position dans la surface de réparation
+        # Le but adverse est à x=120, surface de réparation de x=102 à x=120
+        x_from_goal = 120 - x  # Distance au but en yards
+        y_from_center = y - 40  # Position par rapport au centre (y=40 = centre du terrain)
+        
+        # Convertir en coordonnées de surface (0 = ligne de but, 16.5 = limite de surface)
+        y_penalty = max(0, min(penalty_depth, x_from_goal * 0.9144))  # Conversion yards -> mètres
+        x_penalty = penalty_width/2 + (y_from_center * 0.9144)  # Centre + décalage latéral
+        
+        # S'assurer que les coordonnées restent dans la surface
+        x_penalty = max(0, min(penalty_width, x_penalty))
+        y_penalty = max(0, min(penalty_depth, y_penalty))
     
     return x_penalty, y_penalty
 
