@@ -116,7 +116,7 @@ def load_data():
         return None
 
 def create_pitch():
-    """Crée le terrain de football avec un contraste élevé"""
+    """Crée le terrain de football avec un contraste élevé et une interactivité améliorée"""
     fig = go.Figure()
     
     # Dimensions du terrain
@@ -127,7 +127,7 @@ def create_pitch():
     fig.add_shape(
         type="rect",
         x0=0, y0=0, x1=pitch_length, y1=pitch_width,
-        fillcolor="rgba(15, 80, 15, 1)",  # Vert très foncé
+        fillcolor="rgba(15, 80, 15, 1)",
         line=dict(color="white", width=4)
     )
     
@@ -446,7 +446,7 @@ def main():
     # Ajout des buts sur le terrain avec meilleur contraste
     if len(filtered_df) > 0:
         # Taille basée sur xG (plus visible)
-        sizes = [max(20, 80 * row['xG']) for _, row in filtered_df.iterrows()]
+        sizes = [max(25, 100 * row['xG']) for _, row in filtered_df.iterrows()]
         
         # Couleurs vives avec fort contraste
         season_colors = {
@@ -473,7 +473,7 @@ def main():
             text += f"<i>🖱️ Cliquez pour voir la vidéo</i>"
             hover_text.append(text)
         
-        # Scatter plot des buts avec meilleur contraste
+        # Scatter plot des buts avec meilleur contraste et interactivité
         fig.add_trace(go.Scatter(
             x=filtered_df['X'],
             y=filtered_df['Y'],
@@ -487,19 +487,21 @@ def main():
             ),
             text=hover_text,
             hovertemplate='%{text}<extra></extra>',
-            customdata=filtered_df.index,
-            name="Buts"
+            customdata=list(filtered_df.index),  # Convertir en liste pour éviter les problèmes
+            name="Buts",
+            ids=list(filtered_df.index)  # Ajouter des IDs pour un meilleur tracking
         ))
     
-    # Configuration du layout pour un terrain plus grand et centré
+    # Configuration du layout pour un terrain plus grand et plus interactif
     fig.update_layout(
-        plot_bgcolor='rgba(0, 0, 0, 1)',  # Fond noir pour contraste
+        plot_bgcolor='rgba(0, 0, 0, 1)',
         paper_bgcolor='rgba(0, 0, 0, 1)',
         xaxis=dict(
             range=[-3, 123],
             showgrid=False,
             showticklabels=False,
-            zeroline=False
+            zeroline=False,
+            fixedrange=False,  # Permettre le zoom
         ),
         yaxis=dict(
             range=[-3, 83],
@@ -507,25 +509,38 @@ def main():
             showticklabels=False,
             zeroline=False,
             scaleanchor="x",
-            scaleratio=1
+            scaleratio=1,
+            fixedrange=False,  # Permettre le zoom
         ),
-        height=700,  # Plus grand
+        height=700,
         margin=dict(l=20, r=20, t=20, b=20),
-        showlegend=False
+        showlegend=False,
+        # Configuration pour l'interactivité améliorée
+        dragmode='pan',  # Mode panoramique par défaut
+        hovermode='closest',
+        clickmode='event+select'
     )
     
-    # Affichage du terrain avec événements de sélection
-    event = st.plotly_chart(fig, use_container_width=True, key="pitch", on_select="rerun")
+    # Affichage du terrain avec gestion des événements simplifiée
+    selected_points = st.plotly_chart(
+        fig, 
+        use_container_width=True, 
+        key="pitch", 
+        on_select="rerun"
+    )
     
-    # Gestion des clics sur le terrain
-    if event and event.selection and len(event.selection.points) > 0:
-        selected_point = event.selection.points[0]
-        if 'customdata' in selected_point:
-            point_index = selected_point['customdata']
-            st.session_state.selected_goal = point_index
+    # Gestion des clics sur le terrain (méthode simplifiée)
+    if selected_points and hasattr(selected_points, 'selection') and selected_points.selection:
+        if selected_points.selection.points and len(selected_points.selection.points) > 0:
+            # Récupérer le premier point sélectionné
+            selected_point = selected_points.selection.points[0]
+            if hasattr(selected_point, 'customdata') and selected_point.customdata is not None:
+                point_index = selected_point.customdata
+                if point_index in filtered_df.index:
+                    st.session_state.selected_goal = point_index
     
     # Section vidéo (affichage conditionnel)
-    if 'selected_goal' in st.session_state and st.session_state.selected_goal in filtered_df.index:
+    if hasattr(st.session_state, 'selected_goal') and st.session_state.selected_goal in filtered_df.index:
         goal_info = filtered_df.loc[st.session_state.selected_goal]
         display_goal_video(goal_info['video_but'], goal_info)
     
@@ -547,31 +562,33 @@ def main():
         
         # Formatage de la colonne vidéo
         display_df['Vidéo'] = display_df['Vidéo'].apply(
-            lambda x: (x[:40] + "...") if len(x) > 40 else x
+            lambda x: (x[:40] + "...") if len(str(x)) > 40 else str(x)
         )
         
         # Formatage des valeurs xG
         display_df['xG'] = display_df['xG'].apply(lambda x: f"{x:.3f}")
         
-        # Ajout d'un index pour le mapping
-        display_df_with_index = display_df.reset_index()
-        
-        # Sélection d'un but dans le tableau
-        selected_indices = st.dataframe(
+        # Sélection d'un but dans le tableau (version simplifiée)
+        selected_row = st.dataframe(
             display_df,
             use_container_width=True,
             height=400,
+            hide_index=True,
             on_select="rerun",
             selection_mode="single-row"
         )
         
-        # Correction de la gestion de sélection
-        if hasattr(selected_indices, 'selection') and selected_indices.selection and len(selected_indices.selection['rows']) > 0:
-            selected_row_idx = selected_indices.selection['rows'][0]
-            # Récupérer l'index original du DataFrame filtré
-            original_index = filtered_df.iloc[selected_row_idx].name
-            st.session_state.selected_goal = original_index
-            st.rerun()
+        # Gestion de la sélection dans le tableau
+        if (hasattr(selected_row, 'selection') and 
+            selected_row.selection and 
+            hasattr(selected_row.selection, 'rows') and 
+            len(selected_row.selection.rows) > 0):
+            
+            selected_row_idx = selected_row.selection.rows[0]
+            if 0 <= selected_row_idx < len(filtered_df):
+                original_index = filtered_df.iloc[selected_row_idx].name
+                st.session_state.selected_goal = original_index
+                st.rerun()
     else:
         st.info("ℹ️ Aucun but ne correspond aux critères sélectionnés.")
 
