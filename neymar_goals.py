@@ -806,4 +806,4 @@ if __name__ == "__main__":
                 if 'player_assisted' in selected_goal_data and pd.notna(selected_goal_data['player_assisted']):
                     st.markdown(f"**🤝 Passeur :** {selected_goal_data['player_assisted']}")
                 
-                st.markdown('</div>', unsafe_allow
+                st.markdown('</div>', unsafe_allow)
