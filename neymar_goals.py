@@ -5,6 +5,7 @@ import plotly.express as px
 from pathlib import Path
 import os
 from datetime import datetime
+import numpy as np
 
 # Configuration de la page
 st.set_page_config(
@@ -89,163 +90,152 @@ def load_data():
         st.error(f"Erreur lors du chargement des données : {e}")
         return pd.DataFrame()
 
-def normalize_coordinates(x, y):
-    """Normalise les coordonnées pour la surface de réparation (40.3m x 16.5m)"""
-    # Dimensions de la surface de réparation
-    penalty_width = 40.3  # Largeur de la surface de réparation
-    penalty_depth = 16.5  # Profondeur de la surface de réparation
+def normalize_coordinates_vertical_half(x, y):
+    """Normalise les coordonnées pour un terrain vertical demi-terrain (comme mplsoccer VerticalPitch half=True)"""
+    # Dimensions pour demi-terrain vertical (mplsoccer style)
+    # X va de 0 à 68 (largeur du terrain)
+    # Y va de 52.5 à 105 (moitié offensive du terrain)
+    
+    pitch_width = 68
+    half_pitch_length = 52.5  # Demi-terrain
     
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
         # Système normalisé (0-1)
-        # X semble représenter la distance au but (plus proche de 1 = près du but)
-        # Y semble représenter la position latérale (0-1 = largeur)
+        # Pour un demi-terrain, on veut montrer seulement la moitié offensive
         
-        # Mapping plus précis basé sur l'analyse des données
-        # X: 0.74-0.96 -> on mappe sur toute la profondeur de la surface
-        # Y: 0.26-0.62 -> on mappe sur toute la largeur de la surface
+        # X: largeur du terrain (0 = côté gauche, 1 = côté droit)
+        x_terrain = x * pitch_width
         
-        x_penalty = (y - 0.26) / (0.62 - 0.26) * penalty_width  # Position latérale
-        y_penalty = (1 - x) * penalty_depth  # Distance au but (inversée)
-        
-        # S'assurer que les coordonnées restent dans la surface
-        x_penalty = max(0, min(penalty_width, x_penalty))
-        y_penalty = max(0, min(penalty_depth, y_penalty))
+        # Y: profondeur, mais seulement la moitié offensive
+        # y=0 correspond à la ligne médiane (52.5), y=1 correspond à la ligne de but (105)
+        y_terrain = 52.5 + y * half_pitch_length
         
     else:
-        # Système en yards (terrain entier 120x80 yards)
-        # X: 92-118 yards depuis la ligne de touche gauche
-        # Y: 28-44 yards depuis la ligne de fond
-        
-        # Convertir en position dans la surface de réparation
-        # Le but adverse est à x=120, surface de réparation de x=102 à x=120
-        x_from_goal = 120 - x  # Distance au but en yards
-        y_from_center = y - 40  # Position par rapport au centre (y=40 = centre du terrain)
-        
-        # Convertir en coordonnées de surface (0 = ligne de but, 16.5 = limite de surface)
-        y_penalty = max(0, min(penalty_depth, x_from_goal * 0.9144))  # Conversion yards -> mètres
-        x_penalty = penalty_width/2 + (y_from_center * 0.9144)  # Centre + décalage latéral
-        
-        # S'assurer que les coordonnées restent dans la surface
-        x_penalty = max(0, min(penalty_width, x_penalty))
-        y_penalty = max(0, min(penalty_depth, y_penalty))
+        # Système en yards/mètres
+        if x > 50:  # Système yards
+            # Convertir et ajuster pour demi-terrain
+            x_terrain = y * pitch_width / 80
+            # Pour la profondeur, on mappe vers la moitié offensive
+            y_terrain = 52.5 + (x - 60) * half_pitch_length / 60  # 60-120 yards -> 52.5-105m
+        else:
+            # Système différent
+            x_terrain = y * pitch_width / 80
+            y_terrain = 52.5 + x * half_pitch_length / 60
     
-    return x_penalty, y_penalty
+    return x_terrain, y_terrain
 
-def create_penalty_area_visualization(df_filtered, selected_goal=None):
-    """Crée la visualisation de la surface de réparation avec les buts"""
+def create_vertical_half_pitch(df_filtered, selected_goal=None):
+    """Crée un terrain vertical demi-terrain style mplsoccer"""
     
-    # Dimensions de la surface de réparation (en mètres)
-    penalty_width = 40.3
-    penalty_depth = 16.5
-    goal_width = 7.32
-    six_yard_width = 18.32
-    six_yard_depth = 5.5
+    # Dimensions du demi-terrain vertical
+    pitch_width = 68
+    pitch_start = 52.5  # Ligne médiane
+    pitch_end = 105     # Ligne de but
     
-    # Créer la figure
     fig = go.Figure()
     
-    # Fond de la surface de réparation
+    # Couleur de fond du terrain (vert foncé)
     fig.add_shape(
         type="rect",
-        x0=0, y0=0, x1=penalty_width, y1=penalty_depth,
-        line=dict(color="white", width=4),
-        fillcolor="rgba(34, 139, 34, 0.9)"
+        x0=0, y0=pitch_start, x1=pitch_width, y1=pitch_end,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(34, 139, 34, 1)"
     )
     
-    # Surface de but (6 yards)
-    goal_area_x0 = (penalty_width - six_yard_width) / 2
-    goal_area_x1 = goal_area_x0 + six_yard_width
-    fig.add_shape(
-        type="rect",
-        x0=goal_area_x0, y0=0, x1=goal_area_x1, y1=six_yard_depth,
-        line=dict(color="white", width=3),
-        fillcolor="rgba(255, 215, 0, 0.3)"
-    )
-    
-    # Ligne de but avec poteaux
-    goal_x0 = (penalty_width - goal_width) / 2
-    goal_x1 = goal_x0 + goal_width
+    # Ligne médiane (en bas)
     fig.add_shape(
         type="line",
-        x0=goal_x0, y0=0, x1=goal_x1, y1=0,
-        line=dict(color="white", width=8)
+        x0=0, y0=pitch_start, x1=pitch_width, y1=pitch_start,
+        line=dict(color="white", width=2)
     )
     
-    # Poteaux de but
+    # Cercle central (demi-cercle)
     fig.add_shape(
-        type="circle",
-        x0=goal_x0-0.3, y0=-0.3, x1=goal_x0+0.3, y1=0.3,
-        line=dict(color="white", width=3),
-        fillcolor="white"
+        type="path",
+        path=f"M 24.85 {pitch_start} A 9.15 9.15 0 0 1 43.15 {pitch_start}",
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0)"
     )
+    
+    # Surface de réparation
+    penalty_area_width = 40.3
+    penalty_area_start = (pitch_width - penalty_area_width) / 2
+    penalty_area_end = penalty_area_start + penalty_area_width
+    
     fig.add_shape(
-        type="circle",
-        x0=goal_x1-0.3, y0=-0.3, x1=goal_x1+0.3, y1=0.3,
-        line=dict(color="white", width=3),
-        fillcolor="white"
+        type="rect",
+        x0=penalty_area_start, y0=pitch_end-16.5, 
+        x1=penalty_area_end, y1=pitch_end,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0.05)"
+    )
+    
+    # Surface de but
+    goal_area_width = 18.3
+    goal_area_start = (pitch_width - goal_area_width) / 2
+    goal_area_end = goal_area_start + goal_area_width
+    
+    fig.add_shape(
+        type="rect",
+        x0=goal_area_start, y0=pitch_end-5.5,
+        x1=goal_area_end, y1=pitch_end,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0.05)"
+    )
+    
+    # Ligne de but (poteaux)
+    goal_width = 7.32
+    goal_start = (pitch_width - goal_width) / 2
+    goal_end = goal_start + goal_width
+    
+    fig.add_shape(
+        type="line",
+        x0=goal_start, y0=pitch_end, x1=goal_end, y1=pitch_end,
+        line=dict(color="white", width=6)
     )
     
     # Point de penalty
-    penalty_spot_x = penalty_width / 2
-    penalty_spot_y = 11
     fig.add_shape(
         type="circle",
-        x0=penalty_spot_x-0.3, y0=penalty_spot_y-0.3, 
-        x1=penalty_spot_x+0.3, y1=penalty_spot_y+0.3,
+        x0=pitch_width/2-0.5, y0=pitch_end-11-0.5,
+        x1=pitch_width/2+0.5, y1=pitch_end-11+0.5,
         line=dict(color="white", width=2),
         fillcolor="white"
     )
     
-    # Arc de penalty (approximation avec un demi-cercle)
-    import numpy as np
-    theta = np.linspace(0, np.pi, 100)
-    arc_radius = 9.15
-    arc_x = penalty_spot_x + arc_radius * np.cos(theta)
-    arc_y = penalty_spot_y + arc_radius * np.sin(theta)
-    
-    # Filtrer les points qui sont dans la surface
-    valid_points = arc_y <= penalty_depth
-    arc_x_filtered = arc_x[valid_points]
-    arc_y_filtered = arc_y[valid_points]
-    
-    fig.add_trace(go.Scatter(
-        x=arc_x_filtered,
-        y=arc_y_filtered,
-        mode='lines',
-        line=dict(color='white', width=3),
-        showlegend=False,
-        hoverinfo='skip'
-    ))
-    
-    # Lignes de côté
+    # Arc de cercle du point de penalty
     fig.add_shape(
-        type="line",
-        x0=0, y0=penalty_depth, x1=penalty_width, y1=penalty_depth,
-        line=dict(color="white", width=3, dash="dash")
+        type="path",
+        path=f"M 24.85 {pitch_end-16.5} A 9.15 9.15 0 0 1 43.15 {pitch_end-16.5}",
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0)"
     )
     
     if not df_filtered.empty:
-        # Normaliser les coordonnées pour la surface de réparation
+        # Normaliser les coordonnées
         x_coords = []
         y_coords = []
         
         for _, row in df_filtered.iterrows():
-            x_norm, y_norm = normalize_coordinates(row['X'], row['Y'])
+            x_norm, y_norm = normalize_coordinates_vertical_half(row['X'], row['Y'])
             x_coords.append(x_norm)
             y_coords.append(y_norm)
         
-        # Couleurs selon le type de tir
-        colors = df_filtered['shotType'].map({
-            'RightFoot': '#1f77b4',  # Bleu
-            'LeftFoot': '#ff7f0e',   # Orange
-            'Head': '#2ca02c'        # Vert
-        })
+        # Couleurs selon le type de tir (style plus proche de votre exemple)
+        color_map = {
+            'RightFoot': '#ff4444',  # Rouge pour pied droit
+            'LeftFoot': '#4444ff',   # Bleu pour pied gauche
+            'Head': '#44ff44'        # Vert pour tête
+        }
         
-        # Tailles selon xG (plus grande pour xG élevé)
-        sizes = df_filtered['xG'] * 50 + 15
+        colors = [color_map.get(shot_type, '#ff4444') for shot_type in df_filtered['shotType']]
         
-        # Ajouter les points des buts
+        # Tailles basées sur xG (comme dans votre exemple: xG*300+100)
+        sizes = df_filtered['xG'] * 300 + 100
+        sizes = np.clip(sizes / 8, 8, 50)  # Ajuster pour Plotly
+        
+        # Ajouter les points des buts (tous sont des buts, donc remplis)
         fig.add_trace(go.Scatter(
             x=x_coords,
             y=y_coords,
@@ -253,100 +243,75 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
             marker=dict(
                 size=sizes,
                 color=colors,
-                opacity=0.9,
-                line=dict(width=3, color='white'),
+                opacity=0.8,
+                line=dict(width=2, color='white'),
                 symbol='circle'
             ),
             text=[f"⚽ vs {row['a_team']}<br>📅 {row['date'].strftime('%d/%m/%Y')}<br>⏱️ {row['minute']}'<br>📊 xG: {row['xG']:.3f}<br>🦶 {row['shot_type_fr']}<br>🎯 Passeur: {row['player_assisted'] if pd.notna(row['player_assisted']) else 'Aucun'}" 
                   for _, row in df_filtered.iterrows()],
             hovertemplate='<b>%{text}</b><extra></extra>',
             customdata=df_filtered.index,
-            name='Buts de Neymar'
+            name='Buts de Neymar',
+            showlegend=False
         ))
         
         # Mettre en évidence le but sélectionné
         if selected_goal is not None and selected_goal < len(df_filtered):
             selected_row = df_filtered.iloc[selected_goal]
-            x_sel, y_sel = normalize_coordinates(selected_row['X'], selected_row['Y'])
+            x_sel, y_sel = normalize_coordinates_vertical_half(selected_row['X'], selected_row['Y'])
             fig.add_trace(go.Scatter(
                 x=[x_sel],
                 y=[y_sel],
                 mode='markers',
                 marker=dict(
-                    size=60,
-                    color='red',
+                    size=30,
+                    color='yellow',
                     symbol='star',
-                    line=dict(width=5, color='yellow')
+                    line=dict(width=3, color='black')
                 ),
                 name='But sélectionné',
                 showlegend=False
             ))
     
-    # Ajouter des annotations
-    fig.add_annotation(
-        x=penalty_width/2, y=-2,
-        text="🥅 BUT ADVERSE",
-        showarrow=False,
-        font=dict(size=14, color="white", family="Arial Black"),
-        bgcolor="rgba(255,0,0,0.7)",
-        bordercolor="white",
-        borderwidth=2
-    )
-    
-    fig.add_annotation(
-        x=penalty_width/2, y=penalty_depth + 1,
-        text="🏃‍♂️ LIMITE DE LA SURFACE",
-        showarrow=False,
-        font=dict(size=12, color="white", family="Arial"),
-        bgcolor="rgba(0,0,255,0.7)",
-        bordercolor="white",
-        borderwidth=1
-    )
-    
-    # Configuration du layout
+    # Configuration du layout (style mplsoccer)
     fig.update_layout(
         title=dict(
-            text="🎯 Surface de Réparation - Position des Buts de Neymar",
-            x=0.5,
-            font=dict(size=20, color='white')
+            text="Neymar Jr. - Carte des Buts<br><span style='font-size:14px'>FC Barcelona - La Liga</span>",
+            x=0.05,
+            xanchor='left',
+            font=dict(size=22, color='black', family='Arial Black')
         ),
         xaxis=dict(
-            range=[-3, penalty_width+3],
+            range=[-2, pitch_width+2],
             showgrid=False,
-            showticklabels=True,
+            showticklabels=False,
             zeroline=False,
-            fixedrange=True,
-            title="Largeur du terrain (m)",
-            title_font=dict(color='white'),
-            tickfont=dict(color='white')
+            fixedrange=True
         ),
         yaxis=dict(
-            range=[-3, penalty_depth+3],
+            range=[pitch_start-2, pitch_end+2],
             showgrid=False,
-            showticklabels=True,
+            showticklabels=False,
             zeroline=False,
             scaleanchor="x",
             scaleratio=1,
-            fixedrange=True,
-            title="Distance au but (m)",
-            title_font=dict(color='white'),
-            tickfont=dict(color='white')
+            fixedrange=True
         ),
-        plot_bgcolor='rgba(34, 139, 34, 1)',
-        paper_bgcolor='rgba(34, 139, 34, 1)',
+        plot_bgcolor='white',
+        paper_bgcolor='white',
         showlegend=True,
         legend=dict(
+            orientation="h",
             yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=0.01,
+            y=-0.05,
+            xanchor="center",
+            x=0.5,
             bgcolor="rgba(255,255,255,0.9)",
-            bordercolor="rgba(0,0,0,0.2)",
-            borderwidth=1,
-            font=dict(color='black')
+            bordercolor="rgba(0,0,0,0.3)",
+            borderwidth=1
         ),
         height=600,
-        margin=dict(l=50, r=50, t=80, b=50)
+        margin=dict(l=20, r=20, t=80, b=60)
     )
     
     return fig
@@ -395,7 +360,7 @@ def display_goal_video(video_name, goal_info):
 
 def main():
     # En-tête principal
-    st.markdown('<h1 class="main-header">⚽ Neymar Jr. - Surface de Réparation FC Barcelone</h1>', 
+    st.markdown('<h1 class="main-header">⚽ Neymar Jr. - Visualisateur de Buts FC Barcelone</h1>', 
                 unsafe_allow_html=True)
     
     # Charger les données
@@ -496,25 +461,23 @@ def main():
     col_pitch, col_video = st.columns([3, 2])
     
     with col_pitch:
-        st.markdown("### 🎯 Surface de Réparation")
-        
         if not df_filtered.empty:
-            # Créer la visualisation de la surface de réparation
-            fig = create_penalty_area_visualization(df_filtered)
+            # Créer la visualisation du terrain style mplsoccer
+            fig = create_vertical_half_pitch(df_filtered)
             
             # Afficher le graphique avec sélection
             selected_points = st.plotly_chart(
                 fig, 
                 use_container_width=True,
-                key="penalty_area",
+                key="pitch",
                 on_select="rerun"
             )
             
             # Gérer la sélection de points
-            if hasattr(st.session_state, 'penalty_area') and st.session_state.penalty_area:
-                if 'selection' in st.session_state.penalty_area and st.session_state.penalty_area['selection']:
-                    if 'points' in st.session_state.penalty_area['selection']:
-                        selected_indices = [point['customdata'] for point in st.session_state.penalty_area['selection']['points']]
+            if hasattr(st.session_state, 'pitch') and st.session_state.pitch:
+                if 'selection' in st.session_state.pitch and st.session_state.pitch['selection']:
+                    if 'points' in st.session_state.pitch['selection']:
+                        selected_indices = [point['customdata'] for point in st.session_state.pitch['selection']['points']]
                         if selected_indices:
                             selected_goal = selected_indices[0]
                             st.session_state['selected_goal'] = selected_goal
@@ -531,21 +494,9 @@ def main():
                 video_name = goal_info['video_but']
                 display_goal_video(video_name, goal_info)
             else:
-                st.info("🎯 Cliquez sur un but dans la surface pour voir la vidéo")
+                st.info("🎯 Cliquez sur un but sur le terrain pour voir la vidéo")
         else:
-            st.info("🎯 Cliquez sur un but dans la surface pour voir la vidéo")
-    
-    # Légende des couleurs
-    st.markdown("### 🎨 Légende")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("🔵 **Pied droit**")
-    with col2:
-        st.markdown("🟠 **Pied gauche**")
-    with col3:
-        st.markdown("🟢 **Tête**")
-    
-    st.markdown("*La taille des points représente la valeur xG (plus grand = plus probable de marquer)*")
+            st.info("🎯 Cliquez sur un but sur le terrain pour voir la vidéo")
     
     # Tableau des buts filtrés
     if not df_filtered.empty:
