@@ -2,11 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots
 import numpy as np
 import os
 from pathlib import Path
-import base64
 
 # Configuration de la page
 st.set_page_config(
@@ -20,43 +18,49 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-header {
-        font-size: 3rem;
+        font-size: 3.5rem;
         font-weight: bold;
         text-align: center;
-        color: #FF6B6B;
+        color: #FF4444;
         margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
     .sub-header {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         text-align: center;
         color: #4ECDC4;
         margin-bottom: 2rem;
+        font-weight: 500;
     }
     .metric-container {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #FF6B6B;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
     }
     .video-container {
-        border: 2px solid #4ECDC4;
-        border-radius: 10px;
-        padding: 1rem;
-        background-color: #f8f9fa;
+        border: 3px solid #4ECDC4;
+        border-radius: 15px;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     }
     .goal-info {
-        background-color: #e8f4f8;
-        padding: 1rem;
-        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
         margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .video-debug-info {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 5px;
-        padding: 10px;
-        margin: 10px 0;
-        font-size: 0.9rem;
+    .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #FF4444;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -70,8 +74,7 @@ def load_data():
             for sep in [';', ',', '\t']:
                 try:
                     df = pd.read_csv('Neymar_Buts_LaLiga.csv', sep=sep, encoding=encoding)
-                    if len(df.columns) > 5:  # Vérifier que le fichier est correctement parsé
-                        st.success(f"✅ Données chargées avec encoding={encoding} et sep='{sep}'")
+                    if len(df.columns) > 5:
                         break
                 except:
                     continue
@@ -79,19 +82,10 @@ def load_data():
                 continue
             break
         else:
-            st.error("❌ Impossible de charger le fichier CSV avec les encodages testés")
+            st.error("Impossible de charger le fichier CSV")
             return None
         
-        # Vérification et traitement des colonnes essentielles
-        required_columns = ['X', 'Y', 'xG', 'minute']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        
-        if missing_columns:
-            st.error(f"❌ Colonnes manquantes: {missing_columns}")
-            st.info(f"📋 Colonnes disponibles: {list(df.columns)}")
-            return None
-        
-        # Normalisation des coordonnées si nécessaire
+        # Traitement des données
         df_goals = df.copy()
         
         # Conversion sécurisée des coordonnées
@@ -99,27 +93,23 @@ def load_data():
         df_goals['Y'] = pd.to_numeric(df_goals['Y'], errors='coerce')
         df_goals['xG'] = pd.to_numeric(df_goals['xG'], errors='coerce')
         
-        # Normalisation des coordonnées POUR ORIENTER VERS LE BUT ADVERSE
-        # Si les coordonnées sont en format 0-1, les convertir
+        # Normalisation des coordonnées
         if df_goals['X'].max() <= 1:
             df_goals['X'] = df_goals['X'] * 120
         if df_goals['Y'].max() <= 1:
             df_goals['Y'] = df_goals['Y'] * 80
-            
-        # CORRECTION IMPORTANTE : S'assurer que les buts sont orientés vers le but adverse (X=120)
-        # Si la majorité des buts sont du côté gauche du terrain, on inverse X
+        
+        # Orientation vers le but adverse
         goals_in_attacking_half = len(df_goals[df_goals['X'] > 60])
         goals_in_defensive_half = len(df_goals[df_goals['X'] <= 60])
         
         if goals_in_defensive_half > goals_in_attacking_half:
-            # Les buts sont majoritairement du côté défensif, on inverse X
             df_goals['X'] = 120 - df_goals['X']
-            st.info("🔄 Coordonnées X inversées pour orienter vers le but adverse")
         
-        # Ajout d'informations supplémentaires (distance calculée vers le but adverse)
+        # Calculs supplémentaires
         df_goals['distance_but'] = np.sqrt((120 - df_goals['X'])**2 + (40 - df_goals['Y'])**2) * 0.9144
         
-        # Redéfinition des zones basées sur l'orientation correcte
+        # Définition des zones
         df_goals['zone'] = df_goals['X'].apply(lambda x: 
             'Surface de réparation' if x > 103.5 else 
             'Zone dangereuse (16-30m)' if x > 90 else 
@@ -130,12 +120,14 @@ def load_data():
         if 'id' not in df_goals.columns:
             df_goals['id'] = range(1, len(df_goals) + 1)
         
-        st.info(f"📊 Répartition des buts: {len(df_goals[df_goals['X'] > 60])} en zone offensive, {len(df_goals[df_goals['X'] <= 60])} en zone défensive")
+        # Ajouter une saison par défaut si manquante
+        if 'season' not in df_goals.columns:
+            df_goals['season'] = '2013-2017'
         
         return df_goals
         
     except Exception as e:
-        st.error(f"❌ Erreur lors du chargement des données : {e}")
+        st.error(f"Erreur lors du chargement des données : {e}")
         return None
 
 def scan_video_folder(video_folder="Neymar_LaLiga_Buts"):
@@ -146,18 +138,11 @@ def scan_video_folder(video_folder="Neymar_LaLiga_Buts"):
         for file in os.listdir(video_folder):
             if file.lower().endswith(('.mp4', '.mov', '.avi', '.mkv', '.webm')):
                 video_files.append(file)
-        st.info(f"📁 {len(video_files)} fichiers vidéo trouvés dans le dossier '{video_folder}'")
-        
-        # Debug: afficher quelques noms de fichiers
-        if video_files:
-            st.expander("🔍 Aperçu des fichiers vidéo").write(video_files[:10])
-    else:
-        st.warning(f"📁 Dossier '{video_folder}' introuvable")
     
     return video_files
 
 def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts", available_videos=None):
-    """Recherche le fichier vidéo correspondant au but avec amélioration du matching"""
+    """Recherche le fichier vidéo correspondant au but"""
     
     if not os.path.exists(video_folder):
         return None
@@ -165,24 +150,21 @@ def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts", available_vide
     if available_videos is None:
         available_videos = scan_video_folder(video_folder)
     
-    # Stratégie 1: Utiliser la colonne 'video_but' si disponible
+    # Utiliser la colonne 'video_but' si disponible
     if 'video_but' in goal_data and pd.notna(goal_data['video_but']) and str(goal_data['video_but']).strip():
         video_filename = str(goal_data['video_but']).strip()
         
-        # Correspondance exacte
         if video_filename in available_videos:
             return os.path.join(video_folder, video_filename)
         
-        # Correspondance sans extension
         base_name = os.path.splitext(video_filename)[0]
         for video in available_videos:
             if os.path.splitext(video)[0] == base_name:
                 return os.path.join(video_folder, video)
     
-    # Stratégie 2: Utiliser l'ID du but
+    # Utiliser l'ID du but
     goal_id = goal_data.get('id', '')
     if goal_id:
-        # Patterns de recherche plus flexibles
         patterns = [
             str(goal_id),
             f"but_{goal_id}",
@@ -199,116 +181,142 @@ def find_video_file(goal_data, video_folder="Neymar_LaLiga_Buts", available_vide
                 if pattern.lower() in video_base or video_base in pattern.lower():
                     return os.path.join(video_folder, video)
     
-    # Stratégie 3: Recherche par index (si l'ID correspond à l'index dans la liste)
+    # Recherche par index
     if isinstance(goal_id, int) and 1 <= goal_id <= len(available_videos):
         return os.path.join(video_folder, available_videos[goal_id - 1])
     
     return None
 
-def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, season_colors=None):
-    """Crée le terrain de football avec les buts de Neymar colorés par saison"""
+def create_custom_pitch_figure(df_goals, selected_goal_id=None, season_colors=None):
+    """Crée le terrain de football personnalisé avec style professionnel"""
     fig = go.Figure()
     
     # Dimensions du terrain
     pitch_length, pitch_width = 120, 80
     
-    # Palette de couleurs par défaut si non fournie
+    # Couleurs par saison
     if season_colors is None:
         season_colors = {
-            '2013-14': '#FF6B6B',  # Rouge corail
-            '2014-15': '#4ECDC4',  # Turquoise
-            '2015-16': '#45B7D1',  # Bleu ciel
-            '2016-17': '#96CEB4',  # Vert menthe
-            '2017-18': '#FFEAA7'   # Jaune pastel
+            '2013-14': '#FF4444',
+            '2014-15': '#4ECDC4', 
+            '2015-16': '#45B7D1',
+            '2016-17': '#96CEB4',
+            '2017-18': '#FFEAA7',
+            '2013-2017': '#FF4444'
         }
     
-    # Si la colonne season n'existe pas, créer une saison par défaut
-    if 'season' not in df_goals.columns:
-        df_goals = df_goals.copy()
-        df_goals['season'] = '2013-17'
-        season_colors = {'2013-17': '#FF6B6B'}
-    
-    # Dessin du terrain
-    # Contour principal
-    fig.add_shape(type="rect", x0=0, y0=0, x1=pitch_length, y1=pitch_width,
-                  line=dict(color="white", width=3), fillcolor="green", opacity=0.8)
+    # Fond du terrain avec dégradé
+    fig.add_shape(
+        type="rect",
+        x0=0, y0=0, x1=pitch_length, y1=pitch_width,
+        line=dict(color="white", width=3),
+        fillcolor="rgba(45, 90, 45, 0.9)"
+    )
     
     # Ligne médiane
-    fig.add_shape(type="line", x0=pitch_length/2, y0=0, x1=pitch_length/2, y1=pitch_width,
-                  line=dict(color="white", width=2))
+    fig.add_shape(
+        type="line",
+        x0=pitch_length/2, y0=0, x1=pitch_length/2, y1=pitch_width,
+        line=dict(color="white", width=2)
+    )
     
     # Cercle central
-    fig.add_shape(type="circle", x0=pitch_length/2-9.15, y0=pitch_width/2-9.15,
-                  x1=pitch_length/2+9.15, y1=pitch_width/2+9.15,
-                  line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)")
+    fig.add_shape(
+        type="circle",
+        x0=pitch_length/2-9.15, y0=pitch_width/2-9.15,
+        x1=pitch_length/2+9.15, y1=pitch_width/2+9.15,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(0,0,0,0)"
+    )
     
     # Point central
-    fig.add_trace(go.Scatter(x=[pitch_length/2], y=[pitch_width/2],
-                            mode='markers', marker=dict(color='white', size=4),
-                            showlegend=False, hoverinfo='skip'))
+    fig.add_trace(go.Scatter(
+        x=[pitch_length/2], y=[pitch_width/2],
+        mode='markers',
+        marker=dict(color='white', size=6),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
     
     # Surfaces de réparation
     penalty_box_length = 16.5
     penalty_box_width = 40.32
     penalty_box_y_start = (pitch_width - penalty_box_width) / 2
     
-    # Surface droite (attaque - où Neymar marque)
-    fig.add_shape(type="rect", 
-                  x0=pitch_length-penalty_box_length, y0=penalty_box_y_start,
-                  x1=pitch_length, y1=penalty_box_y_start + penalty_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
+    # Surface droite (attaque)
+    fig.add_shape(
+        type="rect",
+        x0=pitch_length-penalty_box_length, y0=penalty_box_y_start,
+        x1=pitch_length, y1=penalty_box_y_start + penalty_box_width,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255, 68, 68, 0.1)"
+    )
     
     # Surface gauche (défense)
-    fig.add_shape(type="rect", 
-                  x0=0, y0=penalty_box_y_start,
-                  x1=penalty_box_length, y1=penalty_box_y_start + penalty_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
+    fig.add_shape(
+        type="rect",
+        x0=0, y0=penalty_box_y_start,
+        x1=penalty_box_length, y1=penalty_box_y_start + penalty_box_width,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0.05)"
+    )
     
     # Surfaces de but (6 yards)
     goal_box_length = 5.5
     goal_box_width = 18.32
     goal_box_y_start = (pitch_width - goal_box_width) / 2
     
-    # Surface de but droite (attaque)
-    fig.add_shape(type="rect", 
-                  x0=pitch_length-goal_box_length, y0=goal_box_y_start,
-                  x1=pitch_length, y1=goal_box_y_start + goal_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
+    # Surface de but droite
+    fig.add_shape(
+        type="rect",
+        x0=pitch_length-goal_box_length, y0=goal_box_y_start,
+        x1=pitch_length, y1=goal_box_y_start + goal_box_width,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255, 68, 68, 0.15)"
+    )
     
-    # Surface de but gauche (défense)
-    fig.add_shape(type="rect", 
-                  x0=0, y0=goal_box_y_start,
-                  x1=goal_box_length, y1=goal_box_y_start + goal_box_width,
-                  line=dict(color="white", width=2), fillcolor="rgba(255,255,255,0.1)")
+    # Surface de but gauche
+    fig.add_shape(
+        type="rect",
+        x0=0, y0=goal_box_y_start,
+        x1=goal_box_length, y1=goal_box_y_start + goal_box_width,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0.05)"
+    )
     
-    # Buts (poteaux)
+    # Buts
     goal_width = 7.32
     goal_y_start = (pitch_width - goal_width) / 2
     
     # But droit (où Neymar marque)
-    fig.add_shape(type="line", x0=pitch_length, y0=goal_y_start,
-                  x1=pitch_length, y1=goal_y_start + goal_width,
-                  line=dict(color="yellow", width=6))
+    fig.add_shape(
+        type="line",
+        x0=pitch_length, y0=goal_y_start,
+        x1=pitch_length, y1=goal_y_start + goal_width,
+        line=dict(color="#FFD700", width=8)
+    )
     
-    # But gauche (défense)
-    fig.add_shape(type="line", x0=0, y0=goal_y_start,
-                  x1=0, y1=goal_y_start + goal_width,
-                  line=dict(color="white", width=4))
+    # But gauche
+    fig.add_shape(
+        type="line",
+        x0=0, y0=goal_y_start,
+        x1=0, y1=goal_y_start + goal_width,
+        line=dict(color="white", width=4)
+    )
     
     # Points de penalty
-    fig.add_trace(go.Scatter(x=[pitch_length-11, 11], y=[pitch_width/2, pitch_width/2],
-                            mode='markers', marker=dict(color='white', size=6),
-                            showlegend=False, hoverinfo='skip'))
+    fig.add_trace(go.Scatter(
+        x=[pitch_length-11, 11], y=[pitch_width/2, pitch_width/2],
+        mode='markers',
+        marker=dict(color='white', size=8),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
     
-    # Demi-cercles de penalty (arcs)
-    import numpy as np
-    
-    # Arc droit (attaque)
+    # Arcs de penalty
     theta_right = np.linspace(-np.pi/2, np.pi/2, 50)
     arc_x_right = pitch_length - 11 + 9.15 * np.cos(theta_right)
     arc_y_right = pitch_width/2 + 9.15 * np.sin(theta_right)
-    
-    # Filtrer pour ne garder que la partie hors de la surface
     valid_right = arc_x_right <= pitch_length - penalty_box_length
     
     fig.add_trace(go.Scatter(
@@ -320,12 +328,9 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
         hoverinfo='skip'
     ))
     
-    # Arc gauche (défense)
     theta_left = np.linspace(np.pi/2, 3*np.pi/2, 50)
     arc_x_left = 11 + 9.15 * np.cos(theta_left)
     arc_y_left = pitch_width/2 + 9.15 * np.sin(theta_left)
-    
-    # Filtrer pour ne garder que la partie hors de la surface
     valid_left = arc_x_left >= penalty_box_length
     
     fig.add_trace(go.Scatter(
@@ -337,126 +342,78 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
         hoverinfo='skip'
     ))
     
-    # Vérifier quels buts ont des vidéos disponibles
-    df_goals_with_videos = df_goals.copy()
-    df_goals_with_videos['has_video'] = df_goals_with_videos.apply(
-        lambda row: find_video_file(row, available_videos=available_videos) is not None, axis=1
-    )
+    # Affichage des buts par saison
+    unique_seasons = sorted(df_goals['season'].unique()) if 'season' in df_goals.columns else ['2013-2017']
     
-    # Obtenir les saisons uniques et créer des couleurs automatiquement si nécessaire
-    unique_seasons = sorted(df_goals_with_videos['season'].unique())
-    
-    # Si on a plus de saisons que de couleurs prédéfinies, générer des couleurs supplémentaires
+    # Générer des couleurs automatiquement si nécessaire
     if len(unique_seasons) > len(season_colors):
-        import plotly.express as px
-        color_palette = px.colors.qualitative.Set3
+        colors = px.colors.qualitative.Set3
         for i, season in enumerate(unique_seasons):
             if season not in season_colors:
-                season_colors[season] = color_palette[i % len(color_palette)]
+                season_colors[season] = colors[i % len(colors)]
     
-    # Grouper par saison et statut vidéo pour créer des traces séparées
     for season in unique_seasons:
-        season_data = df_goals_with_videos[df_goals_with_videos['season'] == season]
+        season_data = df_goals[df_goals['season'] == season] if 'season' in df_goals.columns else df_goals
         
         if season_data.empty:
             continue
-            
-        # Séparer les buts avec et sans vidéos pour cette saison
-        season_with_video = season_data[season_data['has_video']]
-        season_without_video = season_data[~season_data['has_video']]
         
-        base_color = season_colors.get(season, '#999999')
+        colors = []
+        sizes = []
+        texts = []
         
-        # Buts SANS vidéo pour cette saison (couleur atténuée)
-        if not season_without_video.empty:
-            colors_no_video = []
-            sizes_no_video = []
-            texts_no_video = []
-            opacities_no_video = []
+        for _, goal in season_data.iterrows():
+            goal_id = goal['id']
             
-            for _, goal in season_without_video.iterrows():
-                goal_id = goal['id']
-                if selected_goal_id and goal_id == selected_goal_id:
-                    colors_no_video.append('gold')
-                    sizes_no_video.append(max(15, 30 * goal['xG']) * 1.5)
-                    opacities_no_video.append(1.0)
-                else:
-                    # Couleur atténuée pour les buts sans vidéo
-                    colors_no_video.append('lightgray')
-                    sizes_no_video.append(max(8, 15 * goal['xG']))
-                    opacities_no_video.append(0.4)
-                
-                texts_no_video.append(f"But #{goal_id} - {season} ❌<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>SANS VIDÉO")
+            if selected_goal_id and goal_id == selected_goal_id:
+                colors.append('#FFD700')  # Or pour le but sélectionné
+                sizes.append(max(20, 40 * goal['xG']) * 1.8)
+            else:
+                colors.append(season_colors.get(season, '#FF4444'))
+                sizes.append(max(12, 25 * goal['xG']))
             
-            fig.add_trace(go.Scatter(
-                x=season_without_video['X'],
-                y=season_without_video['Y'],
-                mode='markers',
-                marker=dict(
-                    color=colors_no_video,
-                    size=sizes_no_video,
-                    line=dict(color='darkgray', width=1),
-                    opacity=0.6
-                ),
-                text=texts_no_video,
-                hovertemplate='%{text}<extra></extra>',
-                customdata=season_without_video['id'],
-                name=f'{season} (sans vidéo)',
-                legendgroup=f'{season}_no_video',
-                visible=True
-            ))
+            texts.append(
+                f"<b>But #{goal_id}</b><br>"
+                f"Minute: {goal['minute']}'<br>"
+                f"xG: {goal['xG']:.3f}<br>"
+                f"Distance: {goal['distance_but']:.1f}m<br>"
+                f"Zone: {goal['zone']}"
+            )
         
-        # Buts AVEC vidéo pour cette saison (couleur vive)
-        if not season_with_video.empty:
-            colors_with_video = []
-            sizes_with_video = []
-            texts_with_video = []
-            
-            for _, goal in season_with_video.iterrows():
-                goal_id = goal['id']
-                if selected_goal_id and goal_id == selected_goal_id:
-                    colors_with_video.append('gold')
-                    sizes_with_video.append(max(15, 30 * goal['xG']) * 1.5)
-                else:
-                    colors_with_video.append(base_color)
-                    sizes_with_video.append(max(10, 20 * goal['xG']))
-                
-                texts_with_video.append(f"But #{goal_id} - {season} 🎥<br>Minute: {goal['minute']}<br>xG: {goal['xG']:.3f}<br>AVEC VIDÉO")
-            
-            fig.add_trace(go.Scatter(
-                x=season_with_video['X'],
-                y=season_with_video['Y'],
-                mode='markers',
-                marker=dict(
-                    color=colors_with_video,
-                    size=sizes_with_video,
-                    line=dict(color='white', width=2),
-                    opacity=0.9
-                ),
-                text=texts_with_video,
-                hovertemplate='%{text}<extra></extra>',
-                customdata=season_with_video['id'],
-                name=f'{season} (avec vidéo)',
-                legendgroup=f'{season}_with_video',
-                visible=True
-            ))
+        fig.add_trace(go.Scatter(
+            x=season_data['X'],
+            y=season_data['Y'],
+            mode='markers',
+            marker=dict(
+                color=colors,
+                size=sizes,
+                line=dict(color='white', width=2),
+                opacity=0.9
+            ),
+            text=texts,
+            hovertemplate='%{text}<extra></extra>',
+            customdata=season_data['id'],
+            name=season,
+            visible=True
+        ))
     
     # Configuration du graphique
     fig.update_layout(
         title=dict(
-            text="<b>Neymar Jr - Tous ses buts en LaLiga (2013-2017)</b><br><sub>🥅 But adverse à droite (jaune) • Vue depuis le camp du Barça</sub>",
+            text="<b>Neymar Jr - Buts en LaLiga</b><br><sub>🥅 Cliquez sur un but pour voir la vidéo</sub>",
             x=0.5,
-            font=dict(size=20, color="darkblue")
+            font=dict(size=24, color="#2c3e50"),
+            pad=dict(t=20)
         ),
         xaxis=dict(
-            range=[-5, 125],
+            range=[-8, 128],
             showgrid=False,
             zeroline=False,
             showticklabels=False,
             title=""
         ),
         yaxis=dict(
-            range=[-5, 85],
+            range=[-8, 88],
             showgrid=False,
             zeroline=False,
             showticklabels=False,
@@ -464,116 +421,65 @@ def create_pitch_figure(df_goals, selected_goal_id=None, available_videos=None, 
             scaleanchor="x",
             scaleratio=1
         ),
-        plot_bgcolor='rgba(34, 139, 34, 0.8)',  # Vert gazon plus réaliste
+        plot_bgcolor='rgba(30, 60, 30, 0.8)',
         paper_bgcolor='white',
-        height=650,
+        height=700,
         showlegend=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
-            xanchor="right",
-            x=1
-        )
+            xanchor="center",
+            x=0.5,
+            font=dict(size=12)
+        ),
+        margin=dict(l=50, r=50, t=100, b=50)
     )
     
     return fig
 
 def display_video(video_path):
-    """Affiche une vidéo avec gestion d'erreur améliorée"""
+    """Affiche une vidéo avec gestion d'erreur"""
     try:
-        # Vérifier que le fichier existe et est lisible
         if not os.path.exists(video_path):
-            st.error(f"❌ Fichier vidéo introuvable : {video_path}")
+            st.warning("Vidéo introuvable")
             return False
             
         file_size = os.path.getsize(video_path)
         if file_size == 0:
-            st.error(f"❌ Fichier vidéo vide : {video_path}")
+            st.warning("Fichier vidéo vide")
             return False
             
-        st.info(f"📁 Fichier: {os.path.basename(video_path)} ({file_size / (1024*1024):.1f} MB)")
+        st.info(f"📁 {os.path.basename(video_path)} ({file_size / (1024*1024):.1f} MB)")
         
-        # Méthode 1: st.video avec lecture directe
-        try:
-            with open(video_path, 'rb') as video_file:
-                video_bytes = video_file.read()
+        with open(video_path, 'rb') as video_file:
+            video_bytes = video_file.read()
+        
+        if len(video_bytes) > 0:
+            st.video(video_bytes)
+            return True
+        else:
+            st.warning("Impossible de lire le contenu du fichier")
+            return False
             
-            if len(video_bytes) > 0:
-                st.video(video_bytes)
-                st.success("✅ Vidéo chargée avec succès!")
-                return True
-            else:
-                st.error("❌ Impossible de lire le contenu du fichier vidéo")
-                
-        except Exception as e:
-            st.error(f"❌ Erreur lors de la lecture : {e}")
-            
-            # Méthode 2: Essayer avec le chemin direct
-            try:
-                st.video(video_path)
-                st.success("✅ Vidéo chargée avec le chemin direct!")
-                return True
-            except Exception as e2:
-                st.error(f"❌ Erreur avec chemin direct : {e2}")
-                
-                # Méthode 3: Conversion base64 (pour certains formats)
-                try:
-                    with open(video_path, "rb") as f:
-                        video_b64 = base64.b64encode(f.read()).decode()
-                    
-                    video_html = f"""
-                    <video width="100%" height="400" controls>
-                        <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    """
-                    st.markdown(video_html, unsafe_allow_html=True)
-                    st.info("✅ Vidéo affichée en HTML!")
-                    return True
-                    
-                except Exception as e3:
-                    st.error(f"❌ Toutes les méthodes ont échoué. Dernière erreur : {e3}")
-        
-        return False
-        
     except Exception as e:
-        st.error(f"❌ Erreur générale lors de l'affichage de la vidéo : {e}")
+        st.error(f"Erreur lors de l'affichage : {e}")
         return False
 
 def main():
     # Titre principal
     st.markdown('<h1 class="main-header">⚽ Neymar Jr</h1>', unsafe_allow_html=True)
-    st.markdown('<h2 class="sub-header">Tous ses buts en LaLiga (2013-2017)</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="sub-header">Cartographie complète de ses buts en LaLiga</h2>', unsafe_allow_html=True)
     
-    # Définition des couleurs de saisons (disponible globalement dans main)
+    # Couleurs de saisons
     season_colors = {
-        '2013-14': '#FF6B6B',  # Rouge corail
-        '2014-15': '#4ECDC4',  # Turquoise
-        '2015-16': '#45B7D1',  # Bleu ciel
-        '2016-17': '#96CEB4',  # Vert menthe
-        '2017-18': '#FFEAA7'   # Jaune pastel
+        '2013-14': '#FF4444',
+        '2014-15': '#4ECDC4', 
+        '2015-16': '#45B7D1',
+        '2016-17': '#96CEB4',
+        '2017-18': '#FFEAA7',
+        '2013-2017': '#FF4444'
     }
-    
-    # Section de diagnostic
-    with st.expander("🔧 Diagnostic système", expanded=False):
-        st.write("**Répertoire de travail actuel:**", os.getcwd())
-        st.write("**Fichiers dans le répertoire:**", os.listdir('.'))
-        
-        # Vérifier la présence du CSV
-        csv_exists = os.path.exists('Neymar_Buts_LaLiga.csv')
-        st.write(f"**Fichier CSV présent:** {'✅' if csv_exists else '❌'} Neymar_Buts_LaLiga.csv")
-        
-        # Vérifier la présence du dossier vidéo
-        video_folder_exists = os.path.exists('Neymar_LaLiga_Buts')
-        st.write(f"**Dossier vidéo présent:** {'✅' if video_folder_exists else '❌'} Neymar_LaLiga_Buts")
-        
-        if video_folder_exists:
-            video_files = [f for f in os.listdir('Neymar_LaLiga_Buts') 
-                          if f.lower().endswith(('.mp4', '.mov', '.avi', '.mkv', '.webm'))]
-            st.write(f"**Nombre de vidéos détectées:** {len(video_files)}")
-        else:
-            st.warning("Créez le dossier 'Neymar_LaLiga_Buts' et ajoutez vos vidéos")
     
     # Chargement des données
     df_goals = load_data()
@@ -585,19 +491,20 @@ def main():
     available_videos = scan_video_folder()
     
     # Sidebar avec filtres
-    st.sidebar.header("🎯 Filtres et Options")
+    st.sidebar.header("🎯 Filtres")
     
-    # Filtre par saison (si la colonne existe)
-    if 'season' in df_goals.columns:
+    # Filtre par saison
+    if 'season' in df_goals.columns and len(df_goals['season'].unique()) > 1:
         seasons = sorted(df_goals['season'].unique())
         selected_seasons = st.sidebar.multiselect(
             "Sélectionner les saisons",
             seasons,
             default=seasons
         )
-        df_goals = df_goals[df_goals['season'].isin(selected_seasons)]
+        if selected_seasons:
+            df_goals = df_goals[df_goals['season'].isin(selected_seasons)]
     
-    # Filtre par type de tir (si la colonne existe)
+    # Filtre par type de tir
     if 'shotType' in df_goals.columns:
         shot_types = df_goals['shotType'].unique()
         selected_shot_types = st.sidebar.multiselect(
@@ -605,141 +512,116 @@ def main():
             shot_types,
             default=shot_types
         )
-        df_goals = df_goals[df_goals['shotType'].isin(selected_shot_types)]
-    
-    # Filtre par disponibilité vidéo
-    video_filter = st.sidebar.selectbox(
-        "🎥 Disponibilité vidéo",
-        ["Tous les buts", "Avec vidéo uniquement", "Sans vidéo uniquement"]
-    )
+        if selected_shot_types:
+            df_goals = df_goals[df_goals['shotType'].isin(selected_shot_types)]
     
     # Filtre par xG
-    min_xg = st.sidebar.slider(
-        "xG minimum",
-        min_value=0.0,
-        max_value=float(df_goals['xG'].max()),
-        value=0.0,
-        step=0.1
-    )
-    
-    # Application des filtres
-    filtered_df = df_goals[df_goals['xG'] >= min_xg].copy()
-    
-    # Appliquer le filtre vidéo
-    if video_filter != "Tous les buts":
-        filtered_df['has_video'] = filtered_df.apply(
-            lambda row: find_video_file(row, available_videos=available_videos) is not None, axis=1
+    if not df_goals.empty:
+        min_xg = st.sidebar.slider(
+            "xG minimum",
+            min_value=0.0,
+            max_value=float(df_goals['xG'].max()),
+            value=0.0,
+            step=0.1
         )
         
-        if video_filter == "Avec vidéo uniquement":
-            filtered_df = filtered_df[filtered_df['has_video']]
-        elif video_filter == "Sans vidéo uniquement":
-            filtered_df = filtered_df[~filtered_df['has_video']]
+        # Application des filtres
+        filtered_df = df_goals[df_goals['xG'] >= min_xg].copy()
+    else:
+        filtered_df = df_goals
     
     if filtered_df.empty:
-        st.warning("❌ Aucun but ne correspond aux critères sélectionnés.")
-        return
-    
-    # Statistiques des vidéos
-    filtered_df['has_video'] = filtered_df.apply(
-        lambda row: find_video_file(row, available_videos=available_videos) is not None, axis=1
-    )
-    
-    goals_with_videos = filtered_df[filtered_df['has_video']]
-    goals_without_videos = filtered_df[~filtered_df['has_video']]
+        st.warning("⚠️ Aucun but ne correspond aux critères sélectionnés.")
+        st.stop()
     
     # Métriques principales
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        st.metric("Nombre de buts", len(filtered_df))
+        st.markdown("""
+        <div class="metric-container">
+            <h3 style="margin:0; font-size:2rem;">⚽</h3>
+            <h2 style="margin:0;">{}</h2>
+            <p style="margin:0;">Buts marqués</p>
+        </div>
+        """.format(len(filtered_df)), unsafe_allow_html=True)
     
     with col2:
-        st.metric("🎥 Avec vidéo", len(goals_with_videos), 
-                 delta=f"{len(goals_with_videos)/len(filtered_df)*100:.1f}%")
+        st.markdown("""
+        <div class="metric-container">
+            <h3 style="margin:0; font-size:2rem;">🎯</h3>
+            <h2 style="margin:0;">{:.2f}</h2>
+            <p style="margin:0;">xG Total</p>
+        </div>
+        """.format(filtered_df['xG'].sum()), unsafe_allow_html=True)
     
     with col3:
-        st.metric("❌ Sans vidéo", len(goals_without_videos))
+        st.markdown("""
+        <div class="metric-container">
+            <h3 style="margin:0; font-size:2rem;">📏</h3>
+            <h2 style="margin:0;">{:.1f}m</h2>
+            <p style="margin:0;">Distance moy.</p>
+        </div>
+        """.format(filtered_df['distance_but'].mean()), unsafe_allow_html=True)
     
     with col4:
-        st.metric("xG Total", f"{filtered_df['xG'].sum():.2f}")
+        goals_in_box = len(filtered_df[filtered_df['X'] > 103.5])
+        st.markdown("""
+        <div class="metric-container">
+            <h3 style="margin:0; font-size:2rem;">🏟️</h3>
+            <h2 style="margin:0;">{}</h2>
+            <p style="margin:0;">Dans la surface</p>
+        </div>
+        """.format(goals_in_box), unsafe_allow_html=True)
     
     with col5:
-        st.metric("Distance moyenne", f"{filtered_df['distance_but'].mean():.1f}m")
+        st.markdown("""
+        <div class="metric-container">
+            <h3 style="margin:0; font-size:2rem;">🎥</h3>
+            <h2 style="margin:0;">{}</h2>
+            <p style="margin:0;">Vidéos disponibles</p>
+        </div>
+        """.format(len(available_videos)), unsafe_allow_html=True)
     
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Interface principale
     col_main, col_info = st.columns([3, 1])
     
     with col_main:
-        st.subheader("🏟️ Terrain - Cliquez sur un but pour voir la vidéo")
-        
-        # Légende des couleurs améliorée
-        legend_html = """
-        <div style='display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 0.9rem; flex-wrap: wrap;'>
-            <div style='text-align: center;'>
-                <strong>🎥 Statut vidéo:</strong><br>
-                <span style='color: gold;'>🟡 Sélectionné</span> | 
-                <span style='color: lightgray;'>⚪ Sans vidéo</span>
-            </div>
-            <div style='text-align: center;'>
-                <strong>🏟️ Orientation:</strong><br>
-                <span style='color: yellow;'>🥅 But adverse (attaque)</span> | 
-                <span style='color: white;'>🥅 But Barça (défense)</span>
-            </div>
-        """
-        
-        # Ajouter les couleurs de saison à la légende
-        if 'season' in filtered_df.columns:
-            unique_seasons = sorted(filtered_df['season'].unique())
-            if len(unique_seasons) > 1:
-                legend_html += """
-                <div style='text-align: center;'>
-                    <strong>📅 Saisons:</strong><br>
-                """
-                for season in unique_seasons:
-                    color = season_colors.get(season, '#999999')
-                    legend_html += f'<span style="color: {color}; font-weight: bold;">⚫ {season}</span> '
-                
-                legend_html += "</div>"
-        
-        legend_html += "</div>"
-        
-        st.markdown(legend_html, unsafe_allow_html=True)
+        st.subheader("🟢 Terrain Interactif")
         
         # Initialiser la session state
         if 'selected_goal' not in st.session_state:
             st.session_state.selected_goal = None
         
-        # Créer le graphique avec la variable season_colors disponible
-        fig = create_pitch_figure(filtered_df, st.session_state.selected_goal, available_videos, season_colors)
+        # Créer le graphique
+        fig = create_custom_pitch_figure(filtered_df, st.session_state.selected_goal, season_colors)
         
-        # Sélecteur de but alternatif avec indication de saison
-        goal_options = []
-        for _, row in filtered_df.iterrows():
-            season_info = f" ({row['season']})" if 'season' in row else ""
-            video_status = '🎥' if row['has_video'] else '❌'
-            goal_options.append(f"But #{row['id']}{season_info} - Minute {row['minute']} {video_status}")
-        
-        selected_option = st.selectbox(
-            "Ou sélectionnez un but directement:",
-            ["Aucune sélection"] + goal_options,
-            index=0
-        )
-        
-        if selected_option != "Aucune sélection":
-            goal_id = int(selected_option.split('#')[1].split(' ')[0])
-            st.session_state.selected_goal = goal_id
+        # Sélecteur de but
+        if not filtered_df.empty:
+            goal_options = []
+            for _, row in filtered_df.iterrows():
+                season_info = f" ({row['season']})" if 'season' in row else ""
+                goal_options.append(f"But #{row['id']}{season_info} - Minute {row['minute']}")
+            
+            selected_option = st.selectbox(
+                "Sélectionner un but:",
+                ["Aucune sélection"] + goal_options,
+                index=0
+            )
+            
+            if selected_option != "Aucune sélection":
+                goal_id = int(selected_option.split('#')[1].split(' ')[0])
+                st.session_state.selected_goal = goal_id
         
         # Afficher le graphique
         selected_points = st.plotly_chart(fig, use_container_width=True, on_select="rerun")
         
-        # Gérer les clics (méthode améliorée pour les traces multiples)
+        # Gérer les clics
         if selected_points and 'selection' in selected_points:
             selection = selected_points['selection']
             if 'points' in selection and len(selection['points']) > 0:
-                # Récupérer les données personnalisées du point cliqué
                 point_data = selection['points'][0]
                 if 'customdata' in point_data:
                     selected_goal_id = point_data['customdata']
@@ -747,275 +629,181 @@ def main():
                     st.rerun()
     
     with col_info:
-        st.subheader("📊 Statistiques par Zone")
+        st.subheader("📊 Statistiques")
         
-        zone_stats = filtered_df.groupby('zone').agg({
-            'id': 'count',
-            'xG': 'mean'
-        }).round(3)
-        zone_stats.columns = ['Nombre', 'xG moyen']
-        st.dataframe(zone_stats)
-        
-        # Statistiques par saison si disponible
-        if 'season' in filtered_df.columns and len(filtered_df['season'].unique()) > 1:
-            st.subheader("📅 Statistiques par Saison")
-            
-            season_stats = filtered_df.groupby('season').agg({
+        if not filtered_df.empty:
+            # Statistiques par zone
+            zone_stats = filtered_df.groupby('zone').agg({
                 'id': 'count',
-                'xG': ['mean', 'sum']
+                'xG': 'mean'
             }).round(3)
-            season_stats.columns = ['Buts', 'xG moyen', 'xG total']
-            st.dataframe(season_stats)
+            zone_stats.columns = ['Buts', 'xG moyen']
             
-            # Graphique des buts par saison
-            season_counts = filtered_df['season'].value_counts().sort_index()
-            fig_season = px.bar(
-                x=season_counts.index,
-                y=season_counts.values,
-                title="Buts par saison",
-                labels={'x': 'Saison', 'y': 'Nombre de buts'},
-                color=season_counts.values,
-                color_continuous_scale='viridis'
-            )
-            fig_season.update_layout(showlegend=False, height=300)
-            st.plotly_chart(fig_season, use_container_width=True)
-        
-        # Graphique des zones
-        if len(zone_stats) > 0:
-            fig_pie = px.pie(
-                values=zone_stats['Nombre'],
-                names=zone_stats.index,
-                title="Répartition par zone"
-            )
-            fig_pie.update_layout(height=300)
-            st.plotly_chart(fig_pie, use_container_width=True)
-    
-    # Section vidéo améliorée
-    if st.session_state.selected_goal:
-        selected_goal_data = filtered_df[filtered_df['id'] == st.session_state.selected_goal].iloc[0]
-        
-        st.divider()
-        st.subheader(f"🎥 But #{st.session_state.selected_goal}")
-        
-        col_video, col_details = st.columns([2, 1])
-        
-        with col_video:
-            # Rechercher le fichier vidéo
-            video_file = find_video_file(selected_goal_data, available_videos=available_videos)
-            
-            if video_file:
-                st.markdown('<div class="video-container">', unsafe_allow_html=True)
-                
-                # Informations debug
-                st.markdown('<div class="video-debug-info">', unsafe_allow_html=True)
-                st.write(f"🎥 **Fichier trouvé:** {os.path.basename(video_file)}")
-                st.write(f"📁 **Chemin complet:** {video_file}")
-                st.write(f"📊 **Taille:** {os.path.getsize(video_file) / (1024*1024):.1f} MB")
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Afficher la vidéo
-                success = display_video(video_file)
-                
-                if not success:
-                    st.error("❌ Impossible d'afficher la vidéo")
-                    st.info("💡 Vérifiez que le fichier n'est pas corrompu et qu'il s'agit d'un format vidéo supporté (.mp4, .mov, .webm)")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-            else:
-                st.warning(f"❌ Vidéo non trouvée pour le but #{st.session_state.selected_goal}")
-                
-                # Informations de debug pour aider au diagnostic
-                st.markdown('<div class="video-debug-info">', unsafe_allow_html=True)
-                if 'video_but' in selected_goal_data and pd.notna(selected_goal_data['video_but']):
-                    st.write(f"🔍 **Nom attendu (colonne video_but):** {selected_goal_data['video_but']}")
-                else:
-                    st.write("🔍 **Colonne video_but:** vide ou inexistante")
-                
-                st.write(f"🆔 **ID du but:** {selected_goal_data['id']}")
-                st.write(f"📁 **Dossier recherché:** Neymar_LaLiga_Buts/")
-                
-                # Suggestions de noms de fichiers
-                suggested_names = [
-                    f"{selected_goal_data['id']}.mp4",
-                    f"but_{selected_goal_data['id']}.mp4",
-                    f"goal_{selected_goal_data['id']}.mp4",
-                    f"neymar_{selected_goal_data['id']}.mp4"
-                ]
-                st.write("💡 **Noms suggérés:**")
-                for name in suggested_names:
-                    st.write(f"   - {name}")
-                
-                if available_videos:
-                    st.write("📋 **Vidéos disponibles dans le dossier:**")
-                    for video in available_videos[:5]:  # Afficher les 5 premiers
-                        st.write(f"   - {video}")
-                    if len(available_videos) > 5:
-                        st.write(f"   ... et {len(available_videos) - 5} autres")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col_details:
-            st.markdown('<div class="goal-info">', unsafe_allow_html=True)
-            st.write(f"**Minute :** {selected_goal_data['minute']}'")
-            st.write(f"**xG :** {selected_goal_data['xG']:.3f}")
-            st.write(f"**Distance :** {selected_goal_data['distance_but']:.1f}m")
-            st.write(f"**Zone :** {selected_goal_data['zone']}")
-            
-            # Informations supplémentaires si disponibles
-            if 'shotType' in selected_goal_data and pd.notna(selected_goal_data['shotType']):
-                st.write(f"**Type de tir :** {selected_goal_data['shotType']}")
-            
-            if 'season' in selected_goal_data and pd.notna(selected_goal_data['season']):
-                st.write(f"**Saison :** {selected_goal_data['season']}")
-            
-            if 'h_team' in selected_goal_data and 'a_team' in selected_goal_data:
-                st.write(f"**Match :** {selected_goal_data['h_team']} vs {selected_goal_data['a_team']}")
-            
-            if 'h_goals' in selected_goal_data and 'a_goals' in selected_goal_data:
-                st.write(f"**Score :** {selected_goal_data['h_goals']}-{selected_goal_data['a_goals']}")
-            
-            if 'player_assisted' in selected_goal_data and pd.notna(selected_goal_data['player_assisted']):
-                st.write(f"**Passeur :** {selected_goal_data['player_assisted']}")
-            
-            if 'video_but' in selected_goal_data and pd.notna(selected_goal_data['video_but']):
-                st.write(f"**Fichier vidéo attendu :** {selected_goal_data['video_but']}")
-            
+            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
+            st.markdown("**Répartition par zone:**")
+            st.dataframe(zone_stats, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Graphique des zones
+            if len(zone_stats) > 0:
+                fig_pie = px.pie(
+                    values=zone_stats['Buts'],
+                    names=zone_stats.index,
+                    title="Répartition par zone",
+                    color_discrete_sequence=px.colors.qualitative.Set3
+                )
+                fig_pie.update_layout(height=300, showlegend=True)
+                st.plotly_chart(fig_pie, use_container_width=True)
+    
+    # Section vidéo
+    if st.session_state.selected_goal and not filtered_df.empty:
+        selected_goal_data = filtered_df[filtered_df['id'] == st.session_state.selected_goal]
         
-        # Boutons d'action
-        col_btn1, col_btn2, col_btn3 = st.columns(3)
-        
-        with col_btn1:
-            if st.button("🔄 Retour à la vue générale"):
-                st.session_state.selected_goal = None
-                st.rerun()
-        
-        with col_btn2:
-            # Navigation vers le but précédent
-            current_index = filtered_df[filtered_df['id'] == st.session_state.selected_goal].index[0]
-            if current_index > filtered_df.index[0]:
-                prev_goal_id = filtered_df.loc[filtered_df.index[filtered_df.index < current_index].max(), 'id']
-                if st.button("⬅️ But précédent"):
-                    st.session_state.selected_goal = prev_goal_id
+        if not selected_goal_data.empty:
+            selected_goal_data = selected_goal_data.iloc[0]
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.subheader(f"🎥 But #{st.session_state.selected_goal}")
+            
+            col_video, col_details = st.columns([2, 1])
+            
+            with col_video:
+                video_file = find_video_file(selected_goal_data, available_videos=available_videos)
+                
+                if video_file:
+                    st.markdown('<div class="video-container">', unsafe_allow_html=True)
+                    success = display_video(video_file)
+                    if success:
+                        st.success("✅ Vidéo chargée avec succès!")
+                    st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Boutons de navigation
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            
+            with col_btn1:
+                if st.button("🔄 Retour à la vue générale", use_container_width=True):
+                    st.session_state.selected_goal = None
                     st.rerun()
-        
-        with col_btn3:
-            # Navigation vers le but suivant
-            current_index = filtered_df[filtered_df['id'] == st.session_state.selected_goal].index[0]
-            if current_index < filtered_df.index[-1]:
-                next_goal_id = filtered_df.loc[filtered_df.index[filtered_df.index > current_index].min(), 'id']
-                if st.button("➡️ But suivant"):
-                    st.session_state.selected_goal = next_goal_id
-                    st.rerun()
+            
+            with col_btn2:
+                # Navigation vers le but précédent
+                current_index = filtered_df[filtered_df['id'] == st.session_state.selected_goal].index
+                if len(current_index) > 0:
+                    current_index = current_index[0]
+                    prev_indices = filtered_df.index[filtered_df.index < current_index]
+                    if len(prev_indices) > 0:
+                        prev_goal_id = filtered_df.loc[prev_indices.max(), 'id']
+                        if st.button("⬅️ But précédent", use_container_width=True):
+                            st.session_state.selected_goal = prev_goal_id
+                            st.rerun()
+            
+            with col_btn3:
+                # Navigation vers le but suivant
+                current_index = filtered_df[filtered_df['id'] == st.session_state.selected_goal].index
+                if len(current_index) > 0:
+                    current_index = current_index[0]
+                    next_indices = filtered_df.index[filtered_df.index > current_index]
+                    if len(next_indices) > 0:
+                        next_goal_id = filtered_df.loc[next_indices.min(), 'id']
+                        if st.button("➡️ But suivant", use_container_width=True):
+                            st.session_state.selected_goal = next_goal_id
+                            st.rerun()
     
     # Tableau détaillé
-    st.divider()
-    st.subheader("📋 Liste détaillée des buts")
-    
-    # Préparer les données pour affichage
-    display_columns = ['id', 'minute', 'xG', 'zone', 'distance_but']
-    
-    # Ajouter les colonnes optionnelles si elles existent
-    optional_columns = ['season', 'shotType', 'h_team', 'a_team', 'h_goals', 'a_goals', 'video_but']
-    for col in optional_columns:
-        if col in filtered_df.columns:
-            display_columns.append(col)
-    
-    display_df = filtered_df[display_columns].copy()
-    
-    # Renommer les colonnes pour l'affichage
-    column_names = {
-        'id': 'ID',
-        'minute': 'Minute',
-        'xG': 'xG',
-        'zone': 'Zone',
-        'distance_but': 'Distance (m)',
-        'season': 'Saison',
-        'shotType': 'Type tir',
-        'h_team': 'Équipe dom.',
-        'a_team': 'Équipe ext.',
-        'h_goals': 'Buts dom.',
-        'a_goals': 'Buts ext.',
-        'video_but': 'Fichier vidéo'
-    }
-    
-    display_df = display_df.rename(columns=column_names)
-    
-    # Arrondir les valeurs numériques
-    if 'xG' in display_df.columns:
-        display_df['xG'] = display_df['xG'].round(3)
-    if 'Distance (m)' in display_df.columns:
-        display_df['Distance (m)'] = display_df['Distance (m)'].round(1)
-    
-    # Ajouter l'indicateur de vidéo
-    display_df['🎥'] = filtered_df['has_video'].apply(lambda x: '✅' if x else '❌')
-    
-    # Réorganiser les colonnes avec l'indicateur vidéo au début
-    cols = ['🎥'] + [col for col in display_df.columns if col != '🎥']
-    display_df = display_df[cols]
-    
-    # Afficher le tableau avec possibilité de sélection
-    event = st.dataframe(
-        display_df,
-        use_container_width=True,
-        on_select="rerun",
-        selection_mode="single-row"
-    )
-    
-    # Gérer la sélection dans le tableau
-    if event.selection and 'rows' in event.selection and len(event.selection['rows']) > 0:
-        selected_row_index = event.selection['rows'][0]
-        selected_goal_id = filtered_df.iloc[selected_row_index]['id']
-        st.session_state.selected_goal = selected_goal_id
-        st.rerun()
-    
-    # Section d'aide et conseils
-    st.divider()
-    
-    with st.expander("💡 Conseils pour résoudre les problèmes d'affichage vidéo"):
-        st.markdown("""
-        ### Problèmes courants et solutions :
+    if not filtered_df.empty:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("📋 Liste complète des buts")
         
-        **1. Vidéos non trouvées :**
-        - Vérifiez que le dossier `Neymar_LaLiga_Buts` existe dans le même répertoire que ce script
-        - Vérifiez que les noms de fichiers correspondent aux ID des buts
-        - Formats de noms supportés : `1.mp4`, `but_1.mp4`, `goal_1.mp4`, `neymar_1.mp4`
+        # Préparer les données pour affichage
+        display_columns = ['id', 'minute', 'xG', 'zone', 'distance_but']
         
-        **2. Vidéos ne s'affichent pas :**
-        - Vérifiez que les fichiers sont dans un format supporté (.mp4, .mov, .webm)
-        - Vérifiez que les fichiers ne sont pas corrompus
-        - Réduisez la taille des fichiers si ils sont trop volumineux (>200MB)
+        # Ajouter les colonnes optionnelles si elles existent
+        optional_columns = ['season', 'shotType', 'h_team', 'a_team', 'player_assisted']
+        for col in optional_columns:
+            if col in filtered_df.columns:
+                display_columns.append(col)
         
-        **3. Performance :**
-        - Utilisez de préférence le format MP4 H.264 pour une meilleure compatibilité
-        - Compressez les vidéos si nécessaire
+        display_df = filtered_df[display_columns].copy()
         
-        **4. Structure recommandée :**
-        ```
-        votre_projet/
-        ├── app.py (ce script)
-        ├── Neymar_Buts_LaLiga.csv
-        └── Neymar_LaLiga_Buts/
-            ├── 1.mp4
-            ├── 2.mp4
-            ├── 3.mp4
-            └── ...
-        ```
-        """)
+        # Renommer les colonnes pour l'affichage
+        column_names = {
+            'id': 'ID',
+            'minute': 'Minute',
+            'xG': 'xG',
+            'zone': 'Zone',
+            'distance_but': 'Distance (m)',
+            'season': 'Saison',
+            'shotType': 'Type de tir',
+            'h_team': 'Équipe dom.',
+            'a_team': 'Équipe ext.',
+            'player_assisted': 'Passeur'
+        }
+        
+        display_df = display_df.rename(columns=column_names)
+        
+        # Arrondir les valeurs numériques
+        if 'xG' in display_df.columns:
+            display_df['xG'] = display_df['xG'].round(3)
+        if 'Distance (m)' in display_df.columns:
+            display_df['Distance (m)'] = display_df['Distance (m)'].round(1)
+        
+        # Afficher le tableau avec possibilité de sélection
+        event = st.dataframe(
+            display_df,
+            use_container_width=True,
+            on_select="rerun",
+            selection_mode="single-row"
+        )
+        
+        # Gérer la sélection dans le tableau
+        if event.selection and 'rows' in event.selection and len(event.selection['rows']) > 0:
+            selected_row_index = event.selection['rows'][0]
+            selected_goal_id = filtered_df.iloc[selected_row_index]['id']
+            st.session_state.selected_goal = selected_goal_id
+            st.rerun()
     
     # Footer avec informations
-    st.divider()
+    st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
-    <div style='text-align: center; color: gray; font-size: 0.9rem;'>
-        <p>📊 Analyse interactive des buts de Neymar Jr en LaLiga (2013-2017)</p>
-        <p>Données xG et coordonnées Opta • Vidéos incluses • Version améliorée avec diagnostic</p>
-        <p>🎥 {video_count} vidéos détectées • 🎯 {goal_count} buts au total</p>
+    <div style='text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                color: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>
+        <h3 style='margin: 0 0 1rem 0;'>⚽ Neymar Jr - LaLiga Legacy</h3>
+        <p style='margin: 0; font-size: 1.1rem;'>
+            🎯 {goal_count} buts analysés • 🎥 {video_count} vidéos disponibles • 📊 Données xG Opta
+        </p>
+        <p style='margin: 0.5rem 0 0 0; opacity: 0.8;'>
+            Application interactive développée pour l'analyse des performances de Neymar Jr au FC Barcelone
+        </p>
     </div>
     """.format(
-        video_count=len(available_videos),
-        goal_count=len(df_goals)
+        goal_count=len(df_goals) if not df_goals.empty else 0,
+        video_count=len(available_videos)
     ), unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()
+    main()_html=True)
+                else:
+                    st.info("📹 Vidéo en cours de chargement...")
+            
+            with col_details:
+                st.markdown('<div class="goal-info">', unsafe_allow_html=True)
+                st.markdown(f"**⏱️ Minute :** {selected_goal_data['minute']}'")
+                st.markdown(f"**🎯 xG :** {selected_goal_data['xG']:.3f}")
+                st.markdown(f"**📏 Distance :** {selected_goal_data['distance_but']:.1f}m")
+                st.markdown(f"**🏟️ Zone :** {selected_goal_data['zone']}")
+                
+                if 'shotType' in selected_goal_data and pd.notna(selected_goal_data['shotType']):
+                    st.markdown(f"**⚽ Type :** {selected_goal_data['shotType']}")
+                
+                if 'season' in selected_goal_data and pd.notna(selected_goal_data['season']):
+                    st.markdown(f"**📅 Saison :** {selected_goal_data['season']}")
+                
+                if 'h_team' in selected_goal_data and 'a_team' in selected_goal_data:
+                    if pd.notna(selected_goal_data['h_team']) and pd.notna(selected_goal_data['a_team']):
+                        st.markdown(f"**🏆 Match :** {selected_goal_data['h_team']} vs {selected_goal_data['a_team']}")
+                
+                if 'player_assisted' in selected_goal_data and pd.notna(selected_goal_data['player_assisted']):
+                    st.markdown(f"**🤝 Passeur :** {selected_goal_data['player_assisted']}")
+                
+                st.markdown('</div>', unsafe_allow
