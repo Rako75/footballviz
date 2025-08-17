@@ -396,8 +396,8 @@ def main():
             showlegend=False
         )
         
-        # Affichage du terrain avec gestion des clics
-        clicked_point = st.plotly_chart(fig, use_container_width=True, key="pitch")
+        # Affichage du terrain avec événements de sélection
+        event = st.plotly_chart(fig, use_container_width=True, key="pitch", on_select="rerun")
     
     with col2:
         st.markdown("### 📊 Statistiques détaillées")
@@ -451,17 +451,18 @@ def main():
             )
             st.plotly_chart(fig_xg, use_container_width=True)
     
-    # Section vidéo (affichage conditionnel)
-    if 'selected_goal' in st.session_state:
-        goal_info = filtered_df.iloc[st.session_state.selected_goal]
-        display_goal_video(goal_info['video_but'], goal_info)
-    
     # Gestion des clics sur le terrain
-    if clicked_point and clicked_point.get('points'):
-        point_index = clicked_point['points'][0].get('customdata')
-        if point_index is not None:
+    if event and event.selection and len(event.selection.points) > 0:
+        # Récupérer l'index du point sélectionné
+        selected_point = event.selection.points[0]
+        if 'customdata' in selected_point:
+            point_index = selected_point['customdata']
             st.session_state.selected_goal = point_index
-            st.rerun()
+    
+    # Section vidéo (affichage conditionnel)
+    if 'selected_goal' in st.session_state and st.session_state.selected_goal in filtered_df.index:
+        goal_info = filtered_df.loc[st.session_state.selected_goal]
+        display_goal_video(goal_info['video_but'], goal_info)
     
     # Tableau des buts filtrés
     st.markdown("### 📋 Liste des buts")
@@ -478,10 +479,10 @@ def main():
             selection_mode="single-row"
         )
         
-        if len(selected_row.selection.rows) > 0:
+        if selected_row.selection and len(selected_row.selection.rows) > 0:
             selected_index = selected_row.selection.rows[0]
-            st.session_state.selected_goal = filtered_df.iloc[selected_index].name
-            st.rerun()
+            goal_index = filtered_df.iloc[selected_index].name
+            st.session_state.selected_goal = goal_index
     else:
         st.info("Aucun but ne correspond aux critères sélectionnés.")
 
