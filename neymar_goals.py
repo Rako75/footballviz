@@ -90,37 +90,40 @@ def load_data():
         return pd.DataFrame()
 
 def normalize_coordinates(x, y):
-    """Normalise les coordonnées selon le système détecté - POUR ZOOM SUR CAGES"""
-    # Dimensions du terrain et zone de zoom
+    """Normalise les coordonnées selon le système détecté"""
+    # Dimensions du terrain
     pitch_width = 68
-    center_x = pitch_width / 2
-    zoom_width = 25
-    zoom_depth = 20
+    pitch_length = 105
     
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
-        # Système normalisé (0-1) - coordonnées relatives à la zone des cages
-        # X: distance au but (1 = très proche du but, 0 = loin du but)
-        # Y: position latérale (0-1 = largeur)
+        # Système normalisé (0-1) - coordonnées relatives à la surface de réparation ADVERSE
+        # X semble représenter la distance au but adverse (1 = très proche du but adverse)
+        # Y semble représenter la position latérale (0-1 = largeur de la surface)
         
-        # Convertir en position réelle dans la zone de zoom
-        # Y (largeur) : centrer sur les cages
-        x_terrain = center_x + (y - 0.5) * zoom_width * 0.8  # Position latérale autour du centre
+        # La surface de réparation fait 40.3m de large x 16.5m de profondeur
+        surface_width = 40.3
+        surface_depth = 16.5
         
-        # X (distance) : plus X est proche de 1, plus c'est près du but
-        # Pour la zone de zoom : 0 = ligne de but, zoom_depth = limite de la zone
-        y_terrain = (1 - x) * zoom_depth * 0.8  # Distance depuis la ligne de but
+        # Position dans la surface de réparation ADVERSE (en haut du terrain)
+        # X: 1 = ligne de but adverse, 0 = limite de la surface (16.5m du but adverse)
+        y_terrain = pitch_length - (1 - x) * surface_depth  # Distance au but adverse (105 = sur la ligne de but adverse)
+        
+        # Y: position latérale dans la surface (centrée sur le terrain)
+        x_terrain = y * surface_width + (pitch_width - surface_width) / 2
         
     else:
-        # Système en yards/mètres - convertir pour la zone de zoom
+        # Système en yards/mètres - semble être un système de coordonnées différent
+        # Les valeurs élevées (>100) suggèrent un terrain de 120x80 yards
         if x > 50:  # Système yards
-            # Conversion pour la zone de zoom
-            y_terrain = (120 - x) * zoom_depth / 20  # Adapter à la profondeur de zoom
-            x_terrain = center_x + (y - 40) * zoom_width / 40  # Centrer autour des cages
+            # Convertir de yards vers mètres et ajuster l'orientation
+            # Dans ce système, les valeurs élevées de X semblent être près du but adverse
+            y_terrain = pitch_length - (120 - x) * pitch_length / 120  # But adverse en haut
+            x_terrain = y * pitch_width / 80
         else:
-            # Valeurs plus petites
-            y_terrain = x * zoom_depth / 20
-            x_terrain = center_x + (y - 40) * zoom_width / 40
+            # Valeurs plus petites - système différent
+            y_terrain = pitch_length - x * pitch_length / 120  # But adverse en haut
+            x_terrain = y * pitch_width / 80
     
     return x_terrain, y_terrain
 
@@ -472,7 +475,7 @@ def main():
     col_pitch, col_video = st.columns([3, 2])
     
     with col_pitch:
-        st.markdown("### 🎯 Zone des Cages - Vue Rapprochée")
+        st.markdown("### 🏟️ Terrain de Football")
         
         if not df_filtered.empty:
             # Créer la visualisation du terrain
