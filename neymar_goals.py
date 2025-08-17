@@ -123,6 +123,9 @@ def load_data():
         # Ajouter une saison par défaut si manquante
         if 'season' not in df_goals.columns:
             df_goals['season'] = '2013-2017'
+        else:
+            # S'assurer que les saisons sont des chaînes de caractères
+            df_goals['season'] = df_goals['season'].astype(str)
         
         return df_goals
         
@@ -343,17 +346,24 @@ def create_custom_pitch_figure(df_goals, selected_goal_id=None, season_colors=No
     ))
     
     # Affichage des buts par saison
-    unique_seasons = sorted(df_goals['season'].unique()) if 'season' in df_goals.columns else ['2013-2017']
+    if 'season' in df_goals.columns:
+        # Convertir les saisons en chaînes de caractères
+        df_goals['season'] = df_goals['season'].astype(str)
+        unique_seasons = sorted(df_goals['season'].unique())
+    else:
+        unique_seasons = ['2013-2017']
     
     # Générer des couleurs automatiquement si nécessaire
     if len(unique_seasons) > len(season_colors):
         colors = px.colors.qualitative.Set3
         for i, season in enumerate(unique_seasons):
-            if season not in season_colors:
-                season_colors[season] = colors[i % len(colors)]
+            season_str = str(season)
+            if season_str not in season_colors:
+                season_colors[season_str] = colors[i % len(colors)]
     
     for season in unique_seasons:
-        season_data = df_goals[df_goals['season'] == season] if 'season' in df_goals.columns else df_goals
+        season_str = str(season)
+        season_data = df_goals[df_goals['season'] == season_str] if 'season' in df_goals.columns else df_goals
         
         if season_data.empty:
             continue
@@ -369,7 +379,7 @@ def create_custom_pitch_figure(df_goals, selected_goal_id=None, season_colors=No
                 colors.append('#FFD700')  # Or pour le but sélectionné
                 sizes.append(max(20, 40 * goal['xG']) * 1.8)
             else:
-                colors.append(season_colors.get(season, '#FF4444'))
+                colors.append(season_colors.get(season_str, '#FF4444'))
                 sizes.append(max(12, 25 * goal['xG']))
             
             texts.append(
@@ -393,7 +403,7 @@ def create_custom_pitch_figure(df_goals, selected_goal_id=None, season_colors=No
             text=texts,
             hovertemplate='%{text}<extra></extra>',
             customdata=season_data['id'],
-            name=season,
+            name=season_str,  # Utiliser season_str au lieu de season
             visible=True
         ))
     
