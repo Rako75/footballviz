@@ -116,95 +116,94 @@ def load_data():
         return None
 
 def create_pitch():
-    """Crée le terrain de football avec la même structure que le code matplotlib"""
+    """Crée le terrain de football en orientation verticale"""
     fig = go.Figure()
     
-    # Dimensions du terrain (identiques au code original)
-    pitch_length = 120
-    pitch_width = 80
+    # Dimensions du terrain en vertical (on inverse largeur et hauteur)
+    pitch_width = 120  # Maintenant la largeur (horizontal)
+    pitch_length = 80  # Maintenant la longueur (vertical)
     
     # Couleur du terrain (identique au code original)
     pitch_color = '#2d5a2d'
-    background_color = '#0C0D0E'
     line_color = 'white'
     line_width = 3
     
-    # Terrain avec la même couleur que l'original
+    # Terrain avec la même couleur que l'original (en vertical)
     fig.add_shape(
         type="rect",
-        x0=0, y0=0, x1=pitch_length, y1=pitch_width,
+        x0=0, y0=0, x1=pitch_width, y1=pitch_length,
         fillcolor=pitch_color,
         line=dict(color=line_color, width=line_width)
     )
     
-    # Ligne médiane
+    # Ligne médiane (maintenant horizontale)
     fig.add_shape(
         type="line",
-        x0=pitch_length/2, y0=0, x1=pitch_length/2, y1=pitch_width,
+        x0=0, y0=pitch_length/2, x1=pitch_width, y1=pitch_length/2,
         line=dict(color=line_color, width=line_width)
     )
     
-    # Cercle central (rayon 9.15m)
+    # Cercle central
     fig.add_shape(
         type="circle",
         xref="x", yref="y",
-        x0=pitch_length/2-9.15, y0=pitch_width/2-9.15,
-        x1=pitch_length/2+9.15, y1=pitch_width/2+9.15,
+        x0=pitch_width/2-9.15, y0=pitch_length/2-9.15,
+        x1=pitch_width/2+9.15, y1=pitch_length/2+9.15,
         line=dict(color=line_color, width=line_width),
         fillcolor="rgba(0,0,0,0)"
     )
     
     # Point central
     fig.add_trace(go.Scatter(
-        x=[pitch_length/2], y=[pitch_width/2],
+        x=[pitch_width/2], y=[pitch_length/2],
         mode='markers',
         marker=dict(color=line_color, size=8),
         showlegend=False,
         hoverinfo='skip'
     ))
     
-    # Surface de réparation (côté droit - attaque)
+    # Surface de réparation (côté haut - attaque de Neymar)
     penalty_width = 40.32
     penalty_height = 16.5
-    penalty_x = pitch_length - penalty_height
-    penalty_y = (pitch_width - penalty_width) / 2
+    penalty_x = (pitch_width - penalty_width) / 2
+    penalty_y = pitch_length - penalty_height
     
     fig.add_shape(
         type="rect",
         x0=penalty_x, y0=penalty_y,
-        x1=pitch_length, y1=penalty_y + penalty_width,
+        x1=penalty_x + penalty_width, y1=pitch_length,
         line=dict(color=line_color, width=line_width),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # Surface de but (côté droit)
+    # Surface de but (côté haut)
     goal_area_width = 18.32
     goal_area_height = 5.5
-    goal_area_x = pitch_length - goal_area_height
-    goal_area_y = (pitch_width - goal_area_width) / 2
+    goal_area_x = (pitch_width - goal_area_width) / 2
+    goal_area_y = pitch_length - goal_area_height
     
     fig.add_shape(
         type="rect",
         x0=goal_area_x, y0=goal_area_y,
-        x1=pitch_length, y1=goal_area_y + goal_area_width,
+        x1=goal_area_x + goal_area_width, y1=pitch_length,
         line=dict(color=line_color, width=line_width),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # But droit
+    # But haut
     goal_width = 7.32
-    goal_y = (pitch_width - goal_width) / 2
+    goal_x = (pitch_width - goal_width) / 2
     
     fig.add_shape(
         type="line",
-        x0=pitch_length, y0=goal_y,
-        x1=pitch_length, y1=goal_y + goal_width,
+        x0=goal_x, y0=pitch_length,
+        x1=goal_x + goal_width, y1=pitch_length,
         line=dict(color=line_color, width=line_width + 2)
     )
     
-    # Point de penalty droit
-    penalty_spot_x = pitch_length - 11
-    penalty_spot_y = pitch_width / 2
+    # Point de penalty haut
+    penalty_spot_x = pitch_width / 2
+    penalty_spot_y = pitch_length - 11
     
     fig.add_trace(go.Scatter(
         x=[penalty_spot_x], y=[penalty_spot_y],
@@ -214,8 +213,8 @@ def create_pitch():
         hoverinfo='skip'
     ))
     
-    # Arc de penalty droit (approximation avec des points)
-    theta = np.linspace(np.radians(38), np.radians(142), 50)
+    # Arc de penalty haut
+    theta = np.linspace(np.radians(-52), np.radians(-128), 50)
     arc_x = penalty_spot_x + 9.15 * np.cos(theta)
     arc_y = penalty_spot_y + 9.15 * np.sin(theta)
     
@@ -227,50 +226,50 @@ def create_pitch():
         hoverinfo='skip'
     ))
     
-    # Surface de réparation (côté gauche - défense)
+    # Surface de réparation (côté bas - défense)
     fig.add_shape(
         type="rect",
-        x0=0, y0=penalty_y,
-        x1=penalty_height, y1=penalty_y + penalty_width,
+        x0=penalty_x, y0=0,
+        x1=penalty_x + penalty_width, y1=penalty_height,
         line=dict(color=line_color, width=line_width),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # Surface de but (côté gauche)
+    # Surface de but (côté bas)
     fig.add_shape(
         type="rect",
-        x0=0, y0=goal_area_y,
-        x1=goal_area_height, y1=goal_area_y + goal_area_width,
+        x0=goal_area_x, y0=0,
+        x1=goal_area_x + goal_area_width, y1=goal_area_height,
         line=dict(color=line_color, width=line_width),
         fillcolor="rgba(0,0,0,0)"
     )
     
-    # But gauche
+    # But bas
     fig.add_shape(
         type="line",
-        x0=0, y0=goal_y,
-        x1=0, y1=goal_y + goal_width,
+        x0=goal_x, y0=0,
+        x1=goal_x + goal_width, y1=0,
         line=dict(color=line_color, width=line_width + 2)
     )
     
-    # Point de penalty gauche
-    penalty_spot_x_left = 11
+    # Point de penalty bas
+    penalty_spot_y_bottom = 11
     
     fig.add_trace(go.Scatter(
-        x=[penalty_spot_x_left], y=[penalty_spot_y],
+        x=[penalty_spot_x], y=[penalty_spot_y_bottom],
         mode='markers',
         marker=dict(color=line_color, size=10),
         showlegend=False,
         hoverinfo='skip'
     ))
     
-    # Arc de penalty gauche
-    theta_left = np.linspace(np.radians(-38), np.radians(38), 50)
-    arc_x_left = penalty_spot_x_left + 9.15 * np.cos(theta_left)
-    arc_y_left = penalty_spot_y + 9.15 * np.sin(theta_left)
+    # Arc de penalty bas
+    theta_bottom = np.linspace(np.radians(52), np.radians(128), 50)
+    arc_x_bottom = penalty_spot_x + 9.15 * np.cos(theta_bottom)
+    arc_y_bottom = penalty_spot_y_bottom + 9.15 * np.sin(theta_bottom)
     
     fig.add_trace(go.Scatter(
-        x=arc_x_left, y=arc_y_left,
+        x=arc_x_bottom, y=arc_y_bottom,
         mode='lines',
         line=dict(color=line_color, width=line_width),
         showlegend=False,
