@@ -95,23 +95,36 @@ def normalize_coordinates_full_pitch(x, y):
     pitch_length = 105  # Longueur du terrain
     pitch_width = 68    # Largeur du terrain
     
-    # Détecter le système de coordonnées et normaliser
+    # Debug: afficher les valeurs min/max dans Streamlit
+    # st.write(f"Debug - X: {x}, Y: {y}")
+    
+    # Convertir en coordonnées du terrain complet
+    # Assumer que les coordonnées originales sont dans un système 0-1 ou similaire
+    
+    # Si les valeurs sont très petites (0-1), les traiter comme normalisées
     if x <= 1.0 and y <= 1.0:
-        # Système normalisé (0-1)
-        x_pitch = y * pitch_width  # Position latérale
-        y_pitch = (1 - x) * pitch_length  # Position longitudinale (0 = but adverse, 105 = but propre)
-    else:
-        # Système en yards/mètres
-        if x > 50:  # Système yards (terrain 120x80)
-            x_normalized = min(max(x / 120, 0), 1)
-            y_normalized = min(max(y / 80, 0), 1)
-        else:
-            # Valeurs plus petites
-            x_normalized = min(max(x / pitch_length, 0), 1)
-            y_normalized = min(max(y / pitch_width, 0), 1)
+        # Pour un terrain de football:
+        # x représente la position latérale (largeur)
+        # y représente la position longitudinale (longueur)
         
-        x_pitch = y_normalized * pitch_width
-        y_pitch = x_normalized * pitch_length
+        # Placer les buts principalement dans la moitié adverse (y faible)
+        x_pitch = x * pitch_width  # 0-68m largeur
+        y_pitch = y * pitch_length * 0.8  # Concentrer dans les 80% adverses (0-84m)
+        
+    elif x > 50 or y > 50:
+        # Système en yards (terrain ~120x80)
+        # Normaliser vers 0-1 puis convertir
+        x_norm = min(max(x / 120, 0), 1)
+        y_norm = min(max(y / 80, 0), 1)
+        
+        x_pitch = x_norm * pitch_width
+        y_pitch = y_norm * pitch_length
+        
+    else:
+        # Système en coordonnées plus petites
+        # Assumer que c'est déjà en coordonnées de terrain
+        x_pitch = min(max(x * 10, 0), pitch_width)  # Multiplier par un facteur
+        y_pitch = min(max(y * 10, 0), pitch_length)
     
     return x_pitch, y_pitch
 
@@ -300,6 +313,13 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
         ))
     
     if not df_filtered.empty:
+        # Debug: afficher quelques valeurs pour comprendre le système de coordonnées
+        st.write("**Debug - Échantillon de coordonnées:**")
+        sample_coords = df_filtered[['X', 'Y']].head(5)
+        st.write(sample_coords)
+        st.write(f"X min: {df_filtered['X'].min()}, X max: {df_filtered['X'].max()}")
+        st.write(f"Y min: {df_filtered['Y'].min()}, Y max: {df_filtered['Y'].max()}")
+        
         # Normaliser les coordonnées pour le terrain complet
         x_coords = []
         y_coords = []
@@ -309,6 +329,11 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
             x_coords.append(x_norm)
             y_coords.append(y_norm)
         
+        # Debug: afficher les coordonnées transformées
+        st.write("**Debug - Coordonnées transformées (échantillon):**")
+        st.write(f"X transformé: {x_coords[:5]}")
+        st.write(f"Y transformé: {y_coords[:5]}")
+        
         # Couleurs selon le type de tir
         colors = df_filtered['shotType'].map({
             'RightFoot': '#1f77b4',  # Bleu
@@ -316,8 +341,8 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
             'Head': '#2ca02c'        # Vert
         })
         
-        # Tailles selon xG
-        sizes = df_filtered['xG'] * 30 + 10
+        # Tailles selon xG - Plus grandes pour être plus visibles
+        sizes = df_filtered['xG'] * 50 + 20  # Augmenter la taille minimale
         
         # Ajouter les points des buts
         fig.add_trace(go.Scatter(
@@ -327,8 +352,8 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
             marker=dict(
                 size=sizes,
                 color=colors,
-                opacity=0.9,
-                line=dict(width=2, color='white'),
+                opacity=1.0,  # Opacité maximale
+                line=dict(width=3, color='black'),  # Contour noir pour visibilité
                 symbol='circle'
             ),
             text=[f"⚽ vs {row['a_team']}<br>📅 {row['date'].strftime('%d/%m/%Y')}<br>⏱️ {row['minute']}'<br>📊 xG: {row['xG']:.3f}<br>🦶 {row['shot_type_fr']}<br>🎯 Passeur: {row['player_assisted'] if pd.notna(row['player_assisted']) else 'Aucun'}"
