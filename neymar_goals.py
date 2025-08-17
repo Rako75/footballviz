@@ -89,6 +89,27 @@ def load_data():
         st.error(f"Erreur lors du chargement des données : {e}")
         return pd.DataFrame()
 
+def normalize_coordinates(x, y):
+    """Normalise les coordonnées selon le système détecté"""
+    # Détecter le système de coordonnées
+    if x <= 1.0 and y <= 1.0:
+        # Système normalisé (0-1) - les convertir en coordonnées terrain
+        # Dans ce système, (1,1) semble être la zone de but
+        # On inverse Y car (1,1) = coin supérieur droit du but
+        x_norm = (1 - x) * 68  # Largeur du terrain
+        y_norm = (1 - y) * 105  # Longueur du terrain
+    else:
+        # Système en yards/mètres - convertir directement
+        # Les valeurs élevées (>100) semblent être dans l'autre sens
+        if x > 50:  # Probablement système yards (120x80)
+            x_norm = (120 - x) * 68 / 120  # Convertir et inverser
+            y_norm = y * 105 / 80
+        else:
+            x_norm = x * 68 / 80
+            y_norm = y * 105 / 120
+    
+    return x_norm, y_norm
+
 def create_pitch_visualization(df_filtered, selected_goal=None):
     """Crée la visualisation du terrain de football avec les buts"""
     
@@ -99,13 +120,13 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
     # Créer la figure
     fig = go.Figure()
     
-    # Dessiner le terrain
-    # Contours du terrain
+    # Dessiner le terrain de football
+    # Fond du terrain
     fig.add_shape(
         type="rect",
         x0=0, y0=0, x1=pitch_width, y1=pitch_length,
         line=dict(color="white", width=3),
-        fillcolor="rgba(34, 139, 34, 0.1)"
+        fillcolor="rgba(34, 139, 34, 0.9)"
     )
     
     # Ligne médiane
@@ -124,7 +145,8 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         fillcolor="rgba(255,255,255,0)"
     )
     
-    # Surface de réparation (bas)
+    # But et surface de réparation (bas - où Neymar marque)
+    # Surface de réparation
     fig.add_shape(
         type="rect",
         x0=pitch_width/2-20.15, y0=0, x1=pitch_width/2+20.15, y1=16.5,
@@ -132,12 +154,19 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         fillcolor="rgba(255,255,255,0)"
     )
     
-    # Surface de but (bas)
+    # Surface de but
     fig.add_shape(
         type="rect",
         x0=pitch_width/2-9.16, y0=0, x1=pitch_width/2+9.16, y1=5.5,
         line=dict(color="white", width=2),
         fillcolor="rgba(255,255,255,0)"
+    )
+    
+    # Ligne de but
+    fig.add_shape(
+        type="line",
+        x0=pitch_width/2-3.66, y0=0, x1=pitch_width/2+3.66, y1=0,
+        line=dict(color="white", width=4)
     )
     
     # Surface de réparation (haut)
@@ -157,9 +186,14 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
     )
     
     if not df_filtered.empty:
-        # Normaliser les coordonnées (supposées être en yards, conversion en mètres sur le terrain)
-        x_normalized = df_filtered['Y'] * pitch_width / 100  # Y devient X (largeur)
-        y_normalized = df_filtered['X'] * pitch_length / 120  # X devient Y (longueur)
+        # Normaliser les coordonnées avec la nouvelle fonction
+        x_coords = []
+        y_coords = []
+        
+        for _, row in df_filtered.iterrows():
+            x_norm, y_norm = normalize_coordinates(row['X'], row['Y'])
+            x_coords.append(x_norm)
+            y_coords.append(y_norm)
         
         # Couleurs selon le type de tir
         colors = df_filtered['shotType'].map({
@@ -168,13 +202,13 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
             'Head': '#2ca02c'
         })
         
-        # Tailles selon xG
-        sizes = df_filtered['xG'] * 30 + 10
+        # Tailles selon xG (plus grande pour xG élevé)
+        sizes = df_filtered['xG'] * 40 + 12
         
         # Ajouter les points des buts
         fig.add_trace(go.Scatter(
-            x=x_normalized,
-            y=y_normalized,
+            x=x_coords,
+            y=y_coords,
             mode='markers',
             marker=dict(
                 size=sizes,
@@ -183,25 +217,26 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
                 line=dict(width=2, color='white'),
                 symbol='circle'
             ),
-            text=[f"⚽ {row['a_team']}<br>Minute: {row['minute']}<br>xG: {row['xG']:.2f}<br>Type: {row['shot_type_fr']}" 
+            text=[f"⚽ vs {row['a_team']}<br>📅 {row['date'].strftime('%d/%m/%Y')}<br>⏱️ {row['minute']}'<br>📊 xG: {row['xG']:.3f}<br>🦶 {row['shot_type_fr']}<br>🎯 Passeur: {row['player_assisted'] if pd.notna(row['player_assisted']) else 'Aucun'}" 
                   for _, row in df_filtered.iterrows()],
             hovertemplate='<b>%{text}</b><extra></extra>',
             customdata=df_filtered.index,
-            name='Buts'
+            name='Buts de Neymar'
         ))
         
         # Mettre en évidence le but sélectionné
-        if selected_goal is not None:
+        if selected_goal is not None and selected_goal < len(df_filtered):
             selected_row = df_filtered.iloc[selected_goal]
+            x_sel, y_sel = normalize_coordinates(selected_row['X'], selected_row['Y'])
             fig.add_trace(go.Scatter(
-                x=[selected_row['Y'] * pitch_width / 100],
-                y=[selected_row['X'] * pitch_length / 120],
+                x=[x_sel],
+                y=[y_sel],
                 mode='markers',
                 marker=dict(
-                    size=40,
+                    size=50,
                     color='red',
                     symbol='star',
-                    line=dict(width=3, color='yellow')
+                    line=dict(width=4, color='yellow')
                 ),
                 name='But sélectionné',
                 showlegend=False
@@ -209,32 +244,41 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
     
     # Configuration du layout
     fig.update_layout(
-        title="Terrain de Football - Position des Buts",
+        title=dict(
+            text="🏟️ Terrain de Football - Position des Buts de Neymar",
+            x=0.5,
+            font=dict(size=18, color='white')
+        ),
         xaxis=dict(
-            range=[-5, pitch_width+5],
+            range=[-3, pitch_width+3],
             showgrid=False,
             showticklabels=False,
-            zeroline=False
+            zeroline=False,
+            fixedrange=True
         ),
         yaxis=dict(
-            range=[-5, pitch_length+5],
+            range=[-3, pitch_length+3],
             showgrid=False,
             showticklabels=False,
             zeroline=False,
             scaleanchor="x",
-            scaleratio=1
+            scaleratio=1,
+            fixedrange=True
         ),
-        plot_bgcolor='rgba(34, 139, 34, 0.8)',
-        paper_bgcolor='rgba(34, 139, 34, 0.9)',
+        plot_bgcolor='rgba(34, 139, 34, 1)',
+        paper_bgcolor='rgba(34, 139, 34, 1)',
         showlegend=True,
         legend=dict(
             yanchor="top",
             y=0.99,
             xanchor="left",
             x=0.01,
-            bgcolor="rgba(255,255,255,0.8)"
+            bgcolor="rgba(255,255,255,0.9)",
+            bordercolor="rgba(0,0,0,0.2)",
+            borderwidth=1
         ),
-        height=700
+        height=700,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
     
     return fig
