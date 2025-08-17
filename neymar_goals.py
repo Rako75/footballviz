@@ -97,17 +97,17 @@ def normalize_coordinates(x, y):
     
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
-        # Système normalisé (0-1) - coordonnées relatives à la surface de réparation
-        # X semble représenter la distance au but (1 = très proche du but)
+        # Système normalisé (0-1) - coordonnées relatives à la surface de réparation ADVERSE
+        # X semble représenter la distance au but adverse (1 = très proche du but adverse)
         # Y semble représenter la position latérale (0-1 = largeur de la surface)
         
         # La surface de réparation fait 40.3m de large x 16.5m de profondeur
         surface_width = 40.3
         surface_depth = 16.5
         
-        # Position dans la surface de réparation
-        # X: 1 = ligne de but, 0 = limite de la surface (16.5m du but)
-        y_terrain = (1 - x) * surface_depth  # Distance au but (0 = sur la ligne de but)
+        # Position dans la surface de réparation ADVERSE (en haut du terrain)
+        # X: 1 = ligne de but adverse, 0 = limite de la surface (16.5m du but adverse)
+        y_terrain = pitch_length - (1 - x) * surface_depth  # Distance au but adverse (105 = sur la ligne de but adverse)
         
         # Y: position latérale dans la surface (centrée sur le terrain)
         x_terrain = y * surface_width + (pitch_width - surface_width) / 2
@@ -118,11 +118,11 @@ def normalize_coordinates(x, y):
         if x > 50:  # Système yards
             # Convertir de yards vers mètres et ajuster l'orientation
             # Dans ce système, les valeurs élevées de X semblent être près du but adverse
-            y_terrain = (120 - x) * pitch_length / 120  # Inverser X pour avoir 0 = but adverse
+            y_terrain = pitch_length - (120 - x) * pitch_length / 120  # But adverse en haut
             x_terrain = y * pitch_width / 80
         else:
             # Valeurs plus petites - système différent
-            y_terrain = x * pitch_length / 120
+            y_terrain = pitch_length - x * pitch_length / 120  # But adverse en haut
             x_terrain = y * pitch_width / 80
     
     return x_terrain, y_terrain
@@ -162,31 +162,22 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         fillcolor="rgba(255,255,255,0)"
     )
     
-    # But et surface de réparation (bas - où Neymar marque)
-    # Surface de réparation
-    fig.add_shape(
-        type="rect",
-        x0=pitch_width/2-20.15, y0=0, x1=pitch_width/2+20.15, y1=16.5,
-        line=dict(color="white", width=2),
-        fillcolor="rgba(255,255,255,0.05)"
-    )
-    
-    # Surface de but
+    # Surface de but (bas - but de Barcelone)
     fig.add_shape(
         type="rect",
         x0=pitch_width/2-9.16, y0=0, x1=pitch_width/2+9.16, y1=5.5,
         line=dict(color="white", width=2),
-        fillcolor="rgba(255,255,255,0.1)"
+        fillcolor="rgba(255,255,255,0.05)"
     )
     
-    # Ligne de but (poteaux)
+    # Ligne de but de Barcelone (poteaux)
     fig.add_shape(
         type="line",
         x0=pitch_width/2-3.66, y0=0, x1=pitch_width/2+3.66, y1=0,
-        line=dict(color="white", width=6)
+        line=dict(color="white", width=4)
     )
     
-    # Point de penalty
+    # Point de penalty de Barcelone
     fig.add_shape(
         type="circle",
         x0=pitch_width/2-0.5, y0=11-0.5, x1=pitch_width/2+0.5, y1=11+0.5,
@@ -194,12 +185,43 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         fillcolor="white"
     )
     
-    # Surface de réparation (haut)
+    # Surface de réparation (haut - où Neymar marque ses buts)
     fig.add_shape(
         type="rect",
         x0=pitch_width/2-20.15, y0=pitch_length-16.5, x1=pitch_width/2+20.15, y1=pitch_length,
+        line=dict(color="white", width=3),
+        fillcolor="rgba(255,215,0,0.1)"  # Couleur dorée pour mettre en évidence
+    )
+    
+    # Surface de but (haut - zone de but adverse)
+    fig.add_shape(
+        type="rect",
+        x0=pitch_width/2-9.16, y0=pitch_length-5.5, x1=pitch_width/2+9.16, y1=pitch_length,
+        line=dict(color="white", width=3),
+        fillcolor="rgba(255,215,0,0.2)"
+    )
+    
+    # Ligne de but adverse (poteaux)
+    fig.add_shape(
+        type="line",
+        x0=pitch_width/2-3.66, y0=pitch_length, x1=pitch_width/2+3.66, y1=pitch_length,
+        line=dict(color="white", width=6)
+    )
+    
+    # Point de penalty adverse
+    fig.add_shape(
+        type="circle",
+        x0=pitch_width/2-0.5, y0=pitch_length-11-0.5, x1=pitch_width/2+0.5, y1=pitch_length-11+0.5,
         line=dict(color="white", width=2),
-        fillcolor="rgba(255,255,255,0)"
+        fillcolor="white"
+    )
+    
+    # Surface de réparation (bas - but de Barcelone)
+    fig.add_shape(
+        type="rect",
+        x0=pitch_width/2-20.15, y0=0, x1=pitch_width/2+20.15, y1=16.5,
+        line=dict(color="white", width=2),
+        fillcolor="rgba(255,255,255,0.02)"
     )
     
     # Surface de but (haut)
