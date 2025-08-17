@@ -91,24 +91,41 @@ def load_data():
 
 def normalize_coordinates(x, y):
     """Normalise les coordonnées selon le système détecté"""
+    # Dimensions du terrain
+    pitch_width = 68
+    pitch_length = 105
+    
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
-        # Système normalisé (0-1) - les convertir en coordonnées terrain
-        # Dans ce système, (1,1) semble être la zone de but
-        # On inverse Y car (1,1) = coin supérieur droit du but
-        x_norm = (1 - x) * 68  # Largeur du terrain
-        y_norm = (1 - y) * 105  # Longueur du terrain
+        # Système normalisé (0-1) - coordonnées relatives à la surface de réparation
+        # X semble représenter la distance au but (1 = très proche du but)
+        # Y semble représenter la position latérale (0-1 = largeur de la surface)
+        
+        # La surface de réparation fait 40.3m de large x 16.5m de profondeur
+        surface_width = 40.3
+        surface_depth = 16.5
+        
+        # Position dans la surface de réparation
+        # X: 1 = ligne de but, 0 = limite de la surface (16.5m du but)
+        y_terrain = (1 - x) * surface_depth  # Distance au but (0 = sur la ligne de but)
+        
+        # Y: position latérale dans la surface (centrée sur le terrain)
+        x_terrain = y * surface_width + (pitch_width - surface_width) / 2
+        
     else:
-        # Système en yards/mètres - convertir directement
-        # Les valeurs élevées (>100) semblent être dans l'autre sens
-        if x > 50:  # Probablement système yards (120x80)
-            x_norm = (120 - x) * 68 / 120  # Convertir et inverser
-            y_norm = y * 105 / 80
+        # Système en yards/mètres - semble être un système de coordonnées différent
+        # Les valeurs élevées (>100) suggèrent un terrain de 120x80 yards
+        if x > 50:  # Système yards
+            # Convertir de yards vers mètres et ajuster l'orientation
+            # Dans ce système, les valeurs élevées de X semblent être près du but adverse
+            y_terrain = (120 - x) * pitch_length / 120  # Inverser X pour avoir 0 = but adverse
+            x_terrain = y * pitch_width / 80
         else:
-            x_norm = x * 68 / 80
-            y_norm = y * 105 / 120
+            # Valeurs plus petites - système différent
+            y_terrain = x * pitch_length / 120
+            x_terrain = y * pitch_width / 80
     
-    return x_norm, y_norm
+    return x_terrain, y_terrain
 
 def create_pitch_visualization(df_filtered, selected_goal=None):
     """Crée la visualisation du terrain de football avec les buts"""
@@ -151,7 +168,7 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         type="rect",
         x0=pitch_width/2-20.15, y0=0, x1=pitch_width/2+20.15, y1=16.5,
         line=dict(color="white", width=2),
-        fillcolor="rgba(255,255,255,0)"
+        fillcolor="rgba(255,255,255,0.05)"
     )
     
     # Surface de but
@@ -159,14 +176,22 @@ def create_pitch_visualization(df_filtered, selected_goal=None):
         type="rect",
         x0=pitch_width/2-9.16, y0=0, x1=pitch_width/2+9.16, y1=5.5,
         line=dict(color="white", width=2),
-        fillcolor="rgba(255,255,255,0)"
+        fillcolor="rgba(255,255,255,0.1)"
     )
     
-    # Ligne de but
+    # Ligne de but (poteaux)
     fig.add_shape(
         type="line",
         x0=pitch_width/2-3.66, y0=0, x1=pitch_width/2+3.66, y1=0,
-        line=dict(color="white", width=4)
+        line=dict(color="white", width=6)
+    )
+    
+    # Point de penalty
+    fig.add_shape(
+        type="circle",
+        x0=pitch_width/2-0.5, y0=11-0.5, x1=pitch_width/2+0.5, y1=11+0.5,
+        line=dict(color="white", width=2),
+        fillcolor="white"
     )
     
     # Surface de réparation (haut)
