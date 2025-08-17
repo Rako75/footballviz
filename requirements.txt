@@ -18,3 +18,4 @@ pandas
 highlight_text
 statsbombpy
 scipy
+streamlit-plotly-events
