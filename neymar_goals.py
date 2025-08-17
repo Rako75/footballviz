@@ -95,36 +95,20 @@ def normalize_coordinates_full_pitch(x, y):
     pitch_length = 105  # Longueur du terrain
     pitch_width = 68    # Largeur du terrain
     
-    # Debug: afficher les valeurs min/max dans Streamlit
-    # st.write(f"Debug - X: {x}, Y: {y}")
+    # D'après le debug: X va de 0.74 à 117.8, Y va de 0.26 à 44.2
+    # Cela suggère un système en yards avec X = longueur du terrain, Y = largeur
     
-    # Convertir en coordonnées du terrain complet
-    # Assumer que les coordonnées originales sont dans un système 0-1 ou similaire
+    # Normaliser X (longueur du terrain) - inverser pour avoir 0 = but adverse
+    x_normalized = (120 - x) / 120  # Inverser: but adverse = haut du terrain
+    x_normalized = max(0, min(1, x_normalized))  # S'assurer que c'est entre 0 et 1
     
-    # Si les valeurs sont très petites (0-1), les traiter comme normalisées
-    if x <= 1.0 and y <= 1.0:
-        # Pour un terrain de football:
-        # x représente la position latérale (largeur)
-        # y représente la position longitudinale (longueur)
-        
-        # Placer les buts principalement dans la moitié adverse (y faible)
-        x_pitch = x * pitch_width  # 0-68m largeur
-        y_pitch = y * pitch_length * 0.8  # Concentrer dans les 80% adverses (0-84m)
-        
-    elif x > 50 or y > 50:
-        # Système en yards (terrain ~120x80)
-        # Normaliser vers 0-1 puis convertir
-        x_norm = min(max(x / 120, 0), 1)
-        y_norm = min(max(y / 80, 0), 1)
-        
-        x_pitch = x_norm * pitch_width
-        y_pitch = y_norm * pitch_length
-        
-    else:
-        # Système en coordonnées plus petites
-        # Assumer que c'est déjà en coordonnées de terrain
-        x_pitch = min(max(x * 10, 0), pitch_width)  # Multiplier par un facteur
-        y_pitch = min(max(y * 10, 0), pitch_length)
+    # Normaliser Y (largeur du terrain)
+    y_normalized = y / 80  # Terrain en yards fait ~80 yards de large
+    y_normalized = max(0, min(1, y_normalized))  # S'assurer que c'est entre 0 et 1
+    
+    # Convertir en coordonnées du terrain (105m x 68m)
+    x_pitch = y_normalized * pitch_width  # Position latérale (0-68m)
+    y_pitch = x_normalized * pitch_length  # Position longitudinale (0-105m, 0=but adverse)
     
     return x_pitch, y_pitch
 
@@ -313,13 +297,6 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
         ))
     
     if not df_filtered.empty:
-        # Debug: afficher quelques valeurs pour comprendre le système de coordonnées
-        st.write("**Debug - Échantillon de coordonnées:**")
-        sample_coords = df_filtered[['X', 'Y']].head(5)
-        st.write(sample_coords)
-        st.write(f"X min: {df_filtered['X'].min()}, X max: {df_filtered['X'].max()}")
-        st.write(f"Y min: {df_filtered['Y'].min()}, Y max: {df_filtered['Y'].max()}")
-        
         # Normaliser les coordonnées pour le terrain complet
         x_coords = []
         y_coords = []
@@ -328,11 +305,6 @@ def create_full_pitch_visualization(df_filtered, selected_goal=None):
             x_norm, y_norm = normalize_coordinates_full_pitch(row['X'], row['Y'])
             x_coords.append(x_norm)
             y_coords.append(y_norm)
-        
-        # Debug: afficher les coordonnées transformées
-        st.write("**Debug - Coordonnées transformées (échantillon):**")
-        st.write(f"X transformé: {x_coords[:5]}")
-        st.write(f"Y transformé: {y_coords[:5]}")
         
         # Couleurs selon le type de tir
         colors = df_filtered['shotType'].map({
