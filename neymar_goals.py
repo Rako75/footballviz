@@ -499,16 +499,16 @@ def main():
             text += f"<i>🖱️ Cliquez pour voir la vidéo</i>"
             hover_text.append(text)
         
-        # Scatter plot des buts avec meilleur contraste
+        # Scatter plot des buts avec le même style que matplotlib
         fig.add_trace(go.Scatter(
             x=filtered_df['X'],
             y=filtered_df['Y'],
             mode='markers',
             marker=dict(
-                size=sizes,
-                color=colors,
-                opacity=0.9,
-                line=dict(width=3, color='white'),
+                size=[max(20, 30 * row['xG']) for _, row in filtered_df.iterrows()],  # Taille basée sur xG
+                color='red',  # Couleur rouge comme dans matplotlib
+                opacity=0.85,  # Même alpha que matplotlib
+                line=dict(width=2, color='white'),  # Contour blanc
                 symbol='circle'
             ),
             text=hover_text,
@@ -542,6 +542,17 @@ def main():
     
     # Affichage du terrain avec événements de sélection
     event = st.plotly_chart(fig, use_container_width=True, key="pitch", on_select="rerun")
+    
+    # Debug: Afficher le nombre de buts filtrés
+    if len(filtered_df) > 0:
+        st.info(f"🎯 {len(filtered_df)} buts affichés sur le terrain")
+        
+        # Debug: Afficher quelques coordonnées pour vérification
+        with st.expander("🔍 Debug - Coordonnées des buts", expanded=False):
+            sample_coords = filtered_df[['id', 'X', 'Y', 'xG']].head(5)
+            st.dataframe(sample_coords)
+    else:
+        st.warning("⚠️ Aucun but à afficher avec les filtres actuels")
     
     # Gestion des clics sur le terrain
     if event and event.selection and len(event.selection.points) > 0:
