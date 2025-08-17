@@ -26,7 +26,7 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 2rem;
     }
-    
+
     .stats-container {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1rem;
@@ -35,7 +35,7 @@ st.markdown("""
         text-align: center;
         margin: 1rem 0;
     }
-    
+
     .filter-section {
         background: #f8f9fa;
         padding: 1.5rem;
@@ -43,7 +43,7 @@ st.markdown("""
         margin-bottom: 1rem;
         border-left: 4px solid #1f77b4;
     }
-    
+
     .goal-info {
         background: #fff;
         padding: 1rem;
@@ -52,7 +52,7 @@ st.markdown("""
         margin: 1rem 0;
         border-left: 4px solid #28a745;
     }
-    
+
     .video-container {
         border-radius: 10px;
         overflow: hidden;
@@ -67,23 +67,23 @@ def load_data():
     try:
         # Charger le CSV avec le bon séparateur et encoding
         df = pd.read_csv('Neymar_Buts_LaLiga.csv', sep=';', encoding='cp1252')
-        
+
         # Nettoyer les données
         df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
         df['season_label'] = df['season'].astype(str) + '-' + (df['season'] + 1).astype(str)
-        
+
         # Créer des labels plus lisibles
         df['shot_type_fr'] = df['shotType'].map({
             'RightFoot': 'Pied droit',
-            'LeftFoot': 'Pied gauche', 
+            'LeftFoot': 'Pied gauche',
             'Head': 'Tête'
         })
-        
+
         df['situation_fr'] = df['situation'].map({
             'OpenPlay': 'Jeu ouvert',
             'SetPiece': 'Coup de pied arrêté'
         }).fillna(df['situation'])
-        
+
         return df
     except Exception as e:
         st.error(f"Erreur lors du chargement des données : {e}")
@@ -94,17 +94,17 @@ def normalize_coordinates(x, y):
     # Dimensions de la surface de réparation
     penalty_width = 40.3  # Largeur de la surface de réparation
     penalty_depth = 16.5  # Profondeur de la surface de réparation
-    
+
     # Détecter le système de coordonnées
     if x <= 1.0 and y <= 1.0:
         # Système normalisé (0-1)
         # X semble représenter la distance au but (1 = très proche du but)
         # Y semble représenter la position latérale (0-1 = largeur de la surface)
-        
+
         # Convertir en coordonnées de la surface de réparation
         x_penalty = y * penalty_width  # Position latérale
         y_penalty = (1 - x) * penalty_depth  # Distance au but (0 = ligne de but, 16.5 = limite de surface)
-        
+
     else:
         # Système en yards/mètres
         if x > 50:  # Système yards
@@ -115,33 +115,33 @@ def normalize_coordinates(x, y):
             # Valeurs plus petites
             x_normalized = min(max(x / 16.5, 0), 1)
             y_normalized = min(max(y / 40, 0), 1)
-        
+
         x_penalty = y_normalized * penalty_width
         y_penalty = x_normalized * penalty_depth
-    
+
     return x_penalty, y_penalty
 
 def create_penalty_area_visualization(df_filtered, selected_goal=None):
     """Crée la visualisation de la surface de réparation avec les buts"""
-    
+
     # Dimensions de la surface de réparation (en mètres)
     penalty_width = 40.3
     penalty_depth = 16.5
     goal_width = 7.32
     six_yard_width = 18.32
     six_yard_depth = 5.5
-    
+
     # Créer la figure
     fig = go.Figure()
-    
+
     # Fond de la surface de réparation
     fig.add_shape(
         type="rect",
         x0=0, y0=0, x1=penalty_width, y1=penalty_depth,
         line=dict(color="white", width=4),
-        fillcolor="rgba(34, 139, 34, 0.9)"
+        fillcolor="rgba(0, 0, 0, 0.5)" # Changed fillcolor to semi-transparent black
     )
-    
+
     # Surface de but (6 yards)
     goal_area_x0 = (penalty_width - six_yard_width) / 2
     goal_area_x1 = goal_area_x0 + six_yard_width
@@ -151,7 +151,7 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         line=dict(color="white", width=3),
         fillcolor="rgba(255, 215, 0, 0.3)"
     )
-    
+
     # Ligne de but avec poteaux
     goal_x0 = (penalty_width - goal_width) / 2
     goal_x1 = goal_x0 + goal_width
@@ -160,7 +160,7 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         x0=goal_x0, y0=0, x1=goal_x1, y1=0,
         line=dict(color="white", width=8)
     )
-    
+
     # Poteaux de but
     fig.add_shape(
         type="circle",
@@ -174,30 +174,30 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         line=dict(color="white", width=3),
         fillcolor="white"
     )
-    
+
     # Point de penalty
     penalty_spot_x = penalty_width / 2
     penalty_spot_y = 11
     fig.add_shape(
         type="circle",
-        x0=penalty_spot_x-0.3, y0=penalty_spot_y-0.3, 
+        x0=penalty_spot_x-0.3, y0=penalty_spot_y-0.3,
         x1=penalty_spot_x+0.3, y1=penalty_spot_y+0.3,
         line=dict(color="white", width=2),
         fillcolor="white"
     )
-    
+
     # Arc de penalty (approximation avec un demi-cercle)
     import numpy as np
     theta = np.linspace(0, np.pi, 100)
     arc_radius = 9.15
     arc_x = penalty_spot_x + arc_radius * np.cos(theta)
     arc_y = penalty_spot_y + arc_radius * np.sin(theta)
-    
+
     # Filtrer les points qui sont dans la surface
     valid_points = arc_y <= penalty_depth
     arc_x_filtered = arc_x[valid_points]
     arc_y_filtered = arc_y[valid_points]
-    
+
     fig.add_trace(go.Scatter(
         x=arc_x_filtered,
         y=arc_y_filtered,
@@ -206,34 +206,34 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         showlegend=False,
         hoverinfo='skip'
     ))
-    
+
     # Lignes de côté
     fig.add_shape(
         type="line",
         x0=0, y0=penalty_depth, x1=penalty_width, y1=penalty_depth,
         line=dict(color="white", width=3, dash="dash")
     )
-    
+
     if not df_filtered.empty:
         # Normaliser les coordonnées pour la surface de réparation
         x_coords = []
         y_coords = []
-        
+
         for _, row in df_filtered.iterrows():
             x_norm, y_norm = normalize_coordinates(row['X'], row['Y'])
             x_coords.append(x_norm)
             y_coords.append(y_norm)
-        
+
         # Couleurs selon le type de tir
         colors = df_filtered['shotType'].map({
             'RightFoot': '#1f77b4',  # Bleu
             'LeftFoot': '#ff7f0e',   # Orange
             'Head': '#2ca02c'        # Vert
         })
-        
+
         # Tailles selon xG (plus grande pour xG élevé)
         sizes = df_filtered['xG'] * 50 + 15
-        
+
         # Ajouter les points des buts
         fig.add_trace(go.Scatter(
             x=x_coords,
@@ -246,13 +246,13 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
                 line=dict(width=3, color='white'),
                 symbol='circle'
             ),
-            text=[f"⚽ vs {row['a_team']}<br>📅 {row['date'].strftime('%d/%m/%Y')}<br>⏱️ {row['minute']}'<br>📊 xG: {row['xG']:.3f}<br>🦶 {row['shot_type_fr']}<br>🎯 Passeur: {row['player_assisted'] if pd.notna(row['player_assisted']) else 'Aucun'}" 
+            text=[f"⚽ vs {row['a_team']}<br>📅 {row['date'].strftime('%d/%m/%Y')}<br>⏱️ {row['minute']}'<br>📊 xG: {row['xG']:.3f}<br>🦶 {row['shot_type_fr']}<br>🎯 Passeur: {row['player_assisted'] if pd.notna(row['player_assisted']) else 'Aucun'}"
                   for _, row in df_filtered.iterrows()],
             hovertemplate='<b>%{text}</b><extra></extra>',
             customdata=df_filtered.index,
             name='Buts de Neymar'
         ))
-        
+
         # Mettre en évidence le but sélectionné
         if selected_goal is not None and selected_goal < len(df_filtered):
             selected_row = df_filtered.iloc[selected_goal]
@@ -270,7 +270,7 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
                 name='But sélectionné',
                 showlegend=False
             ))
-    
+
     # Ajouter des annotations
     fig.add_annotation(
         x=penalty_width/2, y=-2,
@@ -281,7 +281,7 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         bordercolor="white",
         borderwidth=2
     )
-    
+
     fig.add_annotation(
         x=penalty_width/2, y=penalty_depth + 1,
         text="🏃‍♂️ LIMITE DE LA SURFACE",
@@ -291,7 +291,7 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         bordercolor="white",
         borderwidth=1
     )
-    
+
     # Configuration du layout
     fig.update_layout(
         title=dict(
@@ -321,8 +321,8 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
             title_font=dict(color='white'),
             tickfont=dict(color='white')
         ),
-        plot_bgcolor='rgba(34, 139, 34, 1)',
-        paper_bgcolor='rgba(34, 139, 34, 1)',
+        plot_bgcolor='rgba(0, 0, 0, 0.1)', # Changed plot_bgcolor to transparent black
+        paper_bgcolor='rgba(0, 0, 0, 0.1)', # Changed paper_bgcolor to transparent black
         showlegend=True,
         legend=dict(
             yanchor="top",
@@ -337,16 +337,16 @@ def create_penalty_area_visualization(df_filtered, selected_goal=None):
         height=600,
         margin=dict(l=50, r=50, t=80, b=50)
     )
-    
+
     return fig
 
 def display_goal_video(video_name, goal_info):
     """Affiche la vidéo du but avec les informations"""
-    
+
     st.markdown('<div class="goal-info">', unsafe_allow_html=True)
-    
+
     col1, col2 = st.columns([1, 1])
-    
+
     with col1:
         st.markdown(f"### ⚽ {goal_info['a_team']}")
         st.markdown(f"**📅 Date:** {goal_info['date'].strftime('%d/%m/%Y')}")
@@ -356,18 +356,18 @@ def display_goal_video(video_name, goal_info):
         if pd.notna(goal_info['player_assisted']):
             st.markdown(f"**🎯 Passeur:** {goal_info['player_assisted']}")
         st.markdown(f"**🏆 Score:** {goal_info['h_team']} {goal_info['h_goals']}-{goal_info['a_goals']} {goal_info['a_team']}")
-    
+
     with col2:
         # Chercher le fichier vidéo
         video_extensions = ['.mp4', '.mov']
         video_path = None
-        
+
         for ext in video_extensions:
             potential_path = f"Neymar_LaLiga_Buts/{video_name}{ext}"
             if os.path.exists(potential_path):
                 video_path = potential_path
                 break
-        
+
         if video_path:
             st.markdown('<div class="video-container">', unsafe_allow_html=True)
             try:
@@ -379,25 +379,25 @@ def display_goal_video(video_name, goal_info):
         else:
             st.warning(f"⚠️ Vidéo non trouvée : {video_name}")
             st.info("Vérifiez que le fichier existe dans le dossier 'Neymar_LaLiga_Buts'")
-    
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 def main():
     # En-tête principal
-    st.markdown('<h1 class="main-header">⚽ Neymar Jr. - Surface de Réparation FC Barcelone</h1>', 
+    st.markdown('<h1 class="main-header">⚽ Neymar Jr. - Surface de Réparation FC Barcelone</h1>',
                 unsafe_allow_html=True)
-    
+
     # Charger les données
     df = load_data()
-    
+
     if df.empty:
         st.error("Impossible de charger les données. Vérifiez que le fichier 'Neymar_Buts_LaLiga.csv' est présent.")
         return
-    
+
     # Sidebar pour les filtres
     st.sidebar.markdown('<div class="filter-section">', unsafe_allow_html=True)
     st.sidebar.markdown("### 🔍 Filtres de Sélection")
-    
+
     # Filtre par saison
     seasons = sorted(df['season'].unique())
     selected_seasons = st.sidebar.multiselect(
@@ -406,7 +406,7 @@ def main():
         default=seasons,
         format_func=lambda x: f"{x}-{x+1}"
     )
-    
+
     # Filtre par adversaire
     teams = sorted(df['a_team'].unique())
     selected_teams = st.sidebar.multiselect(
@@ -414,7 +414,7 @@ def main():
         options=teams,
         default=teams
     )
-    
+
     # Filtre par type de tir
     shot_types = df['shotType'].unique()
     selected_shot_types = st.sidebar.multiselect(
@@ -423,7 +423,7 @@ def main():
         default=shot_types,
         format_func=lambda x: {'RightFoot': 'Pied droit', 'LeftFoot': 'Pied gauche', 'Head': 'Tête'}[x]
     )
-    
+
     # Filtre par passeur
     assistants = sorted([x for x in df['player_assisted'].unique() if pd.notna(x)])
     selected_assistants = st.sidebar.multiselect(
@@ -431,9 +431,9 @@ def main():
         options=assistants,
         default=assistants
     )
-    
+
     st.sidebar.markdown('</div>', unsafe_allow_html=True)
-    
+
     # Appliquer les filtres
     df_filtered = df[
         (df['season'].isin(selected_seasons)) &
@@ -441,11 +441,11 @@ def main():
         (df['shotType'].isin(selected_shot_types)) &
         ((df['player_assisted'].isin(selected_assistants)) | (df['player_assisted'].isna()))
     ].reset_index(drop=True)
-    
+
     # Statistiques en temps réel
     if not df_filtered.empty:
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
             st.markdown(f"""
             <div class="stats-container">
@@ -453,7 +453,7 @@ def main():
                 <p>Buts Total</p>
             </div>
             """, unsafe_allow_html=True)
-        
+
         with col2:
             avg_xg = df_filtered['xG'].mean()
             st.markdown(f"""
@@ -462,7 +462,7 @@ def main():
                 <p>xG Moyen</p>
             </div>
             """, unsafe_allow_html=True)
-        
+
         with col3:
             most_common_opponent = df_filtered['a_team'].value_counts().index[0] if not df_filtered.empty else "N/A"
             st.markdown(f"""
@@ -471,7 +471,7 @@ def main():
                 <p>Adversaire Favori</p>
             </div>
             """, unsafe_allow_html=True)
-        
+
         with col4:
             avg_minute = df_filtered['minute'].mean()
             st.markdown(f"""
@@ -480,25 +480,25 @@ def main():
                 <p>Minute Moyenne</p>
             </div>
             """, unsafe_allow_html=True)
-    
+
     # Layout principal
     col_pitch, col_video = st.columns([3, 2])
-    
+
     with col_pitch:
         st.markdown("### 🎯 Surface de Réparation")
-        
+
         if not df_filtered.empty:
             # Créer la visualisation de la surface de réparation
             fig = create_penalty_area_visualization(df_filtered)
-            
+
             # Afficher le graphique avec sélection
             selected_points = st.plotly_chart(
-                fig, 
+                fig,
                 use_container_width=True,
                 key="penalty_area",
                 on_select="rerun"
             )
-            
+
             # Gérer la sélection de points
             if hasattr(st.session_state, 'penalty_area') and st.session_state.penalty_area:
                 if 'selection' in st.session_state.penalty_area and st.session_state.penalty_area['selection']:
@@ -509,10 +509,10 @@ def main():
                             st.session_state['selected_goal'] = selected_goal
         else:
             st.warning("Aucun but ne correspond aux filtres sélectionnés.")
-    
+
     with col_video:
         st.markdown("### 📹 Vidéo du But")
-        
+
         # Vérifier s'il y a un but sélectionné
         if 'selected_goal' in st.session_state and not df_filtered.empty:
             if st.session_state['selected_goal'] < len(df_filtered):
@@ -523,7 +523,7 @@ def main():
                 st.info("🎯 Cliquez sur un but dans la surface pour voir la vidéo")
         else:
             st.info("🎯 Cliquez sur un but dans la surface pour voir la vidéo")
-    
+
     # Légende des couleurs
     st.markdown("### 🎨 Légende")
     col1, col2, col3 = st.columns(3)
@@ -533,9 +533,9 @@ def main():
         st.markdown("🟠 **Pied gauche**")
     with col3:
         st.markdown("🟢 **Tête**")
-    
+
     st.markdown("*La taille des points représente la valeur xG (plus grand = plus probable de marquer)*")
-    
+
     # Tableau des buts filtrés
     if not df_filtered.empty:
         st.markdown("### 📊 Liste des Buts")
