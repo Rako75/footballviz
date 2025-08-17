@@ -676,6 +676,30 @@ def main():
                     if success:
                         st.success("✅ Vidéo chargée avec succès!")
                     st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.info("📹 Vidéo en cours de chargement...")
+            
+            with col_details:
+                st.markdown('<div class="goal-info">', unsafe_allow_html=True)
+                st.markdown(f"**⏱️ Minute :** {selected_goal_data['minute']}'")
+                st.markdown(f"**🎯 xG :** {selected_goal_data['xG']:.3f}")
+                st.markdown(f"**📏 Distance :** {selected_goal_data['distance_but']:.1f}m")
+                st.markdown(f"**🏟️ Zone :** {selected_goal_data['zone']}")
+                
+                if 'shotType' in selected_goal_data and pd.notna(selected_goal_data['shotType']):
+                    st.markdown(f"**⚽ Type :** {selected_goal_data['shotType']}")
+                
+                if 'season' in selected_goal_data and pd.notna(selected_goal_data['season']):
+                    st.markdown(f"**📅 Saison :** {selected_goal_data['season']}")
+                
+                if 'h_team' in selected_goal_data and 'a_team' in selected_goal_data:
+                    if pd.notna(selected_goal_data['h_team']) and pd.notna(selected_goal_data['a_team']):
+                        st.markdown(f"**🏆 Match :** {selected_goal_data['h_team']} vs {selected_goal_data['a_team']}")
+                
+                if 'player_assisted' in selected_goal_data and pd.notna(selected_goal_data['player_assisted']):
+                    st.markdown(f"**🤝 Passeur :** {selected_goal_data['player_assisted']}")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
             
             # Boutons de navigation
             st.markdown("<br>", unsafe_allow_html=True)
@@ -770,40 +794,16 @@ def main():
                 color: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>
         <h3 style='margin: 0 0 1rem 0;'>⚽ Neymar Jr - LaLiga Legacy</h3>
         <p style='margin: 0; font-size: 1.1rem;'>
-            🎯 {goal_count} buts analysés • 🎥 {video_count} vidéos disponibles • 📊 Données xG Opta
+            🎯 {} buts analysés • 🎥 {} vidéos disponibles • 📊 Données xG Opta
         </p>
         <p style='margin: 0.5rem 0 0 0; opacity: 0.8;'>
             Application interactive développée pour l'analyse des performances de Neymar Jr au FC Barcelone
         </p>
     </div>
     """.format(
-        goal_count=len(df_goals) if not df_goals.empty else 0,
-        video_count=len(available_videos)
+        len(df_goals) if not df_goals.empty else 0,
+        len(available_videos)
     ), unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()_html=True
-                else:
-                    st.info("📹 Vidéo en cours de chargement...")
-            
-            with col_details:
-                st.markdown('<div class="goal-info">', unsafe_allow_html=True)
-                st.markdown(f"**⏱️ Minute :** {selected_goal_data['minute']}'")
-                st.markdown(f"**🎯 xG :** {selected_goal_data['xG']:.3f}")
-                st.markdown(f"**📏 Distance :** {selected_goal_data['distance_but']:.1f}m")
-                st.markdown(f"**🏟️ Zone :** {selected_goal_data['zone']}")
-                
-                if 'shotType' in selected_goal_data and pd.notna(selected_goal_data['shotType']):
-                    st.markdown(f"**⚽ Type :** {selected_goal_data['shotType']}")
-                
-                if 'season' in selected_goal_data and pd.notna(selected_goal_data['season']):
-                    st.markdown(f"**📅 Saison :** {selected_goal_data['season']}")
-                
-                if 'h_team' in selected_goal_data and 'a_team' in selected_goal_data:
-                    if pd.notna(selected_goal_data['h_team']) and pd.notna(selected_goal_data['a_team']):
-                        st.markdown(f"**🏆 Match :** {selected_goal_data['h_team']} vs {selected_goal_data['a_team']}")
-                
-                if 'player_assisted' in selected_goal_data and pd.notna(selected_goal_data['player_assisted']):
-                    st.markdown(f"**🤝 Passeur :** {selected_goal_data['player_assisted']}")
-                
-                st.markdown('</div>', unsafe_allow)
+    main()
