@@ -146,7 +146,12 @@ class PlayerPotentialModel:
         if not self.is_fitted:
             return None
         
-        X = self.scaler.transform(player_data.values.reshape(1, -1))
+        # Correction: player_data est déjà un array numpy
+        if isinstance(player_data, np.ndarray):
+            X = self.scaler.transform(player_data.reshape(1, -1))
+        else:
+            X = self.scaler.transform(np.array(player_data).reshape(1, -1))
+        
         potential_score = self.model.predict(X)[0]
         
         # Calcul du potentiel basé sur l'âge et les performances
@@ -167,7 +172,12 @@ class PlayerPotentialModel:
         X = df[features].fillna(0)
         X_scaled = self.scaler.transform(X)
         
-        player_scaled = self.scaler.transform(player_data.values.reshape(1, -1))
+        # Correction: player_data est déjà un array numpy
+        if isinstance(player_data, np.ndarray):
+            player_scaled = self.scaler.transform(player_data.reshape(1, -1))
+        else:
+            player_scaled = self.scaler.transform(np.array(player_data).reshape(1, -1))
+        
         distances = np.sum((X_scaled - player_scaled) ** 2, axis=1)
         
         similar_indices = np.argsort(distances)[1:n_similar+1]
@@ -428,7 +438,7 @@ def main():
         player_ai_data = filtered_df[filtered_df['name'] == selected_player_ai].iloc[0]
         
         # Prédiction du potentiel
-        features_for_prediction = [
+        features_for_prediction = np.array([
             player_ai_data['age'],
             player_ai_data['performance_index'],
             player_ai_data['ground_defence'],
@@ -440,11 +450,9 @@ def main():
             player_ai_data['minutes_played'],
             player_ai_data['goals'],
             player_ai_data['assists']
-        ]
+        ])
         
-        potential_score = st.session_state.ml_model.predict_potential(
-            np.array(features_for_prediction)
-        )
+        potential_score = st.session_state.ml_model.predict_potential(features_for_prediction)
         
         col1, col2 = st.columns(2)
         
@@ -493,7 +501,7 @@ def main():
         st.subheader("🔍 Joueurs similaires")
         
         similar_players = st.session_state.ml_model.get_similar_players(
-            np.array(features_for_prediction),
+            features_for_prediction,
             filtered_df,
             n_similar=5
         )
