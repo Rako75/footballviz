@@ -1,371 +1,320 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.patheffects as path_effects
 import matplotlib.colors as mcolors
-import matplotlib.font_manager as fm
-from matplotlib.patches import RegularPolygon
 from mplsoccer import VerticalPitch
 from PIL import Image
 import urllib.request
 import numpy as np
-import io
 
-# Configuration de la page
+# --- 1. CONFIGURATION & DESIGN ---
 st.set_page_config(
-    page_title="Analyse des Tirs - Football",
+    page_title="ShotMap Pro | Analytics",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS personnalisé pour un design moderne
+# CSS Avancé pour un look "Dark Football Analytics"
 st.markdown("""
 <style>
-    .main {
-        padding: 0rem 1rem;
-    }
+    /* Fond global */
     .stApp {
-        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        background-color: #0e1117;
+        background-image: radial-gradient(#1c202b 20%, #0e1117 80%);
+    }
+    
+    /* Titres */
+    h1, h2, h3 {
+        font-family: 'Helvetica Neue', sans-serif;
+        font-weight: 800;
+        letter-spacing: -1px;
     }
     h1 {
-        color: #38bdf8;
-        font-weight: 700;
-        text-align: center;
-        padding: 1rem 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        background: -webkit-linear-gradient(45deg, #00d2ff, #3a7bd5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        padding-bottom: 20px;
     }
-    h2, h3 {
-        color: #e2e8f0;
-    }
-    .stSelectbox, .stMultiselect {
-        color: #e2e8f0;
-    }
-    .css-1d391kg, .css-18e3th9 {
-        padding-top: 2rem;
-    }
-    .metric-card {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 1rem;
-        border-radius: 10px;
+    
+    /* Cards (Métriques) */
+    div[data-testid="metric-container"] {
+        background-color: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
         backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+    }
+    div[data-testid="metric-container"]:hover {
+        transform: translateY(-2px);
+        border-color: #3a7bd5;
+    }
+    
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #0b0e13;
+        border-right: 1px solid #1f2937;
+    }
+    
+    /* Plot styling */
+    .plot-container {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Configuration des thèmes de ligues
+# --- 2. DONNÉES & CONFIGURATION ---
+
 LEAGUE_THEMES = {
-    'LIGUE 1': {
-        'name': 'LIGUE 1',
-        'id': 53,
-        'file': 'tirs_ligue1_2024_2025.csv',
-        'background': '#000d24', 
-        'accent': '#085eff',     
-        'text': '#ffffff',
-        'gradient': ['#000d24', '#042a70', '#085eff', '#5c95ff', '#ffffff']
-    },
-    'PREMIER LEAGUE': {
-        'name': 'PREMIER LEAGUE',
-        'id': 47,
-        'file': 'tirs_premier_league_2024_2025.csv',
-        'background': '#360d3a', 
-        'accent': '#e90052',     
-        'text': '#ffffff',
-        'gradient': ['#360d3a', '#6a1b6e', '#963cff', '#e90052', '#ffffff'] 
-    },
-    'LA LIGA': {
-        'name': 'LA LIGA',
-        'id': 87,
-        'file': 'tirs_la_liga_2024_2025.csv',
-        'background': '#140505', 
-        'accent': '#FF4B44',     
-        'text': '#ffeaea',
-        'gradient': ['#140505', '#5c1210', '#b92b27', '#FF4B44', '#ffffff']
-    },
-    'BUNDESLIGA': {
-        'name': 'BUNDESLIGA',
-        'id': 54,
-        'file': 'tirs_bundesliga_2024_2025.csv',
-        'background': '#120203', 
-        'accent': '#D3010C',     
-        'text': '#ffffff',
-        'gradient': ['#120203', '#4a0508', '#9e0b12', '#D3010C', '#ffffff']
-    },
-    'SERIE A': {
-        'name': 'SERIE A',
-        'id': 55,
-        'file': 'tirs_serie_a_2024_2025.csv',
-        'background': '#020914', 
-        'accent': '#0578FF',     
-        'text': '#f0f9ff',
-        'gradient': ['#020914', '#032d66', '#0578FF', '#66adff', '#ffffff']
-    },
-    'CHAMPIONS LEAGUE': {
-        'name': 'CHAMPIONS LEAGUE',
-        'id': 42,
-        'file': 'tirs_ucl_2024_2025.csv',
-        'background': '#001967', 
-        'accent': '#38bdf8',     
-        'text': '#ffffff',
-        'gradient': ['#001967', '#0f3da8', '#38bdf8', '#a5f3fc', '#ffffff']
-    },
-    'EUROPA LEAGUE': {
-        'name': 'EUROPA LEAGUE',
-        'id': 73,
-        'file': 'tirs_uel_2024_2025.csv',
-        'background': '#170f00', 
-        'accent': '#f8ad09',     
-        'text': '#fffbeb',
-        'gradient': ['#170f00', '#5c3d02', '#b47b05', '#f8ad09', '#ffffff']
-    }
+    'LIGUE 1': {'id': 53, 'color': '#dae025', 'gradient': ['#0f1923', '#203c25', '#dae025']},
+    'PREMIER LEAGUE': {'id': 47, 'color': '#3d195b', 'gradient': ['#180824', '#3d195b', '#e90052', '#00ff85']},
+    'LA LIGA': {'id': 87, 'color': '#ff4b44', 'gradient': ['#140505', '#7a1815', '#ff4b44']},
+    'BUNDESLIGA': {'id': 54, 'color': '#d3010c', 'gradient': ['#120203', '#5e060a', '#d3010c']},
+    'SERIE A': {'id': 55, 'color': '#008fd7', 'gradient': ['#020914', '#004569', '#008fd7']},
+    'CHAMPIONS LEAGUE': {'id': 42, 'color': '#38bdf8', 'gradient': ['#001967', '#0f3da8', '#38bdf8']}
 }
 
 @st.cache_data
-def load_data(file_path):
-    """Charge les données depuis un fichier CSV ou génère des données de démonstration"""
-    try:
-        data = pd.read_csv(file_path)
-    except:
-        # Données de démonstration
-        np.random.seed(42)
-        data = pd.DataFrame({
-            'joueur_id': [1]*50 + [2]*50 + [3]*50 + [4]*50 + [5]*50 + [6]*50,
-            'joueur': ['Kylian Mbappé']*50 + ['Erling Haaland']*50 + ['Harry Kane']*50 + 
-                      ['Robert Lewandowski']*50 + ['Victor Osimhen']*50 + ['Mohamed Salah']*50,
-            'equipe_id': [9825]*50 + [8456]*50 + [9823]*50 + [8634]*50 + [9875]*50 + [8650]*50,
-            'minute': np.tile(range(50), 6),
-            'situation': ['Open Play']*300,
-            'position_x': np.random.uniform(60, 100, 300),
-            'position_y': np.random.uniform(15, 55, 300),
-            'xg': np.random.uniform(0.02, 0.6, 300),
-            'type_evenement': np.random.choice(['Goal', 'Miss', 'SavedShot'], 300, p=[0.15, 0.5, 0.35])
+def load_mock_data():
+    """Génère des données réalistes si pas de CSV"""
+    np.random.seed(42)
+    # Création de profils de joueurs fictifs
+    players = [
+        {'name': 'Kylian Mbappé', 'team_id': 9825, 'volume': 120, 'accuracy': 0.18, 'role': 'Striker'},
+        {'name': 'Erling Haaland', 'team_id': 8456, 'volume': 110, 'accuracy': 0.22, 'role': 'Striker'},
+        {'name': 'Harry Kane', 'team_id': 9823, 'volume': 100, 'accuracy': 0.20, 'role': 'Striker'},
+        {'name': 'Vinícius Jr', 'team_id': 8633, 'volume': 90, 'accuracy': 0.15, 'role': 'Winger'},
+        {'name': 'Mohamed Salah', 'team_id': 8650, 'volume': 95, 'accuracy': 0.17, 'role': 'Winger'},
+        {'name': 'Lautaro Martínez', 'team_id': 8636, 'volume': 85, 'accuracy': 0.16, 'role': 'Striker'},
+        {'name': 'Ousmane Dembélé', 'team_id': 9847, 'volume': 60, 'accuracy': 0.08, 'role': 'Winger'},
+        {'name': 'Jude Bellingham', 'team_id': 8633, 'volume': 70, 'accuracy': 0.19, 'role': 'Midfield'}
+    ]
+    
+    all_shots = []
+    for p in players:
+        n_shots = int(p['volume'])
+        # Simulation positions (plus de tirs proches du but et au centre)
+        x_locs = np.random.beta(5, 2, n_shots) * 50 + 70 # Tirs entre 70m et 120m
+        y_locs = np.random.normal(34, 12, n_shots) # Centré sur 34 (milieu largeur)
+        y_locs = np.clip(y_locs, 0, 68)
+        
+        # Simulation xG basé sur la distance
+        dist_to_goal = np.sqrt((120 - x_locs)**2 + (34 - y_locs)**2)
+        xgs = 0.8 * np.exp(-0.06 * dist_to_goal) + np.random.uniform(0, 0.1, n_shots)
+        
+        # Simulation Buts
+        is_goal = np.random.rand(n_shots) < (xgs * (1 + np.random.uniform(-0.1, 0.1)))
+        events = ['Goal' if g else 'Miss' for g in is_goal]
+        
+        df_p = pd.DataFrame({
+            'joueur': p['name'],
+            'joueur_id': hash(p['name']),
+            'equipe_id': p['team_id'],
+            'position_x': x_locs, # Standard StatsBomb/Opta souvent 100x100 ou 120x80, ici on adapte pour mplsoccer vertical
+            'position_y': y_locs,
+            'xg': xgs,
+            'type_evenement': events
         })
+        all_shots.append(df_p)
+        
+    return pd.concat(all_shots).reset_index(drop=True)
+
+# --- 3. MOTEUR GRAPHIQUE ---
+
+def create_pro_shotmap(data, player_name, theme, is_solo=False):
+    """Crée une shotmap haute définition"""
+    player_data = data[data['joueur'] == player_name]
     
-    # Filtrer les penalties
-    data = data[data['situation'] != 'Penalty'].reset_index(drop=True)
-    return data
-
-def is_inside_box(x, y):
-    """Vérifie si un tir est dans la surface"""
-    return (x >= 13.84) & (x <= 54.16) & (y >= 88.5)
-
-def semicircle(r, h, k):
-    """Génère un demi-cercle pour la distance médiane"""
-    x0, x1 = h - r, h + r
-    x = np.linspace(x0, x1, 500)
-    y = k - np.sqrt(r**2 - (x - h)**2)
-    return x, y
-
-def create_shotmap(data, player_id, theme):
-    """Crée une carte de tirs pour un joueur"""
-    fig, ax = plt.subplots(figsize=(6, 8), facecolor=theme['background'])
-    ax.set_facecolor(theme['background'])
+    # Couleurs
+    bg_color = theme['gradient'][0]
+    line_color = "white"
+    cmap = mcolors.LinearSegmentedColormap.from_list("Heat", theme['gradient'], N=100)
     
-    # Configuration du terrain
+    # Configuration taille selon le mode
+    figsize = (10, 12) if is_solo else (6, 8)
+    
+    fig, ax = plt.subplots(figsize=figsize, facecolor=bg_color)
+    ax.set_facecolor(bg_color)
+    
+    # Terrain Vertical (UEFA dims: 105x68)
     pitch = VerticalPitch(
-        pitch_type='uefa', half=True, goal_type='box',
-        linewidth=1.2, line_color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.15)),
-        pad_bottom=-10, pad_top=15, pitch_color=theme['background']
+        pitch_type='custom', 
+        pitch_length=105, 
+        pitch_width=68,
+        half=True, 
+        goal_type='box',
+        line_color=line_color,
+        linewidth=1.5,
+        spot_scale=0.00
     )
     pitch.draw(ax=ax)
     
-    # Données du joueur
-    player_data = data[data['joueur_id'] == player_id]
-    
-    # Colormap personnalisée
-    cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
-    
-    # Hexbin des tirs
+    # 1. Hexbin (Densité)
+    # On inverse X et Y pour VerticalPitch si nécessaire selon la source de données
+    # Ici on assume que position_x est la longueur (0-105) et y la largeur (0-68)
     pitch.hexbin(
         x=player_data['position_x'], 
         y=player_data['position_y'], 
         ax=ax, 
+        edgecolors='none', 
+        gridsize=(16, 16), 
         cmap=cmap, 
-        gridsize=(14, 14), 
-        zorder=2, 
-        edgecolors='None', 
-        alpha=0.9, 
-        mincnt=1
+        alpha=0.7,
+        zorder=1
     )
     
-    # Distance médiane
-    median_x = player_data['position_x'].median()
-    x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
-    ax.plot(x_circle, y_circle, ls=':', color=theme['text'], lw=1, alpha=0.4, zorder=3)
+    # 2. Scatter plot pour les BUTS (Étoiles)
+    goals = player_data[player_data['type_evenement'] == 'Goal']
+    pitch.scatter(
+        goals['position_x'], 
+        goals['position_y'],
+        ax=ax,
+        s=150 if is_solo else 80,
+        marker='*',
+        color='#00ff00',
+        edgecolor='black',
+        linewidth=1,
+        zorder=2,
+        label='Buts'
+    )
     
-    # Statistiques
-    stats = {
-        'Tirs': player_data.shape[0],
-        'Buts': player_data[player_data['type_evenement'] == 'Goal'].shape[0],
-        'xG': player_data['xg'].sum(),
-        'xG/Tir': player_data['xg'].mean()
-    }
+    # Stats dans le graphique
+    total_shots = len(player_data)
+    total_goals = len(goals)
+    total_xg = player_data['xg'].sum()
     
-    for i, (label, value) in enumerate(stats.items()):
-        x_pos = 10 + (i * 16)
-        ax.text(x_pos, 73, " ".join(list(label.upper())), 
-                ha='center', va='bottom', fontsize=6, 
-                color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
-                weight='bold')
-        val_fmt = f"{value:.0f}" if label in ['Tirs', 'Buts'] else f"{value:.2f}"
-        ax.text(x_pos, 71, val_fmt, 
-                ha='center', va='top', fontsize=10, 
-                color=theme['text'], weight='bold')
-    
-    # Distance médiane en mètres
-    dist_yds = ((105 - median_x) * 18) / 16.5
-    dist_m = dist_yds * 0.9144
-    ax.text(34, 108, f"Dist. Médiane: {dist_m:.1f} m",
-            ha='center', va='center', fontsize=7,
-            color=theme['accent'], weight='bold',
-            bbox=dict(facecolor=theme['background'], 
-                     edgecolor=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.15)), 
-                     boxstyle='round,pad=0.4', alpha=0.9))
-    
-    # Nom du joueur
-    player_name = player_data['joueur'].iloc[0].upper()
-    ax.text(34, 116, player_name, 
-            ha='center', va='center', fontsize=12, 
-            color=theme['text'], weight='heavy')
-    ax.plot([24, 44], [113, 113], color=theme['accent'], lw=2, alpha=0.8)
-    
-    # Logo de l'équipe
-    team_id = player_data["equipe_id"].iloc[0]
-    try:
-        logo_ax = ax.inset_axes([0.05, 0.88, 0.12, 0.12])
-        icon = Image.open(urllib.request.urlopen(
-            f'https://images.fotmob.com/image_resources/logo/teamlogo/{team_id:.0f}.png'
-        ))
-        logo_ax.imshow(icon)
-        logo_ax.axis('off')
-    except:
-        pass
-    
-    plt.tight_layout()
+    # En-tête du graphique
+    ax.text(34, 112, player_name.upper(), ha='center', fontsize=20 if is_solo else 14, 
+            fontweight='bold', color='white')
+            
+    stats_text = f"Tirs: {total_shots} | Buts: {total_goals} | xG: {total_xg:.2f}"
+    ax.text(34, 108, stats_text, ha='center', fontsize=10 if is_solo else 8, 
+            color=theme['color'], fontweight='bold')
+
     return fig
 
+# --- 4. APPLICATION PRINCIPALE ---
+
 def main():
-    # En-tête
-    st.markdown("# ⚽ Analyse des Tirs - Football Européen")
-    st.markdown("### Comparaison des zones de tir et efficacité | Saison 2024/2025")
+    st.title("🚀 FOOTBALL SHOTMAP PRO")
     
-    # Sidebar
+    # --- SIDEBAR ---
     with st.sidebar:
-        st.image("https://img.icons8.com/fluency/96/000000/soccer-ball.png", width=80)
-        st.markdown("## 🎯 Configuration")
+        st.header("⚙️ Paramètres")
         
-        # Sélection de la ligue
-        selected_league = st.selectbox(
-            "Sélectionner une ligue",
-            options=list(LEAGUE_THEMES.keys()),
-            index=5  # Champions League par défaut
-        )
-        
+        selected_league = st.selectbox("Ligue", list(LEAGUE_THEMES.keys()), index=1)
         theme = LEAGUE_THEMES[selected_league]
         
-        # Afficher le logo de la ligue
-        try:
-            league_url = f'https://images.fotmob.com/image_resources/logo/leaguelogo/{theme["id"]}.png'
-            st.image(league_url, width=150)
-        except:
-            st.markdown(f"## {theme['name']}")
+        st.divider()
         
+        ranking_mode = st.radio(
+            "Trier les joueurs par :",
+            ("Meilleurs Buteurs (Buts)", "Volume de Tirs", "Dangerousity (xG Total)")
+        )
+        
+        st.divider()
+        
+        view_mode = st.selectbox(
+            "Mode d'affichage",
+            ("Vue Grille (Top Joueurs)", "Duel (1 vs 1)", "Focus Solo")
+        )
+
+        # Filtre Slider
+        if view_mode == "Vue Grille (Top Joueurs)":
+            num_players = st.slider("Nombre de joueurs à afficher", 2, 8, 4)
+    
+    # Chargement Data
+    df = load_mock_data()
+    
+    # Logique de Tri
+    df_grouped = df.groupby('joueur').agg({
+        'type_evenement': lambda x: (x == 'Goal').sum(),
+        'xg': 'sum',
+        'joueur_id': 'count' # Count total rows = total shots
+    }).rename(columns={'joueur_id': 'shots', 'type_evenement': 'goals', 'xg': 'total_xg'})
+    
+    if "Buts" in ranking_mode:
+        sorted_players = df_grouped.sort_values('goals', ascending=False).index.tolist()
+    elif "Tirs" in ranking_mode:
+        sorted_players = df_grouped.sort_values('shots', ascending=False).index.tolist()
+    else:
+        sorted_players = df_grouped.sort_values('total_xg', ascending=False).index.tolist()
+
+    # --- AFFICHAGE PRINCIPAL ---
+    
+    # 1. MODE FOCUS SOLO
+    if view_mode == "Focus Solo":
+        col_select, col_space = st.columns([1, 2])
+        with col_select:
+            selected_player = st.selectbox("Choisir un joueur", sorted_players)
+        
+        # Stats Cards
+        p_stats = df_grouped.loc[selected_player]
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Buts", p_stats['goals'])
+        c2.metric("xG Total", f"{p_stats['total_xg']:.2f}")
+        c3.metric("Tirs", p_stats['shots'])
+        c4.metric("Ratio xG/Tir", f"{(p_stats['total_xg']/p_stats['shots']):.2f}")
+        
+        # Grand Plot
         st.markdown("---")
-        st.markdown("**📊 Filtres d'analyse**")
-        
-        # Nombre de joueurs à afficher
-        num_players = st.slider("Nombre de joueurs", 1, 6, 6)
-        
+        c_plot, c_info = st.columns([3, 1])
+        with c_plot:
+            fig = create_pro_shotmap(df, selected_player, theme, is_solo=True)
+            st.pyplot(fig, use_container_width=True)
+        with c_info:
+            st.info("ℹ️ Les étoiles vertes représentent les buts marqués. La densité de couleur indique les zones de tir préférentielles.")
+            st.warning(f"Ligue sélectionnée : {selected_league}")
+
+    # 2. MODE DUEL
+    elif view_mode == "Duel (1 vs 1)":
+        c1, c2 = st.columns(2)
+        with c1:
+            p1 = st.selectbox("Joueur A", sorted_players, index=0)
+        with c2:
+            p2 = st.selectbox("Joueur B", sorted_players, index=1)
+            
         st.markdown("---")
-        st.markdown("**ℹ️ À propos**")
-        st.info("Cette application analyse les zones de tir des meilleurs buteurs en excluant les penalties.")
         
-    # Charger les données
-    with st.spinner("Chargement des données..."):
-        data = load_data(theme['file'])
-    
-    # Préparation des données
-    data['is_in_box'] = [is_inside_box(y, x) for x, y in zip(data['position_x'], data['position_y'])]
-    data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id', 'is_in_box'])['minute'].count().reset_index()
-    data_grouped = data_grouped.pivot(
-        columns='is_in_box', 
-        index=['joueur_id', 'joueur', 'equipe_id'], 
-        values='minute'
-    ).reset_index()
-    
-    if True not in data_grouped.columns:
-        data_grouped[True] = 0
-    if False not in data_grouped.columns:
-        data_grouped[False] = 0
-    
-    data_grouped.rename(columns={False: 'Hors surface', True: 'Dans surface'}, inplace=True)
-    data_grouped.fillna(0, inplace=True)
-    data_grouped['Total'] = data_grouped['Hors surface'] + data_grouped['Dans surface']
-    data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
-    
-    # Statistiques globales
-    st.markdown("## 📈 Statistiques Globales")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    total_shots = len(data)
-    total_goals = len(data[data['type_evenement'] == 'Goal'])
-    avg_xg = data['xg'].mean()
-    conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
-    
-    with col1:
-        st.metric("Tirs totaux", f"{total_shots}")
-    with col2:
-        st.metric("Buts marqués", f"{total_goals}")
-    with col3:
-        st.metric("xG moyen", f"{avg_xg:.2f}")
-    with col4:
-        st.metric("Taux de conversion", f"{conversion_rate:.1f}%")
-    
-    st.markdown("---")
-    
-    # Tableau des meilleurs buteurs
-    st.markdown("## 🏆 Classement des Buteurs")
-    
-    display_df = data_grouped[['joueur', 'Total', 'Dans surface', 'Hors surface']].copy()
-    display_df.columns = ['Joueur', 'Total Tirs', 'Dans Surface', 'Hors Surface']
-    
-    st.dataframe(
-        display_df.style.background_gradient(cmap='Blues', subset=['Total Tirs']),
-        use_container_width=True,
-        height=250
-    )
-    
-    st.markdown("---")
-    
-    # Cartes de tirs
-    st.markdown("## 🗺️ Cartes de Tirs")
-    
-    # Afficher les cartes en grille
-    cols_per_row = 3
-    rows = (num_players + cols_per_row - 1) // cols_per_row
-    
-    for row in range(rows):
-        cols = st.columns(cols_per_row)
-        for col_idx in range(cols_per_row):
-            player_idx = row * cols_per_row + col_idx
-            if player_idx < len(data_grouped):
-                player_id = data_grouped['joueur_id'].iloc[player_idx]
-                with cols[col_idx]:
-                    with st.spinner(f"Génération..."):
-                        fig = create_shotmap(data, player_id, theme)
-                        st.pyplot(fig)
-                        plt.close(fig)
-    
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            st.markdown(f"<h3 style='text-align: center; color: {theme['color']}'>{p1}</h3>", unsafe_allow_html=True)
+            # Stats comparatives
+            s1 = df_grouped.loc[p1]
+            st.markdown(f"**Buts:** {s1['goals']} | **xG:** {s1['total_xg']:.1f}")
+            fig1 = create_pro_shotmap(df, p1, theme, is_solo=False)
+            st.pyplot(fig1)
+            
+        with col_b:
+            st.markdown(f"<h3 style='text-align: center; color: {theme['color']}'>{p2}</h3>", unsafe_allow_html=True)
+            # Stats comparatives
+            s2 = df_grouped.loc[p2]
+            st.markdown(f"**Buts:** {s2['goals']} | **xG:** {s2['total_xg']:.1f}")
+            fig2 = create_pro_shotmap(df, p2, theme, is_solo=False)
+            st.pyplot(fig2)
+
+    # 3. MODE GRILLE
+    else:
+        top_n = sorted_players[:num_players]
+        
+        # Layout dynamique (2 colonnes)
+        cols = st.columns(2)
+        
+        for i, player in enumerate(top_n):
+            col = cols[i % 2]
+            with col:
+                st.markdown(f"#### {i+1}. {player}")
+                fig = create_pro_shotmap(df, player, theme, is_solo=False)
+                st.pyplot(fig)
+                st.markdown("---")
+
     # Footer
-    st.markdown("---")
-    st.markdown(
-        "<div style='text-align: center; color: #94a3b8; font-size: 0.8rem;'>"
-        "Data: FotMob | Application: Streamlit | 2024/2025"
-        "</div>",
-        unsafe_allow_html=True
-    )
+    st.markdown("<br><br><div style='text-align: center; color: gray; font-size: 0.8em;'>Developed with ❤️ & Python | Data Science Football</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
