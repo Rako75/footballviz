@@ -39,38 +39,37 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #0a0e27 0%, #16213e 50%, #0f3460 100%);
+        background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
     }
     
     h1 {
-        background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 900;
+        font-weight: 800;
         text-align: center;
-        padding: 1.5rem 0;
-        font-size: 3rem;
-        letter-spacing: -1px;
-        text-shadow: 0 0 30px rgba(0,212,255,0.3);
+        padding: 2rem 0 0.5rem 0;
+        font-size: 2.5rem;
+        letter-spacing: -0.5px;
     }
     
     h2 {
-        color: #00d4ff;
-        font-weight: 700;
-        margin-top: 2rem;
-        font-size: 1.8rem;
+        color: #3b82f6;
+        font-weight: 600;
+        margin-top: 2.5rem;
+        font-size: 1.5rem;
     }
     
     h3 {
-        color: #e2e8f0;
-        font-weight: 600;
-        font-size: 1.2rem;
+        color: #cbd5e1;
+        font-weight: 500;
+        font-size: 1.1rem;
     }
     
     /* Sidebar customization */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
-        border-right: 2px solid rgba(0, 212, 255, 0.2);
+        background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
+        border-right: 1px solid rgba(59, 130, 246, 0.15);
     }
     
     [data-testid="stSidebar"] > div:first-child {
@@ -91,54 +90,54 @@ st.markdown("""
     }
     
     .stSelectbox label, .stSlider label, .stRadio label {
-        color: #00d4ff !important;
+        color: #3b82f6 !important;
         font-weight: 600 !important;
-        font-size: 0.95rem !important;
+        font-size: 0.9rem !important;
     }
     
     /* Personnaliser les boutons radio */
     .stRadio > div {
-        background: rgba(0, 212, 255, 0.05);
+        background: rgba(59, 130, 246, 0.03);
         padding: 0.5rem;
-        border-radius: 10px;
-        border: 1px solid rgba(0, 212, 255, 0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(59, 130, 246, 0.08);
     }
     
     /* Personnaliser le slider */
     .stSlider > div > div > div {
-        background: linear-gradient(90deg, #00d4ff, #00ff88);
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
     }
     
     .metric-card {
-        background: rgba(0, 212, 255, 0.05);
+        background: rgba(59, 130, 246, 0.03);
         padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid rgba(0, 212, 255, 0.2);
+        border-radius: 12px;
+        border: 1px solid rgba(59, 130, 246, 0.1);
         backdrop-filter: blur(20px);
-        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.05);
         transition: all 0.3s ease;
         display: none;
     }
     
     .metric-card:hover {
-        border-color: rgba(0, 212, 255, 0.5);
-        box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
+        border-color: rgba(59, 130, 246, 0.2);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
         transform: translateY(-2px);
         display: none;
     }
     
     div[data-testid="stMetricValue"] {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #00ff88;
+        color: #60a5fa;
     }
     
     div[data-testid="stMetricLabel"] {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
     
     div[data-testid="stMetric"] {
@@ -427,8 +426,8 @@ def create_shotmap(data, player_id, theme, size='large'):
 
 def main():
     # En-tête avec animation
-    st.markdown("# ⚽ FOOTBALL SHOTMAPS PRO")
-    st.markdown("<p class='subtitle'>🎯 Analyse Avancée des Zones de Tir • Saison 2024/2025</p>", 
+    st.markdown("# Analyse des Zones de Tir")
+    st.markdown("<p class='subtitle'>Visualisation avancée des shotmaps et statistiques de tir<br>Analyse comparative des performances offensives • Saison 2024/2025</p>", 
                 unsafe_allow_html=True)
     
     # Sidebar moderne
@@ -483,9 +482,8 @@ def main():
         # Info box
         st.markdown("""
         <div class='info-box'>
-        <strong>ℹ️ À PROPOS</strong><br>
-        Application d'analyse avancée des zones de tir des meilleurs joueurs.
-        Données hors penalties pour une analyse précise.
+        <strong>À propos</strong><br>
+        Outil d'analyse des zones de tir et de l'efficacité offensive. Les données excluent les penalties pour une évaluation précise du jeu ouvert.
         </div>
         """, unsafe_allow_html=True)
     
@@ -506,7 +504,7 @@ def main():
     data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
     
     # Statistiques globales avec cards modernes
-    st.markdown("## 📈 STATISTIQUES GLOBALES")
+    st.markdown("## Statistiques Globales")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -516,21 +514,21 @@ def main():
     conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
     
     with col1:
-        st.metric("🎯 Tirs Totaux", f"{total_shots:,}")
+        st.metric("Tirs Totaux", f"{total_shots:,}")
     
     with col2:
-        st.metric("⚽ Buts Marqués", f"{total_goals:,}")
+        st.metric("Buts Marqués", f"{total_goals:,}")
     
     with col3:
-        st.metric("📊 xG Moyen", f"{avg_xg:.3f}")
+        st.metric("xG Moyen", f"{avg_xg:.3f}")
     
     with col4:
-        st.metric("🎖️ Taux Conversion", f"{conversion_rate:.1f}%")
+        st.metric("Taux Conversion", f"{conversion_rate:.1f}%")
     
     st.markdown("---")
     
     # Cartes de tirs avec affichage adaptatif
-    st.markdown("## 🗺️ SHOTMAPS DÉTAILLÉES")
+    st.markdown("## Shotmaps Individuelles")
     
     # Déterminer le nombre de colonnes
     if "Large" in display_size:
