@@ -34,110 +34,109 @@ st.markdown("""
     header {visibility: hidden;}
     .stDeployButton {display: none;}
     
+    /* Supprimer la marge du haut */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+    }
+    
     .main {
         padding: 0rem 2rem;
     }
     
     .stApp {
-        background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+        background: linear-gradient(135deg, #0a0e27 0%, #16213e 50%, #0f3460 100%);
     }
     
     h1 {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800;
+        font-weight: 900;
         text-align: center;
-        padding: 2rem 0 0.5rem 0;
-        font-size: 2.5rem;
-        letter-spacing: -0.5px;
+        padding: 1.5rem 0;
+        font-size: 3rem;
+        letter-spacing: -1px;
+        text-shadow: 0 0 30px rgba(0,212,255,0.3);
     }
     
     h2 {
-        color: #3b82f6;
-        font-weight: 600;
-        margin-top: 2.5rem;
-        font-size: 1.5rem;
+        color: #00d4ff;
+        font-weight: 700;
+        margin-top: 2rem;
+        font-size: 1.8rem;
     }
     
     h3 {
-        color: #cbd5e1;
-        font-weight: 500;
-        font-size: 1.1rem;
+        color: #e2e8f0;
+        font-weight: 600;
+        font-size: 1.2rem;
     }
     
     /* Sidebar customization */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
-        border-right: 1px solid rgba(59, 130, 246, 0.15);
+        background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+        border-right: 2px solid rgba(0, 212, 255, 0.2);
     }
     
     [data-testid="stSidebar"] > div:first-child {
         padding-top: 2rem;
     }
     
-    /* Personnaliser le bouton de la sidebar */
+    /* Masquer l'icône de fermeture de la sidebar */
     [data-testid="collapsedControl"] {
-        color: #00d4ff;
-        background: rgba(0, 212, 255, 0.1);
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    [data-testid="collapsedControl"]:hover {
-        background: rgba(0, 212, 255, 0.2);
-        transform: scale(1.05);
+        display: none;
     }
     
     .stSelectbox label, .stSlider label, .stRadio label {
-        color: #3b82f6 !important;
+        color: #00d4ff !important;
         font-weight: 600 !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
     }
     
     /* Personnaliser les boutons radio */
     .stRadio > div {
-        background: rgba(59, 130, 246, 0.03);
+        background: rgba(0, 212, 255, 0.05);
         padding: 0.5rem;
-        border-radius: 8px;
-        border: 1px solid rgba(59, 130, 246, 0.08);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 212, 255, 0.1);
     }
     
     /* Personnaliser le slider */
     .stSlider > div > div > div {
-        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        background: linear-gradient(90deg, #00d4ff, #00ff88);
     }
     
     .metric-card {
-        background: rgba(59, 130, 246, 0.03);
+        background: rgba(0, 212, 255, 0.05);
         padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid rgba(59, 130, 246, 0.1);
+        border-radius: 15px;
+        border: 2px solid rgba(0, 212, 255, 0.2);
         backdrop-filter: blur(20px);
-        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.05);
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
         transition: all 0.3s ease;
         display: none;
     }
     
     .metric-card:hover {
-        border-color: rgba(59, 130, 246, 0.2);
-        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+        border-color: rgba(0, 212, 255, 0.5);
+        box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
         transform: translateY(-2px);
         display: none;
     }
     
     div[data-testid="stMetricValue"] {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 700;
-        color: #60a5fa;
+        color: #00ff88;
     }
     
     div[data-testid="stMetricLabel"] {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
     }
     
     div[data-testid="stMetric"] {
@@ -426,17 +425,17 @@ def create_shotmap(data, player_id, theme, size='large'):
 
 def main():
     # En-tête avec animation
-    st.markdown("# Analyse des Zones de Tir")
-    st.markdown("<p class='subtitle'>Visualisation avancée des shotmaps et statistiques de tir<br>Analyse comparative des performances offensives • Saison 2024/2025</p>", 
+    st.markdown("# ⚽ FOOTBALL SHOTMAPS PRO")
+    st.markdown("<p class='subtitle'>🎯 Analyse Avancée des Zones de Tir • Saison 2024/2025</p>", 
                 unsafe_allow_html=True)
     
     # Sidebar moderne
     with st.sidebar:
-        st.markdown("<h2 class='sidebar-title'>Configuration</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sidebar-title'>⚙️ CONFIGURATION</h2>", unsafe_allow_html=True)
         
         # Sélection de la ligue
         selected_league = st.selectbox(
-            "Sélectionner une Ligue",
+            "🏆 Sélectionner une Ligue",
             options=list(LEAGUE_THEMES.keys()),
             index=0
         )
@@ -482,8 +481,9 @@ def main():
         # Info box
         st.markdown("""
         <div class='info-box'>
-        <strong>À propos</strong><br>
-        Outil d'analyse des zones de tir et de l'efficacité offensive. Les données excluent les penalties pour une évaluation précise du jeu ouvert.
+        <strong>ℹ️ À PROPOS</strong><br>
+        Application d'analyse avancée des zones de tir des meilleurs joueurs.
+        Données hors penalties pour une analyse précise.
         </div>
         """, unsafe_allow_html=True)
     
@@ -504,7 +504,7 @@ def main():
     data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
     
     # Statistiques globales avec cards modernes
-    st.markdown("## Statistiques Globales")
+    st.markdown("## 📈 STATISTIQUES GLOBALES")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -514,21 +514,41 @@ def main():
     conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
     
     with col1:
-        st.metric("Tirs Totaux", f"{total_shots:,}")
+        st.metric("🎯 Tirs Totaux", f"{total_shots:,}")
     
     with col2:
-        st.metric("Buts Marqués", f"{total_goals:,}")
+        st.metric("⚽ Buts Marqués", f"{total_goals:,}")
     
     with col3:
-        st.metric("xG Moyen", f"{avg_xg:.3f}")
+        st.metric("📊 xG Moyen", f"{avg_xg:.3f}")
     
     with col4:
-        st.metric("Taux Conversion", f"{conversion_rate:.1f}%")
+        st.metric("🎖️ Taux Conversion", f"{conversion_rate:.1f}%")
+    
+    st.markdown("---")
+    
+    # Tableau des statistiques
+    st.markdown(f"## 🏆 CLASSEMENT - {display_type.upper()}")
+    
+    display_df = data_grouped[['joueur', 'Total']].copy()
+    if display_type == "Top Tireurs":
+        display_df.columns = ['Joueur', 'Total Tirs']
+    elif display_type == "Meilleurs Buteurs":
+        display_df.columns = ['Joueur', 'Nombre de Buts']
+    else:  # Meilleur xG
+        display_df.columns = ['Joueur', 'xG Total']
+        display_df['xG Total'] = display_df['xG Total'].round(2)
+    
+    st.dataframe(
+        display_df.style.background_gradient(cmap='viridis', subset=display_df.columns[1]),
+        use_container_width=True,
+        height=300
+    )
     
     st.markdown("---")
     
     # Cartes de tirs avec affichage adaptatif
-    st.markdown("## Shotmaps Individuelles")
+    st.markdown("## 🗺️ SHOTMAPS DÉTAILLÉES")
     
     # Déterminer le nombre de colonnes
     if "Large" in display_size:
@@ -559,8 +579,11 @@ def main():
     st.markdown("---")
     st.markdown("""
         <div style='text-align: center; padding: 2rem 0;'>
-            <p style='color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;'>
-                Données FotMob • Saison 2024/2025
+            <p style='color: #00d4ff; font-size: 0.9rem; font-weight: 600;'>
+                ⚡ POWERED BY FOTMOB DATA • STREAMLIT • MPLSOCCER
+            </p>
+            <p style='color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;'>
+                Saison 2024/2025 • Analyse Professionnelle des Performances
             </p>
         </div>
     """, unsafe_allow_html=True)
