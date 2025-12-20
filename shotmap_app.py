@@ -413,7 +413,7 @@ def main():
         # Type d'affichage
         display_type = st.radio(
             "📊 Type d'Affichage",
-            ["Top Tireurs", "Meilleurs Buteurs", "Meilleur xG", "Plus Efficaces"],
+            ["Top Tireurs", "Meilleurs Buteurs", "Meilleur xG"],
             index=0
         )
         
@@ -455,17 +455,8 @@ def main():
     elif display_type == "Meilleurs Buteurs":
         goals_data = data[data['type_evenement'] == 'Goal']
         data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id']).size().reset_index(name='Total')
-    elif display_type == "Meilleur xG":
+    else:  # Meilleur xG
         data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id'])['xg'].sum().reset_index(name='Total')
-    else:  # Plus Efficaces
-        player_stats = data.groupby(['joueur_id', 'joueur', 'equipe_id']).agg({
-            'type_evenement': lambda x: (x == 'Goal').sum(),
-            'joueur_id': 'count'
-        }).reset_index()
-        player_stats.columns = ['joueur_id', 'joueur', 'equipe_id', 'goals', 'shots']
-        player_stats = player_stats[player_stats['shots'] >= 10]  # Minimum 10 tirs
-        player_stats['Total'] = (player_stats['goals'] / player_stats['shots'] * 100)
-        data_grouped = player_stats
     
     data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
     
