@@ -28,6 +28,18 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
+    /* Masquer les éléments Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Supprimer la marge du haut */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+    }
+    
     .main {
         padding: 0rem 2rem;
     }
@@ -61,10 +73,38 @@ st.markdown("""
         font-size: 1.2rem;
     }
     
+    /* Sidebar customization */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+        border-right: 2px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 2rem;
+    }
+    
+    /* Masquer l'icône de fermeture de la sidebar */
+    [data-testid="collapsedControl"] {
+        display: none;
+    }
+    
     .stSelectbox label, .stSlider label, .stRadio label {
         color: #00d4ff !important;
         font-weight: 600 !important;
         font-size: 0.95rem !important;
+    }
+    
+    /* Personnaliser les boutons radio */
+    .stRadio > div {
+        background: rgba(0, 212, 255, 0.05);
+        padding: 0.5rem;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 212, 255, 0.1);
+    }
+    
+    /* Personnaliser le slider */
+    .stSlider > div > div > div {
+        background: linear-gradient(90deg, #00d4ff, #00ff88);
     }
     
     .metric-card {
@@ -109,11 +149,6 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.03);
         border-radius: 10px;
         border: 1px solid rgba(0, 212, 255, 0.1);
-    }
-    
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
-        border-right: 2px solid rgba(0, 212, 255, 0.2);
     }
     
     .sidebar-title {
@@ -489,26 +524,6 @@ def main():
     
     with col4:
         st.metric("🎖️ Taux Conversion", f"{conversion_rate:.1f}%")
-    
-    st.markdown("---")
-    
-    # Tableau des statistiques
-    st.markdown(f"## 🏆 CLASSEMENT - {display_type.upper()}")
-    
-    display_df = data_grouped[['joueur', 'Total']].copy()
-    if display_type == "Top Tireurs":
-        display_df.columns = ['Joueur', 'Total Tirs']
-    elif display_type == "Meilleurs Buteurs":
-        display_df.columns = ['Joueur', 'Nombre de Buts']
-    else:  # Meilleur xG
-        display_df.columns = ['Joueur', 'xG Total']
-        display_df['xG Total'] = display_df['xG Total'].round(2)
-    
-    st.dataframe(
-        display_df.style.background_gradient(cmap='viridis', subset=display_df.columns[1]),
-        use_container_width=True,
-        height=300
-    )
     
     st.markdown("---")
     
