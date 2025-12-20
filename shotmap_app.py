@@ -432,11 +432,11 @@ def main():
     
     # Sidebar moderne
     with st.sidebar:
-        st.markdown("<h2 class='sidebar-title'>⚙️ CONFIGURATION</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sidebar-title'>Configuration</h2>", unsafe_allow_html=True)
         
         # Sélection de la ligue
         selected_league = st.selectbox(
-            "🏆 Sélectionner une Ligue",
+            "Sélectionner une Ligue",
             options=list(LEAGUE_THEMES.keys()),
             index=0
         )
@@ -559,11 +559,8 @@ def main():
     st.markdown("---")
     st.markdown("""
         <div style='text-align: center; padding: 2rem 0;'>
-            <p style='color: #00d4ff; font-size: 0.9rem; font-weight: 600;'>
-                ⚡ POWERED BY FOTMOB DATA • STREAMLIT • MPLSOCCER
-            </p>
-            <p style='color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;'>
-                Saison 2024/2025 • Analyse Professionnelle des Performances
+            <p style='color: #64748b; font-size: 0.85rem; margin-top: 0.5rem;'>
+                Données FotMob • Saison 2024/2025
             </p>
         </div>
     """, unsafe_allow_html=True)
