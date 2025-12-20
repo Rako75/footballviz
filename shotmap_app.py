@@ -28,46 +28,44 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stDeployButton {display: none;}
+
     
     .main {
         padding: 0rem 2rem;
     }
     
     .stApp {
-        background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+        background: linear-gradient(135deg, #0a0e27 0%, #16213e 50%, #0f3460 100%);
     }
     
     h1 {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800;
+        font-weight: 900;
         text-align: center;
-        padding: 2rem 0 0.5rem 0;
-        font-size: 2.5rem;
-        letter-spacing: -0.5px;
+        padding: 1.5rem 0;
+        font-size: 3rem;
+        letter-spacing: -1px;
+        text-shadow: 0 0 30px rgba(0,212,255,0.3);
     }
     
     h2 {
-        color: #3b82f6;
-        font-weight: 600;
-        margin-top: 2.5rem;
-        font-size: 1.5rem;
+        color: #00d4ff;
+        font-weight: 700;
+        margin-top: 2rem;
+        font-size: 1.8rem;
     }
     
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
-        border-right: 1px solid rgba(59, 130, 246, 0.15);
+        background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+        border-right: 2px solid rgba(0, 212, 255, 0.2);
     }
     
     .stSelectbox label, .stSlider label, .stRadio label {
-        color: #3b82f6 !important;
+        color: #00d4ff !important;
         font-weight: 600 !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
     }
     
     .stButton>button {
@@ -366,21 +364,21 @@ def create_shotmap(data, player_id, theme, size='normal'):
     return fig
 
 def main():
-    st.markdown("# Analyse des Zones de Tir")
-    st.markdown("<p class='subtitle'>Scraping et visualisation avancée des shotmaps</p>", 
+    st.markdown("# ⚽ FOOTBALL SHOTMAPS PRO")
+    st.markdown("<p class='subtitle'>🎯 Analyse Avancée des Zones de Tir • Scraping & Visualisation</p>", 
                 unsafe_allow_html=True)
     
     with st.sidebar:
-        st.markdown("<h2 class='sidebar-title'>⚙️ Configuration</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sidebar-title'>⚙️ CONFIGURATION</h2>", unsafe_allow_html=True)
         
         # Mode de l'application
-        mode = st.radio("Mode", ["📊 Visualisation", "🔄 Scraping"], index=0)
+        mode = st.radio("🔄 Mode", ["📊 Visualisation", "🔄 Scraping"], index=0)
         
         st.markdown("---")
         
         # Sélection Ligue
         selected_league_name = st.selectbox(
-            "Sélectionner une Ligue",
+            "🏆 Sélectionner une Ligue",
             options=list(LEAGUE_THEMES.keys()),
             index=0
         )
@@ -425,13 +423,25 @@ def main():
                 index=0
             )
             
-            num_players = st.slider("👥 Nombre de Joueurs", 1, 10, 6)
+            num_players = st.slider("👥 Nombre de Joueurs", 1, 10, 6,
+                                   help="Sélectionnez le nombre de joueurs à afficher")
             
             display_size = st.radio(
-                "📐 Taille",
-                ["Large (1/ligne)", "Compact (2/ligne)", "Grille (3/ligne)"],
+                "📐 Taille des Shotmaps",
+                ["Large (1 par ligne)", "Compact (2 par ligne)", "Grille (3 par ligne)"],
                 index=2
             )
+        
+        st.markdown("---")
+        
+        # Info box
+        st.markdown("""
+        <div class='info-box'>
+        <strong>ℹ️ À PROPOS</strong><br>
+        Application complète de scraping et d'analyse des zones de tir.
+        Données hors penalties pour une analyse précise.
+        </div>
+        """, unsafe_allow_html=True)
     
     # Affichage selon le mode
     if mode == "📊 Visualisation":
@@ -448,7 +458,7 @@ def main():
             return
         
         # Stats globales
-        st.markdown("## 📈 Statistiques Globales")
+        st.markdown("## 📈 STATISTIQUES GLOBALES")
         col1, col2, col3, col4 = st.columns(4)
         
         total_shots = len(data)
@@ -457,29 +467,47 @@ def main():
         conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
         
         with col1:
-            st.metric("Tirs Totaux", f"{total_shots:,}")
+            st.metric("🎯 Tirs Totaux", f"{total_shots:,}")
         with col2:
-            st.metric("Buts Marqués", f"{total_goals:,}")
+            st.metric("⚽ Buts Marqués", f"{total_goals:,}")
         with col3:
-            st.metric("xG Moyen", f"{avg_xg:.3f}")
+            st.metric("📊 xG Moyen", f"{avg_xg:.3f}")
         with col4:
-            st.metric("Taux Conversion", f"{conversion_rate:.1f}%")
+            st.metric("🎖️ Taux Conversion", f"{conversion_rate:.1f}%")
         
         st.markdown("---")
+        
+        # Tableau des statistiques
+        st.markdown(f"## 🏆 CLASSEMENT - {display_type.upper()}")
         
         # Préparation données
         if display_type == "Top Tireurs":
             data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id']).size().reset_index(name='Total')
+            display_df = data_grouped[['joueur', 'Total']].copy()
+            display_df.columns = ['Joueur', 'Total Tirs']
         elif display_type == "Meilleurs Buteurs":
             goals_data = data[data['type_evenement'] == 'Goal']
             data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id']).size().reset_index(name='Total')
+            display_df = data_grouped[['joueur', 'Total']].copy()
+            display_df.columns = ['Joueur', 'Nombre de Buts']
         else:
             data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id'])['xg'].sum().reset_index(name='Total')
+            display_df = data_grouped[['joueur', 'Total']].copy()
+            display_df.columns = ['Joueur', 'xG Total']
+            display_df['xG Total'] = display_df['xG Total'].round(2)
         
         data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
         
+        st.dataframe(
+            display_df.head(num_players).style.background_gradient(cmap='viridis', subset=display_df.columns[1]),
+            use_container_width=True,
+            height=300
+        )
+        
+        st.markdown("---")
+        
         # Shotmaps
-        st.markdown("## 🎯 Shotmaps Individuelles")
+        st.markdown("## 🗺️ SHOTMAPS DÉTAILLÉES")
         
         if "Large" in display_size:
             cols_per_row = 1
@@ -500,9 +528,23 @@ def main():
                 if player_idx < len(data_grouped):
                     player_id = data_grouped['joueur_id'].iloc[player_idx]
                     with cols[col_idx]:
-                        fig = create_shotmap(data, player_id, theme, size=size)
-                        st.pyplot(fig, use_container_width=True)
-                        plt.close(fig)
+                        with st.spinner(f"🎨 Génération..."):
+                            fig = create_shotmap(data, player_id, theme, size=size)
+                            st.pyplot(fig, use_container_width=True)
+                            plt.close(fig)
+        
+        # Footer
+        st.markdown("---")
+        st.markdown("""
+            <div style='text-align: center; padding: 2rem 0;'>
+                <p style='color: #00d4ff; font-size: 0.9rem; font-weight: 600;'>
+                    ⚡ POWERED BY FOTMOB DATA • STREAMLIT • MPLSOCCER
+                </p>
+                <p style='color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;'>
+                    Analyse Professionnelle des Performances
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
