@@ -34,12 +34,6 @@ st.markdown("""
     header {visibility: hidden;}
     .stDeployButton {display: none;}
     
-    /* Supprimer la marge du haut */
-    .block-container {
-        padding-top: 1rem;
-        padding-bottom: 0rem;
-    }
-    
     .main {
         padding: 0rem 2rem;
     }
@@ -83,9 +77,17 @@ st.markdown("""
         padding-top: 2rem;
     }
     
-    /* Masquer l'icône de fermeture de la sidebar */
+    /* Personnaliser le bouton de la sidebar */
     [data-testid="collapsedControl"] {
-        display: none;
+        color: #00d4ff;
+        background: rgba(0, 212, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="collapsedControl"]:hover {
+        background: rgba(0, 212, 255, 0.2);
+        transform: scale(1.05);
     }
     
     .stSelectbox label, .stSlider label, .stRadio label {
