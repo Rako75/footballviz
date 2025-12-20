@@ -75,12 +75,14 @@ st.markdown("""
         backdrop-filter: blur(20px);
         box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
         transition: all 0.3s ease;
+        display: none;
     }
     
     .metric-card:hover {
         border-color: rgba(0, 212, 255, 0.5);
         box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
         transform: translateY(-2px);
+        display: none;
     }
     
     div[data-testid="stMetricValue"] {
@@ -95,6 +97,12 @@ st.markdown("""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
+    }
+    
+    div[data-testid="stMetric"] {
+        background: transparent;
+        padding: 0;
+        border: none;
     }
     
     .stDataFrame {
@@ -471,24 +479,16 @@ def main():
     conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
     
     with col1:
-        st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
         st.metric("🎯 Tirs Totaux", f"{total_shots:,}")
-        st.markdown("</div>", unsafe_allow_html=True)
     
     with col2:
-        st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
         st.metric("⚽ Buts Marqués", f"{total_goals:,}")
-        st.markdown("</div>", unsafe_allow_html=True)
     
     with col3:
-        st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
         st.metric("📊 xG Moyen", f"{avg_xg:.3f}")
-        st.markdown("</div>", unsafe_allow_html=True)
     
     with col4:
-        st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
         st.metric("🎖️ Taux Conversion", f"{conversion_rate:.1f}%")
-        st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -500,12 +500,9 @@ def main():
         display_df.columns = ['Joueur', 'Total Tirs']
     elif display_type == "Meilleurs Buteurs":
         display_df.columns = ['Joueur', 'Nombre de Buts']
-    elif display_type == "Meilleur xG":
+    else:  # Meilleur xG
         display_df.columns = ['Joueur', 'xG Total']
         display_df['xG Total'] = display_df['xG Total'].round(2)
-    else:
-        display_df.columns = ['Joueur', 'Taux de Conversion (%)']
-        display_df['Taux de Conversion (%)'] = display_df['Taux de Conversion (%)'].round(1)
     
     st.dataframe(
         display_df.style.background_gradient(cmap='viridis', subset=display_df.columns[1]),
