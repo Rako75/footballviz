@@ -343,10 +343,10 @@ def create_shotmap(data, player_id, theme, size='normal'):
     """Crée une carte de tirs avec photo du joueur"""
     if size == 'large':
         figsize = (10, 13)
-        font_sizes = {'title': 16, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
+        font_sizes = {'title': 14, 'stats_label': 7, 'stats_value': 11, 'distance': 8, 'team_info': 7}
     else:
         figsize = (6, 8)
-        font_sizes = {'title': 12, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
+        font_sizes = {'title': 10, 'stats_label': 5, 'stats_value': 8, 'distance': 6, 'team_info': 5}
     
     fig, ax = plt.subplots(figsize=figsize, facecolor=theme['background'])
     ax.set_facecolor(theme['background'])
@@ -361,56 +361,103 @@ def create_shotmap(data, player_id, theme, size='normal'):
     player_data = data[data['joueur_id'] == player_id]
     cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
     
+    # Hexbin des tirs
     pitch.hexbin(
         x=player_data['position_x'], y=player_data['position_y'], 
         ax=ax, cmap=cmap, gridsize=(16, 16), zorder=2, 
         edgecolors='None', alpha=0.95, mincnt=1
     )
     
+    # Scatter plot des buts (cercles rouges vides)
+    goals_data = player_data[player_data['type_evenement'] == 'Goal']
+    if len(goals_data) > 0:
+        pitch.scatter(
+            x=goals_data['position_x'], y=goals_data['position_y'],
+            ax=ax, s=100, edgecolors='#ff0000', linewidths=2,
+            facecolors='none', zorder=4, alpha=0.9
+        )
+    
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
-    ax.plot(x_circle, y_circle, ls='--', color=theme['accent'], lw=2, alpha=0.6, zorder=3)
+    ax.plot(x_circle, y_circle, ls='--', color='#ff0000', lw=2, alpha=0.7, zorder=3)
     
-    stats = {
-        'TIRS': player_data.shape[0],
-        'BUTS': player_data[player_data['type_evenement'] == 'Goal'].shape[0],
-        'xG': player_data['xg'].sum(),
-        'xG/TIR': player_data['xg'].mean()
-    }
-    
+    # Calcul des statistiques
+    total_shots = player_data.shape[0]
+    goals = player_data[player_data['type_evenement'] == 'Goal'].shape[0]
     on_target = player_data[player_data['type_evenement'].isin(['Goal', 'SavedShot'])].shape[0]
-    accuracy = (on_target / stats['TIRS'] * 100) if stats['TIRS'] > 0 else 0
-    
-    stat_y_start = 74
-    for i, (label, value) in enumerate(stats.items()):
-        x_pos = 10 + (i * 14.5)
-        ax.text(x_pos, stat_y_start, label, 
-                ha='center', va='bottom', fontsize=font_sizes['stats_label'], 
-                color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.6)), 
-                weight='bold', fontfamily='Montserrat')
-        val_fmt = f"{value:.0f}" if label in ['TIRS', 'BUTS'] else f"{value:.2f}"
-        ax.text(x_pos, stat_y_start - 2, val_fmt, 
-                ha='center', va='top', fontsize=font_sizes['stats_value'], 
-                color=theme['accent'], weight='heavy', fontfamily='Montserrat')
+    npxg = player_data['xg'].sum()
+    npxg_per_shot = player_data['xg'].mean()
+    shot_on_target_pct = (on_target / total_shots * 100) if total_shots > 0 else 0
     
     dist_yds = ((105 - median_x) * 18) / 16.5
     dist_m = dist_yds * 0.9144
     
-    info_text = f"Distance Médiane: {dist_m:.1f}m  |  Précision: {accuracy:.0f}%"
-    ax.text(34, 108, info_text,
-            ha='center', va='center', fontsize=font_sizes['distance'],
-            color=theme['text'], weight='bold', fontfamily='Montserrat',
-            bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
-                     boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
+    # Nombre de matchs (estimation basée sur le nombre de tirs / moyenne)
+    num_games = len(player_data['match_id'].unique())
     
+    # Informations en haut
     player_name = player_data['joueur'].iloc[0].upper()
+    team_name = player_data['equipe_joueur'].iloc[0]
+    
     ax.text(34, 118, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
-            color=theme['text'], weight='black', fontfamily='Montserrat',
-            bbox=dict(facecolor=theme['background'], edgecolor='none', 
-                     boxstyle='round,pad=0.7', alpha=0.8))
+            color=theme['text'], weight='black', fontfamily='Montserrat')
     
-    ax.plot([20, 48], [114, 114], color=theme['accent'], lw=3, alpha=0.9)
+    team_info = f"{team_name} | {num_games} matchs | {dist_m:.1f} m"
+    ax.text(34, 114, team_info,
+            ha='center', va='center', fontsize=font_sizes['team_info'],
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)),
+            fontfamily='Montserrat')
+    
+    # Stats principales sous le terrain
+    stats_info = f"{total_shots} tirs | {npxg:.1f} npxG | {goals} npG"
+    ax.text(34, 111, stats_info,
+            ha='center', va='center', fontsize=font_sizes['team_info'],
+            color='#ff0000', weight='bold', fontfamily='Montserrat')
+    
+    # Distance moyenne avec flèche
+    ax.annotate('', xy=(20, 108), xytext=(48, 108),
+                arrowprops=dict(arrowstyle='<->', color='#ff0000', lw=2))
+    ax.text(34, 105, f"{dist_m:.1f} meters",
+            ha='center', va='top', fontsize=font_sizes['distance'],
+            color='#ff0000', weight='bold', fontfamily='Montserrat')
+    ax.text(34, 103, "avg distance",
+            ha='center', va='top', fontsize=font_sizes['stats_label'],
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.6)),
+            fontfamily='Montserrat')
+    
+    # Statistiques en bas (5 métriques)
+    stat_y_start = -8
+    stats = {
+        'S': total_shots,
+        'SoT%': shot_on_target_pct,
+        'npG': goals,
+        'npxG': npxg,
+        'npxG/S': npxg_per_shot
+    }
+    
+    for i, (label, value) in enumerate(stats.items()):
+        x_pos = 6.8 + (i * 13.6)
+        
+        # Label
+        ax.text(x_pos, stat_y_start + 1.5, label, 
+                ha='center', va='center', fontsize=font_sizes['stats_label'], 
+                color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.9)), 
+                weight='bold', fontfamily='Montserrat')
+        
+        # Valeur
+        if label == 'SoT%':
+            val_fmt = f"{value:.0f}"
+        elif label in ['S', 'npG']:
+            val_fmt = f"{value:.0f}"
+        else:
+            val_fmt = f"{value:.2f}"
+            
+        ax.text(x_pos, stat_y_start - 1.5, val_fmt, 
+                ha='center', va='center', fontsize=font_sizes['stats_value'], 
+                color=theme['text'], weight='bold', fontfamily='Montserrat',
+                bbox=dict(facecolor=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.15)),
+                         edgecolor='none', boxstyle='round,pad=0.4'))
     
     # Logo de l'équipe
     team_id = player_data["equipe_id"].iloc[0]
@@ -424,15 +471,14 @@ def create_shotmap(data, player_id, theme, size='normal'):
     except:
         pass
     
-    # Photo du joueur (nouvelle fonctionnalité)
+    # Photo du joueur
     try:
         player_logo_ax = ax.inset_axes([0.80, 0.88, 0.15, 0.15])
         player_icon_url = f'https://images.fotmob.com/image_resources/playerimages/{player_id}.png'
         player_icon = Image.open(urllib.request.urlopen(player_icon_url))
         player_logo_ax.imshow(player_icon)
         player_logo_ax.axis('off')
-    except Exception as e:
-        # Si la photo n'est pas disponible, on continue sans erreur
+    except:
         pass
     
     plt.tight_layout()
