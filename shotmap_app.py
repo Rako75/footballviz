@@ -368,16 +368,6 @@ def create_shotmap(data, player_id, theme, size='normal'):
         edgecolors='white', linewidths=1.8, alpha=1.0, mincnt=1
     )
     
-    # Ajout de la colorbar (barre de densité)
-    cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.35])  # [left, bottom, width, height]
-    cbar = plt.colorbar(hexbin, cax=cbar_ax)
-    cbar.set_label('Fréquence des tirs', rotation=270, labelpad=15, 
-                   color=theme['text'], fontsize=font_sizes['stats_label'], 
-                   weight='bold', fontfamily='Montserrat')
-    cbar.ax.tick_params(colors=theme['text'], labelsize=font_sizes['stats_label']-1)
-    cbar.outline.set_edgecolor(theme['accent'])
-    cbar.outline.set_linewidth(2)
-    
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
     ax.plot(x_circle, y_circle, ls='--', color=theme['accent'], lw=2, alpha=0.6, zorder=3)
@@ -413,6 +403,13 @@ def create_shotmap(data, player_id, theme, size='normal'):
             color=theme['text'], weight='bold', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
+    
+    # Description des hexbins
+    density_text = "Plus la couleur est claire, plus la fréquence de tirs est élevée"
+    ax.text(34, 103, density_text,
+            ha='center', va='center', fontsize=font_sizes['distance']-1,
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
+            style='italic', fontfamily='Montserrat')
     
     player_name = player_data['joueur'].iloc[0].upper()
     ax.text(34, 118, player_name, 
