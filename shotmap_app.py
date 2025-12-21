@@ -587,6 +587,10 @@ def main():
         # Application des filtres
         filtered_data = data.copy()
         
+        # Ajouter la saison si elle n'existe pas
+        if 'saison' not in filtered_data.columns:
+            filtered_data['saison'] = selected_season
+        
         # Filtre équipe
         if selected_team != 'Toutes les équipes':
             filtered_data = filtered_data[filtered_data['equipe_joueur'] == selected_team]
