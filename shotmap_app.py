@@ -343,17 +343,17 @@ def semicircle(r, h, k):
 def draw_football(ax, x, y, size=1.5, color='white'):
     """Dessine un ballon de football stylisé"""
     # Cercle principal blanc
-    circle = plt.Circle((x, y), size, color=color, ec='black', linewidth=1.5, zorder=10)
+    circle = plt.Circle((x, y), size, color=color, ec='black', linewidth=2, zorder=100)
     ax.add_patch(circle)
     
     # Pentagones noirs (effet ballon de foot)
-    pentagon_size = size * 0.35
-    hexagon_angles = np.linspace(0, 2*np.pi, 6, endpoint=False)
+    pentagon_size = size * 0.3
+    hexagon_angles = np.linspace(0, 2*np.pi, 5, endpoint=False)
     
     for angle in hexagon_angles:
-        px = x + np.cos(angle) * size * 0.4
-        py = y + np.sin(angle) * size * 0.4
-        small_circle = plt.Circle((px, py), pentagon_size, color='black', zorder=11)
+        px = x + np.cos(angle) * size * 0.45
+        py = y + np.sin(angle) * size * 0.45
+        small_circle = plt.Circle((px, py), pentagon_size, color='black', zorder=101)
         ax.add_patch(small_circle)
 
 def create_shotmap(data, player_id, theme, player_info, size='normal'):
@@ -387,10 +387,11 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
         edgecolors='white', linewidths=1.8, alpha=1.0, mincnt=1
     )
     
-    # Ajouter les ballons sur les buts
+    # Ajouter les ballons sur les buts (APRÈS les hexbins)
     goals_data = player_data[player_data['type_evenement'] == 'Goal']
-    for _, goal in goals_data.iterrows():
-        draw_football(ax, goal['position_x'], goal['position_y'], size=ball_size, color='white')
+    if len(goals_data) > 0:
+        for _, goal in goals_data.iterrows():
+            draw_football(ax, goal['position_x'], goal['position_y'], size=ball_size, color='#FFFFFF')
     
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
