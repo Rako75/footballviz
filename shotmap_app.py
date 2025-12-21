@@ -357,9 +357,14 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     pitch = VerticalPitch(
         pitch_type='uefa', half=True, goal_type='box',
         linewidth=1.5, line_color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.2)),
-        pad_bottom=-10, pad_top=15, pitch_color=theme['background']
+        pad_bottom=0.5, pad_top=15, pad_left=0.5, pad_right=0.5,
+        pitch_color=theme['background']
     )
     pitch.draw(ax=ax)
+    
+    # Ajuster les limites pour éviter le décalage
+    ax.set_xlim(-1, 69)
+    ax.set_ylim(50, 125)
     
     player_data = data[data['joueur_id'] == player_id]
     cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
@@ -475,9 +480,9 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     except Exception as e:
         pass
     
-    # Description des hexbins et des ballons en bas de la shotmap
+    # Description des hexbins et des ballons repositionnée
     density_text = "Hexbins : densité de tirs  •  ⚽ : Buts marqués"
-    ax.text(34, 50, density_text,
+    ax.text(34, 52, density_text,
             ha='center', va='center', fontsize=font_sizes['distance']-1,
             color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
             style='italic', fontfamily='Montserrat')
