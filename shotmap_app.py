@@ -374,6 +374,10 @@ def create_shotmap(data, player_id, theme, size='normal'):
     cbar.set_label('Fréquence des tirs', rotation=270, labelpad=15, 
                    color=theme['text'], fontsize=font_sizes['stats_label'], 
                    weight='bold', fontfamily='Montserrat')
+    
+    # Graduations textuelles
+    cbar.set_ticks([0.2, 0.5, 0.8])
+    cbar.set_ticklabels(['Peu élevé', 'Modéré', 'Très élevé'])
     cbar.ax.tick_params(colors=theme['text'], labelsize=font_sizes['stats_label']-1)
     cbar.outline.set_edgecolor(theme['accent'])
     cbar.outline.set_linewidth(2)
