@@ -362,6 +362,9 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     )
     pitch.draw(ax=ax)
     
+    # Masquer tous les éléments d'axes indésirables
+    ax.axis('off')
+    
     # Ajuster les limites pour éviter le décalage
     ax.set_xlim(-1, 69)
     ax.set_ylim(50, 125)
@@ -489,7 +492,7 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     
     plt.tight_layout()
     return fig
-
+    
 def main():
     st.markdown("# Analyse des Zones de Tir")
     st.markdown("""<p class='subtitle'>
