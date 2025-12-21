@@ -371,14 +371,10 @@ def create_shotmap(data, player_id, theme, size='normal'):
     # Ajout de la colorbar (barre de densité)
     cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.35])  # [left, bottom, width, height]
     cbar = plt.colorbar(hexbin, cax=cbar_ax)
-    cbar.set_label('Densité', rotation=270, labelpad=15, 
+    cbar.set_label('Fréquence des tirs', rotation=270, labelpad=15, 
                    color=theme['text'], fontsize=font_sizes['stats_label'], 
                    weight='bold', fontfamily='Montserrat')
-    
-    # Graduations textuelles - Élevé en haut, Peu élevé en bas
-    cbar.set_ticks([0, 1])
-    cbar.set_ticklabels(['Peu élevé', 'Élevé'])
-    cbar.ax.tick_params(colors=theme['text'], labelsize=font_sizes['stats_label'])
+    cbar.ax.tick_params(colors=theme['text'], labelsize=font_sizes['stats_label']-1)
     cbar.outline.set_edgecolor(theme['accent'])
     cbar.outline.set_linewidth(2)
     
