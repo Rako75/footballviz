@@ -317,7 +317,7 @@ def lancer_scraping(league_conf, season_str):
             writer = csv.DictWriter(f, fieldnames=all_data[0].keys())
             writer.writeheader()
             writer.writerows(all_data)
-        st.success(f"🎉 Données collectées: {filename} ({len(all_data)} tirs)")
+        st.success(f"🎉 Données collectées: ({len(all_data)} tirs)")
         return filename
     else:
         st.error("❌ Aucun tir récupéré")
@@ -460,7 +460,7 @@ def main():
     st.markdown("# Analyse des Zones de Tir")
     st.markdown("""<p class='subtitle'>
         Outil professionnel de visualisation et d'analyse des shotmaps<br>
-        Collecte automatisée des données • Cartographie des zones de tir • Métriques xG avancées • Photos des joueurs
+        Collecte automatisée des données • Cartographie des zones de tir
     </p>""", unsafe_allow_html=True)
     
     with st.sidebar:
