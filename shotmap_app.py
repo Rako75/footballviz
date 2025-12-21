@@ -437,7 +437,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
     
     # Description des hexbins en bas de la shotmap
     density_text = "Plus la couleur est claire, plus la fréquence de tirs est élevée"
-    ax.text(34, -8, density_text,
+    ax.text(34, -3, density_text,
             ha='center', va='center', fontsize=font_sizes['distance']-1,
             color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
             style='italic', fontfamily='Montserrat')
