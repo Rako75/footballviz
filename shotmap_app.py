@@ -348,7 +348,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
             'info': 10, 'subtitle': 8, 'legend': 7
         }
     else:
-        figsize = (6, 9)
+        figsize = (6, 9.5)
         font_sizes = {
             'title': 13, 'stats_label': 7, 'stats_value': 12, 
             'info': 8, 'subtitle': 6.5, 'legend': 6
@@ -360,7 +360,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
     pitch = VerticalPitch(
         pitch_type='uefa', half=True, goal_type='box',
         linewidth=2, line_color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.3)),
-        pad_bottom=-10, pad_top=18, pitch_color=theme['background']
+        pad_bottom=-8, pad_top=22, pitch_color=theme['background']
     )
     pitch.draw(ax=ax)
     
@@ -391,7 +391,25 @@ def create_shotmap(data, player_id, theme, size='normal'):
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
     ax.plot(x_circle, y_circle, ls='--', color=theme['accent'], lw=2.5, alpha=0.8, zorder=3)
     
-    # STATISTIQUES PRINCIPALES - Ligne 1
+    # NOM DU JOUEUR ET ÉQUIPE EN HAUT (entre les deux logos)
+    player_name = player_data['joueur'].iloc[0].upper()
+    team_name = player_data['equipe_joueur'].iloc[0]
+    
+    ax.text(34, 121, player_name, 
+            ha='center', va='center', fontsize=font_sizes['title'], 
+            color=theme['text'], weight='black', fontfamily='Montserrat',
+            bbox=dict(facecolor=mcolors.to_hex(mcolors.to_rgba(theme['background'], alpha=0.9)), 
+                     edgecolor='none', boxstyle='round,pad=0.8', alpha=0.95))
+    
+    ax.text(34, 116.5, team_name, 
+            ha='center', va='center', fontsize=font_sizes['subtitle'], 
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
+            weight='600', fontfamily='Montserrat')
+    
+    # Ligne décorative
+    ax.plot([18, 50], [125, 125], color=theme['accent'], lw=3.5, alpha=0.9, solid_capstyle='round')
+    
+    # STATISTIQUES PRINCIPALES - Déplacées plus bas
     stats_main = {
         'TIRS': player_data.shape[0],
         'BUTS': player_data[player_data['type_evenement'] == 'Goal'].shape[0],
@@ -399,7 +417,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
         'xG/TIR': player_data['xg'].mean()
     }
     
-    stat_y_start = 76
+    stat_y_start = 110
     for i, (label, value) in enumerate(stats_main.items()):
         x_pos = 10 + (i * 14.5)
         ax.text(x_pos, stat_y_start, label, 
@@ -411,7 +429,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
                 ha='center', va='top', fontsize=font_sizes['stats_value'], 
                 color=theme['accent'], weight='heavy', fontfamily='Montserrat')
     
-    # STATISTIQUES SECONDAIRES - Ligne 2
+    # STATISTIQUES SECONDAIRES - Déplacées plus bas
     on_target = player_data[player_data['type_evenement'].isin(['Goal', 'SavedShot'])].shape[0]
     accuracy = (on_target / stats_main['TIRS'] * 100) if stats_main['TIRS'] > 0 else 0
     
@@ -428,7 +446,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
         'BUTS vs xG': f"{goals_vs_xg:+.1f}"
     }
     
-    stat_y_secondary = 84
+    stat_y_secondary = 105
     for i, (label, value) in enumerate(stats_secondary.items()):
         x_pos = 10 + (i * 14.5)
         ax.text(x_pos, stat_y_secondary, label, 
@@ -453,7 +471,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
     situation_count = situations.iloc[0] if len(situations) > 0 else 0
     
     info_text = f"Distance Médiane: {dist_m:.1f}m  |  Situation: {top_situation} ({situation_count})"
-    ax.text(34, 93, info_text,
+    ax.text(34, 100, info_text,
             ha='center', va='center', fontsize=font_sizes['info'],
             color=theme['text'], weight='bold', fontfamily='Montserrat',
             bbox=dict(facecolor=mcolors.to_hex(mcolors.to_rgba(theme['accent'], alpha=0.2)), 
@@ -464,29 +482,10 @@ def create_shotmap(data, player_id, theme, size='normal'):
     left_foot = player_data[player_data.get('bodyPart', '') == 'left-foot'].shape[0] if 'bodyPart' in player_data.columns else 0
     right_foot = player_data[player_data.get('bodyPart', '') == 'right-foot'].shape[0] if 'bodyPart' in player_data.columns else 0
     
-    # NOM DU JOUEUR
-    player_name = player_data['joueur'].iloc[0].upper()
-    team_name = player_data['equipe_joueur'].iloc[0]
-    
-    ax.text(34, 102, player_name, 
-            ha='center', va='center', fontsize=font_sizes['title'], 
-            color=theme['text'], weight='black', fontfamily='Montserrat',
-            bbox=dict(facecolor=mcolors.to_hex(mcolors.to_rgba(theme['background'], alpha=0.9)), 
-                     edgecolor='none', boxstyle='round,pad=0.8', alpha=0.95))
-    
-    # ÉQUIPE
-    ax.text(34, 97.5, team_name, 
-            ha='center', va='center', fontsize=font_sizes['subtitle'], 
-            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
-            weight='600', fontfamily='Montserrat')
-    
-    # Ligne décorative
-    ax.plot([18, 50], [106, 106], color=theme['accent'], lw=3.5, alpha=0.9, solid_capstyle='round')
-    
-    # Logo de l'équipe
+    # Logo de l'équipe (en haut à gauche)
     team_id = player_data["equipe_id"].iloc[0]
     try:
-        logo_ax = ax.inset_axes([0.04, 0.895, 0.16, 0.16])
+        logo_ax = ax.inset_axes([0.04, 0.92, 0.16, 0.16])
         icon = Image.open(urllib.request.urlopen(
             f'https://images.fotmob.com/image_resources/logo/teamlogo/{team_id:.0f}.png'
         ))
@@ -495,9 +494,9 @@ def create_shotmap(data, player_id, theme, size='normal'):
     except:
         pass
     
-    # Photo du joueur
+    # Photo du joueur (en haut à droite)
     try:
-        player_logo_ax = ax.inset_axes([0.80, 0.895, 0.16, 0.16])
+        player_logo_ax = ax.inset_axes([0.80, 0.92, 0.16, 0.16])
         player_icon_url = f'https://images.fotmob.com/image_resources/playerimages/{player_id}.png'
         player_icon = Image.open(urllib.request.urlopen(player_icon_url))
         player_logo_ax.imshow(player_icon)
