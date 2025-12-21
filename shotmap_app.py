@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.font_manager as fm
 from mplsoccer import VerticalPitch
 from PIL import Image
 import urllib.request
@@ -10,6 +11,7 @@ import requests
 import csv
 import time
 from pathlib import Path
+import os
 
 # Configuration de la page
 st.set_page_config(
@@ -72,14 +74,12 @@ st.markdown("""
         backdrop-filter: blur(20px);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        display: none;
     }
     
     .metric-card:hover {
         border-color: rgba(148, 163, 184, 0.2);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         transform: translateY(-2px);
-        display: none;
     }
     
     div[data-testid="stMetricValue"] {
@@ -94,12 +94,6 @@ st.markdown("""
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-    }
-    
-    div[data-testid="stMetric"] {
-        background: transparent;
-        padding: 0;
-        border: none;
     }
     
     .stDataFrame {
@@ -336,7 +330,7 @@ def semicircle(r, h, k):
     return x, y
 
 def create_shotmap(data, player_id, theme, size='normal'):
-    """Crée une carte de tirs"""
+    """Crée une carte de tirs avec photo du joueur"""
     if size == 'large':
         figsize = (10, 13)
         font_sizes = {'title': 16, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
@@ -408,6 +402,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
     
     ax.plot([20, 48], [114, 114], color=theme['accent'], lw=3, alpha=0.9)
     
+    # Logo de l'équipe
     team_id = player_data["equipe_id"].iloc[0]
     try:
         logo_ax = ax.inset_axes([0.05, 0.88, 0.15, 0.15])
@@ -419,6 +414,17 @@ def create_shotmap(data, player_id, theme, size='normal'):
     except:
         pass
     
+    # Photo du joueur (nouvelle fonctionnalité)
+    try:
+        player_logo_ax = ax.inset_axes([0.80, 0.88, 0.15, 0.15])
+        player_icon_url = f'https://images.fotmob.com/image_resources/playerimages/{player_id}.png'
+        player_icon = Image.open(urllib.request.urlopen(player_icon_url))
+        player_logo_ax.imshow(player_icon)
+        player_logo_ax.axis('off')
+    except Exception as e:
+        # Si la photo n'est pas disponible, on continue sans erreur
+        pass
+    
     plt.tight_layout()
     return fig
 
@@ -426,11 +432,11 @@ def main():
     st.markdown("# Analyse des Zones de Tir")
     st.markdown("""<p class='subtitle'>
         Outil professionnel de visualisation et d'analyse des shotmaps<br>
-        Collecte automatisée des données • Cartographie des zones de tir • Métriques xG avancées
+        Collecte automatisée des données • Cartographie des zones de tir • Métriques xG avancées • Photos des joueurs
     </p>""", unsafe_allow_html=True)
     
     with st.sidebar:
-        st.markdown("<h2 class='sidebar-title'>Configuration</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sidebar-title'>⚙️ Configuration</h2>", unsafe_allow_html=True)
         
         # Mode de l'application
         mode = st.radio("Mode d'utilisation", ["📊 Visualisation", "🔄 Scraping"], index=0)
@@ -464,7 +470,7 @@ def main():
                 index=0
             )
             
-            if st.button("Lancer le scraping"):
+            if st.button("🚀 Lancer le scraping"):
                 with st.spinner("Scraping en cours..."):
                     filename = lancer_scraping(theme, selected_season)
                     if filename:
@@ -498,8 +504,8 @@ def main():
         # Info box
         st.markdown("""
         <div class='info-box'>
-        <strong>À propos</strong><br>
-        Application d'analyse des shotmaps avec collecte automatisée des données.
+        <strong>✨ Nouveau !</strong><br>
+        Les shotmaps affichent maintenant les photos des joueurs en plus des logos d'équipe.
         Les penalties sont exclus de l'analyse.
         </div>
         """, unsafe_allow_html=True)
@@ -519,7 +525,7 @@ def main():
             return
         
         # Stats globales
-        st.markdown("## Statistiques Globales")
+        st.markdown("## 📈 Statistiques Globales")
         col1, col2, col3, col4 = st.columns(4)
         
         total_shots = len(data)
@@ -539,7 +545,7 @@ def main():
         st.markdown("---")
         
         # Shotmaps
-        st.markdown("## Shotmaps Détaillées")
+        st.markdown("## 🎯 Shotmaps Détaillées")
         
         # Préparation données pour shotmaps
         if display_type == "Top Tireurs":
@@ -581,7 +587,7 @@ def main():
         st.markdown("""
             <div style='text-align: center; padding: 1.5rem 0;'>
                 <p style='color: #64748b; font-size: 0.85rem;'>
-                    Données FotMob • mplsoccer
+                    📊 Données FotMob • 🎨 Visualisation mplsoccer • 👤 Photos des joueurs
                 </p>
             </div>
         """, unsafe_allow_html=True)
