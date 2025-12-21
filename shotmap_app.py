@@ -413,19 +413,24 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
-    # Titre avec nom, équipe et saison
+    # Titre avec nom du joueur
     player_name = player_info['joueur'].upper()
-    team_name = player_info['equipe_joueur']
-    season = player_info['saison']
-    title_text = f"{player_name} | {team_name} | {season}"
-    
-    ax.text(34, 118, title_text, 
+    ax.text(34, 120, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
             color=theme['text'], weight='black', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor='none', 
                      boxstyle='round,pad=0.7', alpha=0.8))
     
-    ax.plot([20, 48], [114, 114], color=theme['accent'], lw=3, alpha=0.9)
+    # Sous-titre avec équipe et saison
+    team_name = player_info['equipe_joueur']
+    season = player_info['saison']
+    subtitle_text = f"{team_name} | {season}"
+    ax.text(34, 115, subtitle_text, 
+            ha='center', va='center', fontsize=font_sizes['distance'], 
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
+            weight='semibold', fontfamily='Montserrat')
+    
+    ax.plot([20, 48], [112, 112], color=theme['accent'], lw=3, alpha=0.9)
     
     # Logo de l'équipe
     team_id = player_data["equipe_id"].iloc[0]
