@@ -404,13 +404,6 @@ def create_shotmap(data, player_id, theme, size='normal'):
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
-    # Description des hexbins
-    density_text = "Plus la couleur est claire, plus la fréquence de tirs est élevée"
-    ax.text(34, 103, density_text,
-            ha='center', va='center', fontsize=font_sizes['distance']-1,
-            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
-            style='italic', fontfamily='Montserrat')
-    
     player_name = player_data['joueur'].iloc[0].upper()
     ax.text(34, 118, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
@@ -441,6 +434,13 @@ def create_shotmap(data, player_id, theme, size='normal'):
         player_logo_ax.axis('off')
     except Exception as e:
         pass
+    
+    # Description des hexbins en bas de la shotmap
+    density_text = "Plus la couleur est claire, plus la fréquence de tirs est élevée"
+    ax.text(34, -8, density_text,
+            ha='center', va='center', fontsize=font_sizes['distance']-1,
+            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
+            style='italic', fontfamily='Montserrat')
     
     plt.tight_layout()
     return fig
