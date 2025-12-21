@@ -340,13 +340,13 @@ def semicircle(r, h, k):
     return x, y
 
 def create_shotmap(data, player_id, theme, size='normal'):
-    """Crée une carte de tirs avec photo du joueur et informations enrichies"""
+    """Crée une carte de tirs avec photo du joueur et barre de densité"""
     if size == 'large':
         figsize = (10, 13)
-        font_sizes = {'title': 16, 'stats_label': 7, 'stats_value': 13, 'distance': 9, 'footer': 7}
+        font_sizes = {'title': 16, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
     else:
         figsize = (6, 8)
-        font_sizes = {'title': 12, 'stats_label': 5.5, 'stats_value': 10, 'distance': 7, 'footer': 5.5}
+        font_sizes = {'title': 12, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
     
     fig, ax = plt.subplots(figsize=figsize, facecolor=theme['background'])
     ax.set_facecolor(theme['background'])
@@ -361,18 +361,27 @@ def create_shotmap(data, player_id, theme, size='normal'):
     player_data = data[data['joueur_id'] == player_id]
     cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
     
-    # Hexbins plus visibles avec bordures blanches épaisses et alpha augmenté
-    pitch.hexbin(
+    # Hexbins améliorés avec bordures blanches épaisses et alpha élevé
+    hexbin = pitch.hexbin(
         x=player_data['position_x'], y=player_data['position_y'], 
         ax=ax, cmap=cmap, gridsize=(16, 16), zorder=2, 
-        edgecolors='white', linewidths=1.5, alpha=1.0, mincnt=1
+        edgecolors='white', linewidths=1.8, alpha=1.0, mincnt=1
     )
+    
+    # Ajout de la colorbar (barre de densité)
+    cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.35])  # [left, bottom, width, height]
+    cbar = plt.colorbar(hexbin, cax=cbar_ax)
+    cbar.set_label('Fréquence des tirs', rotation=270, labelpad=15, 
+                   color=theme['text'], fontsize=font_sizes['stats_label'], 
+                   weight='bold', fontfamily='Montserrat')
+    cbar.ax.tick_params(colors=theme['text'], labelsize=font_sizes['stats_label']-1)
+    cbar.outline.set_edgecolor(theme['accent'])
+    cbar.outline.set_linewidth(2)
     
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
-    ax.plot(x_circle, y_circle, ls='--', color=theme['accent'], lw=2.5, alpha=0.8, zorder=3)
+    ax.plot(x_circle, y_circle, ls='--', color=theme['accent'], lw=2, alpha=0.6, zorder=3)
     
-    # Calcul des statistiques enrichies
     stats = {
         'TIRS': player_data.shape[0],
         'BUTS': player_data[player_data['type_evenement'] == 'Goal'].shape[0],
@@ -383,12 +392,6 @@ def create_shotmap(data, player_id, theme, size='normal'):
     on_target = player_data[player_data['type_evenement'].isin(['Goal', 'SavedShot'])].shape[0]
     accuracy = (on_target / stats['TIRS'] * 100) if stats['TIRS'] > 0 else 0
     
-    # Nouvelles stats: ratio buts/xG et tirs hors cible
-    goals_vs_xg = (stats['BUTS'] - stats['xG'])
-    off_target = player_data[player_data['type_evenement'] == 'MissedShots'].shape[0]
-    blocked = player_data[player_data['type_evenement'] == 'BlockedShot'].shape[0]
-    
-    # Affichage des stats principales (ligne 1)
     stat_y_start = 74
     for i, (label, value) in enumerate(stats.items()):
         x_pos = 10 + (i * 14.5)
@@ -401,35 +404,6 @@ def create_shotmap(data, player_id, theme, size='normal'):
                 ha='center', va='top', fontsize=font_sizes['stats_value'], 
                 color=theme['accent'], weight='heavy', fontfamily='Montserrat')
     
-    # Stats secondaires (ligne 2) - Nouvelles infos
-    stat_y_second = 65
-    secondary_stats = {
-        'CADRÉS': on_target,
-        'HORS-CADRE': off_target,
-        'BLOQUÉS': blocked,
-        'G-xG': goals_vs_xg
-    }
-    
-    for i, (label, value) in enumerate(secondary_stats.items()):
-        x_pos = 10 + (i * 14.5)
-        ax.text(x_pos, stat_y_second, label, 
-                ha='center', va='bottom', fontsize=font_sizes['stats_label'], 
-                color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.5)), 
-                weight='bold', fontfamily='Montserrat')
-        
-        # Coloration spéciale pour G-xG (vert si positif, rouge si négatif)
-        if label == 'G-xG':
-            color = '#22c55e' if value >= 0 else '#ef4444'
-            val_fmt = f"{value:+.2f}"
-        else:
-            color = theme['text']
-            val_fmt = f"{value:.0f}"
-        
-        ax.text(x_pos, stat_y_second - 2, val_fmt, 
-                ha='center', va='top', fontsize=font_sizes['stats_value'], 
-                color=color, weight='heavy', fontfamily='Montserrat')
-    
-    # Distance médiane et précision
     dist_yds = ((105 - median_x) * 18) / 16.5
     dist_m = dist_yds * 0.9144
     
@@ -438,23 +412,14 @@ def create_shotmap(data, player_id, theme, size='normal'):
             ha='center', va='center', fontsize=font_sizes['distance'],
             color=theme['text'], weight='bold', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
-                     boxstyle='round,pad=0.5', alpha=0.95, linewidth=2))
+                     boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
     player_name = player_data['joueur'].iloc[0].upper()
-    team_name = player_data['equipe_joueur'].iloc[0]
-    
-    # Nom du joueur avec équipe
     ax.text(34, 118, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
             color=theme['text'], weight='black', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor='none', 
-                     boxstyle='round,pad=0.7', alpha=0.85))
-    
-    # Nom de l'équipe en petit sous le nom
-    ax.text(34, 115, team_name, 
-            ha='center', va='center', fontsize=font_sizes['footer'], 
-            color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.6)), 
-            weight='medium', fontfamily='Montserrat')
+                     boxstyle='round,pad=0.7', alpha=0.8))
     
     ax.plot([20, 48], [114, 114], color=theme['accent'], lw=3, alpha=0.9)
     
@@ -560,10 +525,10 @@ def main():
         st.markdown("""
         <div class='info-box'>
         <strong>✨ Améliorations !</strong><br>
-        • Hexbins plus visibles avec bordures blanches<br>
-        • Statistiques enrichies : tirs cadrés, hors-cadre, bloqués<br>
-        • Ratio Buts-xG avec code couleur<br>
-        • Nom de l'équipe affiché
+        • Hexbins avec bordures blanches épaisses<br>
+        • Barre de densité des tirs ajoutée<br>
+        • Photos des joueurs affichées<br>
+        • Penalties exclus de l'analyse
         </div>
         """, unsafe_allow_html=True)
     
@@ -644,7 +609,7 @@ def main():
         st.markdown("""
             <div style='text-align: center; padding: 1.5rem 0;'>
                 <p style='color: #64748b; font-size: 0.85rem;'>
-                    📊 Données FotMob • 🎨 Visualisation mplsoccer • 👤 Photos des joueurs • 📈 Stats enrichies
+                    📊 Données FotMob • 🎨 Visualisation mplsoccer • 👤 Photos des joueurs
                 </p>
             </div>
         """, unsafe_allow_html=True)
