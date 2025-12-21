@@ -382,7 +382,7 @@ def create_shotmap(data, player_id, theme, size='normal'):
     on_target = player_data[player_data['type_evenement'].isin(['Goal', 'SavedShot'])].shape[0]
     accuracy = (on_target / stats['TIRS'] * 100) if stats['TIRS'] > 0 else 0
     
-    stat_y_start = 74
+    stat_y_start = 60
     for i, (label, value) in enumerate(stats.items()):
         x_pos = 10 + (i * 14.5)
         ax.text(x_pos, stat_y_start, label, 
