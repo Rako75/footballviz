@@ -341,15 +341,13 @@ def semicircle(r, h, k):
     return x, y
 
 def create_shotmap(data, player_id, theme, player_info, size='normal'):
-    """Crée une carte de tirs avec photo du joueur et buts marqués par des ballons"""
+    """Crée une carte de tirs avec photo du joueur et barre de densité"""
     if size == 'large':
         figsize = (10, 13)
         font_sizes = {'title': 14, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
-        ball_size = 400
     else:
         figsize = (6, 8)
         font_sizes = {'title': 10, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
-        ball_size = 200
     
     fig, ax = plt.subplots(figsize=figsize, facecolor=theme['background'])
     ax.set_facecolor(theme['background'])
@@ -357,17 +355,9 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     pitch = VerticalPitch(
         pitch_type='uefa', half=True, goal_type='box',
         linewidth=1.5, line_color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.2)),
-        pad_bottom=0.5, pad_top=15, pad_left=0.5, pad_right=0.5,
-        pitch_color=theme['background']
+        pad_bottom=-10, pad_top=15, pitch_color=theme['background']
     )
     pitch.draw(ax=ax)
-    
-    # Masquer tous les éléments d'axes indésirables
-    ax.axis('off')
-    
-    # Ajuster les limites pour éviter le décalage
-    ax.set_xlim(-1, 69)
-    ax.set_ylim(50, 125)
     
     player_data = data[data['joueur_id'] == player_id]
     cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
@@ -378,33 +368,6 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
         ax=ax, cmap=cmap, gridsize=(16, 16), zorder=2, 
         edgecolors='white', linewidths=1.8, alpha=1.0, mincnt=1
     )
-    
-    # Afficher les buts avec des ballons (⚽)
-    goals_data = player_data[player_data['type_evenement'] == 'Goal']
-    if len(goals_data) > 0:
-        pitch.scatter(
-            x=goals_data['position_x'], 
-            y=goals_data['position_y'],
-            ax=ax,
-            s=ball_size,
-            marker='o',
-            facecolors='white',
-            edgecolors='black',
-            linewidths=2,
-            zorder=4,
-            alpha=0.95
-        )
-        # Ajouter le symbole ⚽ au centre de chaque ballon
-        for _, goal in goals_data.iterrows():
-            ax.text(
-                goal['position_x'], 
-                goal['position_y'],
-                '⚽',
-                ha='center', 
-                va='center',
-                fontsize=font_sizes['stats_value'] if size == 'large' else font_sizes['stats_label']+2,
-                zorder=5
-            )
     
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
@@ -483,16 +446,16 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     except Exception as e:
         pass
     
-    # Description des hexbins et des ballons repositionnée
-    density_text = "Hexbins : densité de tirs  •  ⚽ : Buts marqués"
-    ax.text(34, 52, density_text,
+    # Description des hexbins en bas de la shotmap
+    density_text = "Hexbins : plus la couleur est claire, plus la fréquence de tirs est élevée"
+    ax.text(34, 50, density_text,
             ha='center', va='center', fontsize=font_sizes['distance']-1,
             color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
             style='italic', fontfamily='Montserrat')
     
     plt.tight_layout()
     return fig
-    
+
 def main():
     st.markdown("# Analyse des Zones de Tir")
     st.markdown("""<p class='subtitle'>
