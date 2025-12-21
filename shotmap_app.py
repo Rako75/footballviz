@@ -13,6 +13,16 @@ import time
 from pathlib import Path
 import os
 
+# Configuration de la police Montserrat
+font_url = "https://github.com/googlefonts/Montserrat/raw/main/fonts/ttf/Montserrat-Regular.ttf"
+font_path = 'Montserrat-Regular.ttf'
+if not os.path.exists(font_path):
+    urllib.request.urlretrieve(font_url, font_path)
+
+fm.fontManager.addfont(font_path)
+prop = fm.FontProperties(fname=font_path)
+plt.rcParams['font.family'] = prop.get_name()
+
 # Configuration de la page
 st.set_page_config(
     page_title="⚽ Football Shotmaps Pro",
@@ -377,11 +387,11 @@ def create_shotmap(data, player_id, theme, size='normal'):
         ax.text(x_pos, stat_y_start, label, 
                 ha='center', va='bottom', fontsize=font_sizes['stats_label'], 
                 color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.6)), 
-                weight='bold')
+                weight='bold', fontfamily='Montserrat')
         val_fmt = f"{value:.0f}" if label in ['TIRS', 'BUTS'] else f"{value:.2f}"
         ax.text(x_pos, stat_y_start - 2, val_fmt, 
                 ha='center', va='top', fontsize=font_sizes['stats_value'], 
-                color=theme['accent'], weight='heavy')
+                color=theme['accent'], weight='heavy', fontfamily='Montserrat')
     
     dist_yds = ((105 - median_x) * 18) / 16.5
     dist_m = dist_yds * 0.9144
@@ -389,14 +399,14 @@ def create_shotmap(data, player_id, theme, size='normal'):
     info_text = f"Distance Médiane: {dist_m:.1f}m  |  Précision: {accuracy:.0f}%"
     ax.text(34, 108, info_text,
             ha='center', va='center', fontsize=font_sizes['distance'],
-            color=theme['text'], weight='bold',
+            color=theme['text'], weight='bold', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
     player_name = player_data['joueur'].iloc[0].upper()
     ax.text(34, 118, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
-            color=theme['text'], weight='black',
+            color=theme['text'], weight='black', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor='none', 
                      boxstyle='round,pad=0.7', alpha=0.8))
     
