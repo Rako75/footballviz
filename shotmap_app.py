@@ -508,7 +508,7 @@ def main():
                 index=0
             )
             
-            num_players = st.slider("Nombre de joueurs", 1, 10, 6,
+            num_players = st.slider("Nombre de joueurs", 1, 100, 6,
                                    help="Sélectionnez le nombre de joueurs à afficher")
             
             display_size = st.radio(
