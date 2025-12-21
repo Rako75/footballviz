@@ -217,6 +217,14 @@ SEASONS_CONFIG = {
     '2020/2021': '2020/2021'
 }
 
+POSITIONS = {
+    'Tous': None,
+    'Attaquants': ['FW', 'ST', 'CF', 'LW', 'RW'],
+    'Milieux': ['CM', 'CDM', 'CAM', 'LM', 'RM'],
+    'Défenseurs': ['CB', 'LB', 'RB', 'LWB', 'RWB'],
+    'Gardiens': ['GK']
+}
+
 HEADERS = {
     'sec-ch-ua-platform': '"Windows"',
     'Referer': 'https://www.fotmob.com/',
@@ -317,7 +325,7 @@ def lancer_scraping(league_conf, season_str):
             writer = csv.DictWriter(f, fieldnames=all_data[0].keys())
             writer.writeheader()
             writer.writerows(all_data)
-        st.success(f"🎉 Fichier généré: {filename} ({len(all_data)} tirs)")
+        st.success(f"🎉 Données collectées: {filename} ({len(all_data)} tirs)")
         return filename
     else:
         st.error("❌ Aucun tir récupéré")
@@ -340,14 +348,14 @@ def semicircle(r, h, k):
     y = k - np.sqrt(r**2 - (x - h)**2)
     return x, y
 
-def create_shotmap(data, player_id, theme, size='normal'):
+def create_shotmap(data, player_id, theme, player_info, size='normal'):
     """Crée une carte de tirs avec photo du joueur et barre de densité"""
     if size == 'large':
         figsize = (10, 13)
-        font_sizes = {'title': 16, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
+        font_sizes = {'title': 14, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
     else:
         figsize = (6, 8)
-        font_sizes = {'title': 12, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
+        font_sizes = {'title': 10, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
     
     fig, ax = plt.subplots(figsize=figsize, facecolor=theme['background'])
     ax.set_facecolor(theme['background'])
@@ -405,8 +413,13 @@ def create_shotmap(data, player_id, theme, size='normal'):
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
-    player_name = player_data['joueur'].iloc[0].upper()
-    ax.text(34, 118, player_name, 
+    # Titre avec nom, équipe et saison
+    player_name = player_info['joueur'].upper()
+    team_name = player_info['equipe_joueur']
+    season = player_info['saison']
+    title_text = f"{player_name} | {team_name} | {season}"
+    
+    ax.text(34, 118, title_text, 
             ha='center', va='center', fontsize=font_sizes['title'], 
             color=theme['text'], weight='black', fontfamily='Montserrat',
             bbox=dict(facecolor=theme['background'], edgecolor='none', 
@@ -457,7 +470,7 @@ def main():
         st.markdown("<h2 class='sidebar-title'>⚙️ Configuration</h2>", unsafe_allow_html=True)
         
         # Mode de l'application
-        mode = st.radio("Mode d'utilisation", ["📊 Visualisation", "🔄 Scraping"], index=0)
+        mode = st.radio("Mode d'utilisation", ["📊 Visualisation", "🔄 Collecte"], index=0)
         
         st.markdown("---")
         
@@ -480,7 +493,7 @@ def main():
         
         st.markdown("---")
         
-        if mode == "🔄 Scraping":
+        if mode == "🔄 Collecte":
             # Options de scraping
             selected_season = st.selectbox(
                 "Saison",
@@ -488,8 +501,8 @@ def main():
                 index=0
             )
             
-            if st.button("🚀 Lancer le scraping"):
-                with st.spinner("Scraping en cours..."):
+            if st.button("🚀 Lancer la collecte"):
+                with st.spinner("Collecte en cours..."):
                     filename = lancer_scraping(theme, selected_season)
                     if filename:
                         st.session_state['last_scraped_file'] = filename
@@ -501,6 +514,26 @@ def main():
                 options=list(SEASONS_CONFIG.keys()),
                 index=0
             )
+            
+            # Chargement préliminaire des données pour les filtres
+            filename = get_filename(theme['slug'], selected_season)
+            if Path(filename).exists():
+                temp_data = load_data(filename)
+                if temp_data is not None and len(temp_data) > 0:
+                    # Filtre par équipe
+                    all_teams = ['Toutes les équipes'] + sorted(temp_data['equipe_joueur'].unique().tolist())
+                    selected_team = st.selectbox(
+                        "Équipe",
+                        options=all_teams,
+                        index=0
+                    )
+                    
+                    # Filtre par poste (placeholder pour l'instant car pas dans les données)
+                    selected_position = st.selectbox(
+                        "Poste",
+                        options=list(POSITIONS.keys()),
+                        index=0
+                    )
             
             display_type = st.radio(
                 "Type d'analyse",
@@ -522,10 +555,11 @@ def main():
         # Info box
         st.markdown("""
         <div class='info-box'>
-        <strong>✨ Améliorations !</strong><br>
-        • Hexbins avec bordures blanches épaisses<br>
-        • Barre de densité des tirs ajoutée<br>
-        • Photos des joueurs affichées<br>
+        <strong>✨ Fonctionnalités !</strong><br>
+        • Filtres par équipe et poste<br>
+        • Informations complètes sur les cartes<br>
+        • Hexbins avec densité visuelle<br>
+        • Photos des joueurs<br>
         • Penalties exclus de l'analyse
         </div>
         """, unsafe_allow_html=True)
@@ -535,7 +569,7 @@ def main():
         filename = get_filename(theme['slug'], selected_season)
         
         if not Path(filename).exists():
-            st.warning(f"⚠️ Fichier {filename} non trouvé. Lancez d'abord le scraping.")
+            st.warning(f"⚠️ Les données pour cette saison ne sont pas encore disponibles. Lancez la collecte depuis le menu 'Collecte' pour générer les informations nécessaires.")
             return
         
         data = load_data(filename)
@@ -544,13 +578,20 @@ def main():
             st.error("❌ Impossible de charger les données")
             return
         
+        # Application des filtres
+        filtered_data = data.copy()
+        
+        # Filtre équipe
+        if selected_team != 'Toutes les équipes':
+            filtered_data = filtered_data[filtered_data['equipe_joueur'] == selected_team]
+        
         # Stats globales
         st.markdown("## 📈 Statistiques Globales")
         col1, col2, col3, col4 = st.columns(4)
         
-        total_shots = len(data)
-        total_goals = len(data[data['type_evenement'] == 'Goal'])
-        avg_xg = data['xg'].mean()
+        total_shots = len(filtered_data)
+        total_goals = len(filtered_data[filtered_data['type_evenement'] == 'Goal'])
+        avg_xg = filtered_data['xg'].mean()
         conversion_rate = (total_goals / total_shots * 100) if total_shots > 0 else 0
         
         with col1:
@@ -569,14 +610,18 @@ def main():
         
         # Préparation données pour shotmaps
         if display_type == "Top Tireurs":
-            data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id']).size().reset_index(name='Total')
+            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison']).size().reset_index(name='Total')
         elif display_type == "Meilleurs Buteurs":
-            goals_data = data[data['type_evenement'] == 'Goal']
-            data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id']).size().reset_index(name='Total')
+            goals_data = filtered_data[filtered_data['type_evenement'] == 'Goal']
+            data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison']).size().reset_index(name='Total')
         else:
-            data_grouped = data.groupby(['joueur_id', 'joueur', 'equipe_id'])['xg'].sum().reset_index(name='Total')
+            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison'])['xg'].sum().reset_index(name='Total')
         
         data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
+        
+        if len(data_grouped) == 0:
+            st.warning("⚠️ Aucun joueur ne correspond aux critères sélectionnés.")
+            return
         
         if "Large" in display_size:
             cols_per_row = 1
@@ -596,9 +641,14 @@ def main():
                 player_idx = row * cols_per_row + col_idx
                 if player_idx < len(data_grouped):
                     player_id = data_grouped['joueur_id'].iloc[player_idx]
+                    player_info = {
+                        'joueur': data_grouped['joueur'].iloc[player_idx],
+                        'equipe_joueur': data_grouped['equipe_joueur'].iloc[player_idx],
+                        'saison': data_grouped['saison'].iloc[player_idx]
+                    }
                     with cols[col_idx]:
                         with st.spinner(f"🎨 Génération..."):
-                            fig = create_shotmap(data, player_id, theme, size=size)
+                            fig = create_shotmap(filtered_data, player_id, theme, player_info, size=size)
                             st.pyplot(fig, use_container_width=True)
                             plt.close(fig)
         
