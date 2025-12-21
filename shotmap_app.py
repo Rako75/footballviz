@@ -517,6 +517,9 @@ def main():
             
             # Chargement préliminaire des données pour les filtres
             filename = get_filename(theme['slug'], selected_season)
+            selected_team = 'Toutes les équipes'
+            selected_position = 'Tous'
+            
             if Path(filename).exists():
                 temp_data = load_data(filename)
                 if temp_data is not None and len(temp_data) > 0:
@@ -534,6 +537,9 @@ def main():
                         options=list(POSITIONS.keys()),
                         index=0
                     )
+            else:
+                st.selectbox("Équipe", options=['Toutes les équipes'], index=0, disabled=True)
+                st.selectbox("Poste", options=list(POSITIONS.keys()), index=0, disabled=True)
             
             display_type = st.radio(
                 "Type d'analyse",
@@ -541,7 +547,7 @@ def main():
                 index=0
             )
             
-            num_players = st.slider("Nombre de joueurs", 1, 30, 6,
+            num_players = st.slider("Nombre de joueurs", 1, 100, 6,
                                    help="Sélectionnez le nombre de joueurs à afficher")
             
             display_size = st.radio(
@@ -610,12 +616,22 @@ def main():
         
         # Préparation données pour shotmaps
         if display_type == "Top Tireurs":
-            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison']).size().reset_index(name='Total')
+            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
+                'saison': 'first'
+            }).reset_index()
+            data_grouped['Total'] = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).size().values
         elif display_type == "Meilleurs Buteurs":
             goals_data = filtered_data[filtered_data['type_evenement'] == 'Goal']
-            data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison']).size().reset_index(name='Total')
+            data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
+                'saison': 'first'
+            }).reset_index()
+            data_grouped['Total'] = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).size().values
         else:
-            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur', 'saison'])['xg'].sum().reset_index(name='Total')
+            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
+                'xg': 'sum',
+                'saison': 'first'
+            }).reset_index()
+            data_grouped.rename(columns={'xg': 'Total'}, inplace=True)
         
         data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
         
