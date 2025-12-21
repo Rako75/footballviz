@@ -340,14 +340,32 @@ def semicircle(r, h, k):
     y = k - np.sqrt(r**2 - (x - h)**2)
     return x, y
 
+def draw_football(ax, x, y, size=1.5, color='white'):
+    """Dessine un ballon de football stylisé"""
+    # Cercle principal blanc
+    circle = plt.Circle((x, y), size, color=color, ec='black', linewidth=1.5, zorder=10)
+    ax.add_patch(circle)
+    
+    # Pentagones noirs (effet ballon de foot)
+    pentagon_size = size * 0.35
+    hexagon_angles = np.linspace(0, 2*np.pi, 6, endpoint=False)
+    
+    for angle in hexagon_angles:
+        px = x + np.cos(angle) * size * 0.4
+        py = y + np.sin(angle) * size * 0.4
+        small_circle = plt.Circle((px, py), pentagon_size, color='black', zorder=11)
+        ax.add_patch(small_circle)
+
 def create_shotmap(data, player_id, theme, player_info, size='normal'):
-    """Crée une carte de tirs avec photo du joueur et barre de densité"""
+    """Crée une carte de tirs avec photo du joueur et ballons sur les buts"""
     if size == 'large':
         figsize = (10, 13)
         font_sizes = {'title': 14, 'stats_label': 8, 'stats_value': 14, 'distance': 9}
+        ball_size = 1.5
     else:
         figsize = (6, 8)
         font_sizes = {'title': 10, 'stats_label': 6, 'stats_value': 10, 'distance': 7}
+        ball_size = 1.2
     
     fig, ax = plt.subplots(figsize=figsize, facecolor=theme['background'])
     ax.set_facecolor(theme['background'])
@@ -368,6 +386,11 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
         ax=ax, cmap=cmap, gridsize=(16, 16), zorder=2, 
         edgecolors='white', linewidths=1.8, alpha=1.0, mincnt=1
     )
+    
+    # Ajouter les ballons sur les buts
+    goals_data = player_data[player_data['type_evenement'] == 'Goal']
+    for _, goal in goals_data.iterrows():
+        draw_football(ax, goal['position_x'], goal['position_y'], size=ball_size, color='white')
     
     median_x = player_data['position_x'].median()
     x_circle, y_circle = semicircle(104.8 - median_x, 34, 104.8)
@@ -446,8 +469,8 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     except Exception as e:
         pass
     
-    # Description des hexbins en bas de la shotmap
-    density_text = "Hexbins : plus la couleur est claire, plus la fréquence de tirs est élevée"
+    # Description mise à jour avec info sur les ballons
+    density_text = "Hexbins : densité de tirs  |  ⚽ : buts marqués"
     ax.text(34, 50, density_text,
             ha='center', va='center', fontsize=font_sizes['distance']-1,
             color=mcolors.to_hex(mcolors.to_rgba(theme['text'], alpha=0.7)), 
@@ -551,7 +574,7 @@ def main():
         <div class='info-box'>
         <strong>✨ Fonctionnalités !</strong><br>
         • Filtre par équipe<br>
-        • Informations complètes sur les cartes<br>
+        • Ballons sur les buts ⚽<br>
         • Hexbins avec densité visuelle<br>
         • Photos des joueurs<br>
         • Penalties exclus de l'analyse
