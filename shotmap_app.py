@@ -217,14 +217,6 @@ SEASONS_CONFIG = {
     '2020/2021': '2020/2021'
 }
 
-POSITIONS = {
-    'Tous': None,
-    'Attaquants': ['FW', 'ST', 'CF', 'LW', 'RW'],
-    'Milieux': ['CM', 'CDM', 'CAM', 'LM', 'RM'],
-    'Défenseurs': ['CB', 'LB', 'RB', 'LWB', 'RWB'],
-    'Gardiens': ['GK']
-}
-
 HEADERS = {
     'sec-ch-ua-platform': '"Windows"',
     'Referer': 'https://www.fotmob.com/',
@@ -523,7 +515,6 @@ def main():
             # Chargement préliminaire des données pour les filtres
             filename = get_filename(theme['slug'], selected_season)
             selected_team = 'Toutes les équipes'
-            selected_position = 'Tous'
             
             if Path(filename).exists():
                 temp_data = load_data(filename)
@@ -535,16 +526,8 @@ def main():
                         options=all_teams,
                         index=0
                     )
-                    
-                    # Filtre par poste (placeholder pour l'instant car pas dans les données)
-                    selected_position = st.selectbox(
-                        "Poste",
-                        options=list(POSITIONS.keys()),
-                        index=0
-                    )
             else:
                 st.selectbox("Équipe", options=['Toutes les équipes'], index=0, disabled=True)
-                st.selectbox("Poste", options=list(POSITIONS.keys()), index=0, disabled=True)
             
             display_type = st.radio(
                 "Type d'analyse",
@@ -567,7 +550,7 @@ def main():
         st.markdown("""
         <div class='info-box'>
         <strong>✨ Fonctionnalités !</strong><br>
-        • Filtres par équipe et poste<br>
+        • Filtre par équipe<br>
         • Informations complètes sur les cartes<br>
         • Hexbins avec densité visuelle<br>
         • Photos des joueurs<br>
