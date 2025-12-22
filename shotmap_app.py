@@ -25,232 +25,146 @@ plt.rcParams['font.family'] = prop.get_name()
 
 # Configuration de la page
 st.set_page_config(
-    page_title="Football Analytics Pro",
+    page_title="⚽ Football Shotmaps Pro",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS ultra moderne et minimaliste
+# CSS personnalisé ultra moderne
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
     
     * {
         font-family: 'Inter', sans-serif;
     }
     
     .main {
-        padding: 1.5rem 3rem;
-        background: #fafafa;
+        padding: 0rem 2rem;
     }
     
     .stApp {
-        background: #fafafa;
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     
     h1 {
-        color: #1a1a1a;
+        color: #f8fafc;
         font-weight: 700;
-        font-size: 2rem;
+        text-align: center;
+        padding: 2rem 0 0.5rem 0;
+        font-size: 2.5rem;
         letter-spacing: -0.5px;
-        margin-bottom: 0.5rem;
     }
     
     h2 {
-        color: #1a1a1a;
+        color: #94a3b8;
         font-weight: 600;
-        margin-top: 2.5rem;
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-        letter-spacing: -0.3px;
+        margin-top: 2rem;
+        font-size: 1.5rem;
     }
     
     h3 {
-        color: #4a4a4a;
+        color: #cbd5e1;
         font-weight: 500;
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
     
     .stSelectbox label, .stSlider label, .stRadio label {
-        color: #4a4a4a !important;
+        color: #94a3b8 !important;
         font-weight: 500 !important;
-        font-size: 0.875rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        font-size: 0.9rem !important;
     }
     
-    /* Metrics modernes */
+    .metric-card {
+        background: rgba(148, 163, 184, 0.03);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        border-color: rgba(148, 163, 184, 0.2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    
     div[data-testid="stMetricValue"] {
         font-size: 2rem;
-        font-weight: 700;
-        color: #1a1a1a;
+        font-weight: 600;
+        color: #e2e8f0;
     }
     
     div[data-testid="stMetricLabel"] {
-        font-size: 0.75rem;
-        color: #737373;
-        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.5px;
     }
     
-    /* Sidebar élégante */
+    .stDataFrame {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    
     [data-testid="stSidebar"] {
-        background: #ffffff;
-        border-right: 1px solid #e5e5e5;
-        padding: 2rem 1rem;
-    }
-    
-    .sidebar-header {
-        text-align: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #1a1a1a;
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        border-right: 1px solid rgba(148, 163, 184, 0.1);
     }
     
     .sidebar-title {
-        color: #1a1a1a;
-        font-weight: 700;
+        color: #cbd5e1;
+        font-weight: 600;
         font-size: 1.1rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        text-align: center;
+        margin-bottom: 1rem;
     }
     
-    /* Boutons minimalistes */
     .stButton>button {
-        background: #1a1a1a;
-        color: #ffffff;
+        background: #475569;
+        color: #f8fafc;
         font-weight: 600;
         border: none;
-        border-radius: 4px;
-        padding: 0.75rem 2rem;
-        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 0.5rem 2rem;
+        transition: all 0.3s ease;
         width: 100%;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 0.875rem;
     }
     
     .stButton>button:hover {
-        background: #404040;
+        background: #64748b;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     
-    /* Radio buttons épurés */
-    .stRadio > label {
-        background: transparent !important;
-    }
-    
-    .stRadio > div {
-        gap: 0.5rem;
-    }
-    
-    .stRadio > div > label {
-        background: #f5f5f5 !important;
-        border: 1px solid #e5e5e5 !important;
-        border-radius: 4px !important;
-        padding: 0.5rem 1rem !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .stRadio > div > label:hover {
-        background: #ffffff !important;
-        border-color: #1a1a1a !important;
-    }
-    
-    .stRadio > div > label[data-checked="true"] {
-        background: #1a1a1a !important;
-        color: #ffffff !important;
-        border-color: #1a1a1a !important;
-    }
-    
-    /* Selectbox moderne */
-    .stSelectbox > div > div {
-        background: #ffffff;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-    }
-    
-    /* Slider épuré */
-    .stSlider > div > div > div {
-        background: #e5e5e5;
-    }
-    
-    .stSlider > div > div > div > div {
-        background: #1a1a1a;
-    }
-    
-    /* Info box minimaliste */
     .info-box {
-        background: #f5f5f5;
-        border-left: 3px solid #1a1a1a;
+        background: rgba(148, 163, 184, 0.08);
+        border-left: 3px solid #64748b;
         padding: 1rem;
-        border-radius: 0;
-        margin: 1.5rem 0;
-        color: #4a4a4a;
-        font-size: 0.875rem;
-        line-height: 1.6;
+        border-radius: 6px;
+        margin: 1rem 0;
+        color: #cbd5e1;
     }
     
-    .info-box strong {
-        color: #1a1a1a;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Divider élégant */
     hr {
         border: none;
         height: 1px;
-        background: #e5e5e5;
+        background: rgba(148, 163, 184, 0.2);
         margin: 2rem 0;
     }
     
-    /* Header subtitle */
-    .app-subtitle {
-        color: #737373;
+    .subtitle {
+        text-align: center;
+        color: #64748b;
         font-size: 1rem;
         font-weight: 400;
         margin-bottom: 2rem;
-        line-height: 1.5;
-    }
-    
-    /* Stats cards */
-    div[data-testid="column"] {
-        background: #ffffff;
-        border-radius: 4px;
-        border: 1px solid #e5e5e5;
-        padding: 1.5rem;
-        transition: all 0.2s ease;
-    }
-    
-    div[data-testid="column"]:hover {
-        border-color: #1a1a1a;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* Progress bar */
-    .stProgress > div > div {
-        background: #1a1a1a;
-    }
-    
-    /* Alert boxes */
-    .stAlert {
-        background: #ffffff;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-    }
-    
-    /* Footer */
-    .footer-text {
-        text-align: center;
-        color: #737373;
-        font-size: 0.875rem;
-        padding: 2rem 0;
-        border-top: 1px solid #e5e5e5;
-        margin-top: 3rem;
+        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -330,7 +244,7 @@ def recuperer_ids_matchs_termines(league_id, season):
         ids_termines = [str(m.get('id')) for m in all_matches if m.get('status', {}).get('finished')]
         return ids_termines
     except Exception as e:
-        st.error(f"Erreur API: {str(e)}")
+        st.error(f"❌ Erreur API: {str(e)}")
         return []
 
 def extraire_tirs_match(match_id, league_name, season):
@@ -375,14 +289,14 @@ def lancer_scraping(league_conf, season_str):
     """Orchestre le scraping avec interface Streamlit"""
     filename = get_filename(league_conf['slug'], season_str)
     
-    st.info(f"Récupération des matchs pour {league_conf['name']} ({season_str})...")
+    st.info(f"🔄 Récupération des matchs pour {league_conf['name']} ({season_str})...")
     ids = recuperer_ids_matchs_termines(league_conf['id'], season_str)
     
     if not ids:
-        st.warning("Aucun match trouvé. Vérifiez les headers ou la disponibilité.")
+        st.warning("⚠️ Aucun match trouvé. Vérifiez les headers ou la disponibilité.")
         return None
     
-    st.success(f"{len(ids)} matchs terminés trouvés")
+    st.success(f"✅ {len(ids)} matchs terminés trouvés")
     
     all_data = []
     progress_bar = st.progress(0)
@@ -392,7 +306,7 @@ def lancer_scraping(league_conf, season_str):
         match_shots = extraire_tirs_match(mid, league_conf['name'], season_str)
         all_data.extend(match_shots)
         progress_bar.progress(i / len(ids))
-        status_text.text(f"Progression: {i}/{len(ids)} | Tirs cumulés: {len(all_data)}")
+        status_text.text(f"⏳ Progression: {i}/{len(ids)} | Tirs cumulés: {len(all_data)}")
         time.sleep(0.3)
     
     progress_bar.empty()
@@ -403,10 +317,10 @@ def lancer_scraping(league_conf, season_str):
             writer = csv.DictWriter(f, fieldnames=all_data[0].keys())
             writer.writeheader()
             writer.writerows(all_data)
-        st.success(f"Données collectées: {len(all_data)} tirs")
+        st.success(f"🎉 Données collectées: ({len(all_data)} tirs)")
         return filename
     else:
-        st.error("Aucun tir récupéré")
+        st.error("❌ Aucun tir récupéré")
         return None
 
 @st.cache_data
@@ -448,6 +362,7 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     player_data = data[data['joueur_id'] == player_id]
     cmap = mcolors.LinearSegmentedColormap.from_list('LeagueTheme', theme['gradient'], N=100)
     
+    # Hexbins améliorés avec bordures blanches épaisses et alpha élevé
     hexbin = pitch.hexbin(
         x=player_data['position_x'], y=player_data['position_y'], 
         ax=ax, cmap=cmap, gridsize=(16, 16), zorder=2, 
@@ -490,6 +405,7 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
             bbox=dict(facecolor=theme['background'], edgecolor=theme['accent'], 
                      boxstyle='round,pad=0.5', alpha=0.9, linewidth=2))
     
+    # Titre avec nom du joueur
     player_name = player_info['joueur'].upper()
     ax.text(34, 120, player_name, 
             ha='center', va='center', fontsize=font_sizes['title'], 
@@ -497,6 +413,7 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
             bbox=dict(facecolor=theme['background'], edgecolor='none', 
                      boxstyle='round,pad=0.7', alpha=0.8))
     
+    # Sous-titre avec équipe et saison
     team_name = player_info['equipe_joueur']
     season = player_info['saison']
     subtitle_text = f"{team_name} | {season}"
@@ -507,6 +424,7 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     
     ax.plot([20, 48], [112, 112], color=theme['accent'], lw=3, alpha=0.9)
     
+    # Logo de l'équipe
     team_id = player_data["equipe_id"].iloc[0]
     try:
         logo_ax = ax.inset_axes([0.05, 0.88, 0.15, 0.15])
@@ -518,15 +436,17 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     except:
         pass
     
+    # Photo du joueur
     try:
         player_logo_ax = ax.inset_axes([0.80, 0.88, 0.15, 0.15])
         player_icon_url = f'https://images.fotmob.com/image_resources/playerimages/{player_id}.png'
         player_icon = Image.open(urllib.request.urlopen(player_icon_url))
         player_logo_ax.imshow(player_icon)
         player_logo_ax.axis('off')
-    except:
+    except Exception as e:
         pass
     
+    # Description des hexbins en bas de la shotmap
     density_text = "Hexbins : plus la couleur est claire, plus la fréquence de tirs est élevée"
     ax.text(34, 50, density_text,
             ha='center', va='center', fontsize=font_sizes['distance']-1,
@@ -537,122 +457,134 @@ def create_shotmap(data, player_id, theme, player_info, size='normal'):
     return fig
 
 def main():
-    # Header minimaliste
-    st.markdown("# Football Analytics Pro")
-    st.markdown("<p class='app-subtitle'>Analyse avancée des zones de tir et visualisation des performances</p>", unsafe_allow_html=True)
+    st.markdown("# Analyse des Zones de Tir")
+    st.markdown("""<p class='subtitle'>
+        Outil professionnel de visualisation et d'analyse des shotmaps<br>
+        Collecte automatisée des données • Cartographie des zones de tir
+    </p>""", unsafe_allow_html=True)
     
     with st.sidebar:
-        st.markdown("<div class='sidebar-header'><p class='sidebar-title'>Configuration</p></div>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sidebar-title'>⚙️ Configuration</h2>", unsafe_allow_html=True)
         
-        mode = st.radio("Mode", ["Visualisation", "Collecte"], index=0, label_visibility="collapsed")
+        # Mode de l'application
+        mode = st.radio("Mode d'utilisation", ["📊 Visualisation", "🔄 Collecte"], index=0)
         
-        st.markdown("### Compétition")
+        st.markdown("---")
+        
+        # Sélection Ligue
         selected_league_name = st.selectbox(
             "Compétition",
             options=list(LEAGUE_THEMES.keys()),
-            index=0,
-            label_visibility="collapsed"
+            index=0
         )
         theme = LEAGUE_THEMES[selected_league_name]
         
+        # Logo de la ligue
         try:
             league_url = f'https://images.fotmob.com/image_resources/logo/leaguelogo/{theme["id"]}.png'
             col1, col2, col3 = st.columns([1,2,1])
             with col2:
                 st.image(league_url, use_container_width=True)
         except:
-            pass
+            st.markdown(f"### {theme['name']}")
         
         st.markdown("---")
         
-        if mode == "Collecte":
-            st.markdown("### Saison")
+        if mode == "🔄 Collecte":
+            # Options de scraping
             selected_season = st.selectbox(
                 "Saison",
                 options=list(SEASONS_CONFIG.keys()),
-                index=0,
-                label_visibility="collapsed"
+                index=0
             )
             
-            if st.button("Lancer la collecte"):
+            if st.button("🚀 Lancer la collecte"):
                 with st.spinner("Collecte en cours..."):
                     filename = lancer_scraping(theme, selected_season)
                     if filename:
                         st.session_state['last_scraped_file'] = filename
         
         else:
-            st.markdown("### Saison")
+            # Options de visualisation
             selected_season = st.selectbox(
                 "Saison",
                 options=list(SEASONS_CONFIG.keys()),
-                index=0,
-                label_visibility="collapsed"
+                index=0
             )
             
+            # Chargement préliminaire des données pour les filtres
             filename = get_filename(theme['slug'], selected_season)
             selected_team = 'Toutes les équipes'
             
             if Path(filename).exists():
                 temp_data = load_data(filename)
                 if temp_data is not None and len(temp_data) > 0:
-                    st.markdown("### Équipe")
+                    # Filtre par équipe
                     all_teams = ['Toutes les équipes'] + sorted(temp_data['equipe_joueur'].unique().tolist())
                     selected_team = st.selectbox(
                         "Équipe",
                         options=all_teams,
-                        index=0,
-                        label_visibility="collapsed"
+                        index=0
                     )
+            else:
+                st.selectbox("Équipe", options=['Toutes les équipes'], index=0, disabled=True)
             
-            st.markdown("### Type d'analyse")
             display_type = st.radio(
-                "Type",
+                "Type d'analyse",
                 ["Top Tireurs", "Meilleurs Buteurs", "Meilleur xG"],
-                index=0,
-                label_visibility="collapsed"
+                index=0
             )
             
-            st.markdown("### Affichage")
-            num_players = st.slider("Nombre de joueurs", 1, 20, 6, label_visibility="collapsed")
+            num_players = st.slider("Nombre de joueurs", 1, 20, 6,
+                                   help="Sélectionnez le nombre de joueurs à afficher")
             
             display_size = st.radio(
-                "Taille",
-                ["Large", "Compact", "Grille"],
-                index=2,
-                label_visibility="collapsed"
+                "Taille d'affichage",
+                ["Large (1 par ligne)", "Compact (2 par ligne)", "Grille (3 par ligne)"],
+                index=2
             )
         
         st.markdown("---")
         
+        # Info box
         st.markdown("""
         <div class='info-box'>
-        <strong>FONCTIONNALITÉS</strong>
-        Filtre par équipe • Photos des joueurs • Hexbins avec densité • Penalties exclus
+        <strong>✨ Fonctionnalités !</strong><br>
+        • Filtre par équipe<br>
+        • Informations complètes sur les cartes<br>
+        • Hexbins avec densité visuelle<br>
+        • Photos des joueurs<br>
+        • Penalties exclus de l'analyse
         </div>
         """, unsafe_allow_html=True)
     
-    if mode == "Visualisation":
+    # Affichage selon le mode
+    if mode == "📊 Visualisation":
         filename = get_filename(theme['slug'], selected_season)
         
         if not Path(filename).exists():
-            st.warning("Les données pour cette saison ne sont pas disponibles. Lancez la collecte pour générer les informations nécessaires.")
+            st.warning(f"⚠️ Les données pour cette saison ne sont pas encore disponibles. Lancez la collecte depuis le menu 'Collecte' pour générer les informations nécessaires.")
             return
         
         data = load_data(filename)
         
         if data is None or len(data) == 0:
-            st.error("Impossible de charger les données")
+            st.error("❌ Impossible de charger les données")
             return
         
+        # Application des filtres
         filtered_data = data.copy()
         
+        # Ajouter la saison si elle n'existe pas
         if 'saison' not in filtered_data.columns:
             filtered_data['saison'] = selected_season
         
+        # Filtre équipe
         if selected_team != 'Toutes les équipes':
             filtered_data = filtered_data[filtered_data['equipe_joueur'] == selected_team]
         
-        st.markdown("## Statistiques Globales")
+        # Stats globales
+        st.markdown("## 📈 Statistiques Globales")
         col1, col2, col3, col4 = st.columns(4)
         
         total_shots = len(filtered_data)
@@ -669,8 +601,12 @@ def main():
         with col4:
             st.metric("Taux conversion", f"{conversion_rate:.1f}%")
         
-        st.markdown("## Shotmaps Détaillées")
+        st.markdown("---")
         
+        # Shotmaps
+        st.markdown("## 🎯 Shotmaps Détaillées")
+        
+        # Préparation données pour shotmaps
         if display_type == "Top Tireurs":
             data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
                 'saison': 'first'
@@ -692,7 +628,7 @@ def main():
         data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
         
         if len(data_grouped) == 0:
-            st.warning("Aucun joueur ne correspond aux critères sélectionnés.")
+            st.warning("⚠️ Aucun joueur ne correspond aux critères sélectionnés.")
             return
         
         if "Large" in display_size:
@@ -719,12 +655,20 @@ def main():
                         'saison': data_grouped['saison'].iloc[player_idx]
                     }
                     with cols[col_idx]:
-                        with st.spinner("Génération..."):
+                        with st.spinner(f"🎨 Génération..."):
                             fig = create_shotmap(filtered_data, player_id, theme, player_info, size=size)
                             st.pyplot(fig, use_container_width=True)
                             plt.close(fig)
         
-        st.markdown("<div class='footer-text'>Données FotMob • Visualisation mplsoccer</div>", unsafe_allow_html=True)
+        # Footer
+        st.markdown("---")
+        st.markdown("""
+            <div style='text-align: center; padding: 1.5rem 0;'>
+                <p style='color: #64748b; font-size: 0.85rem;'>
+                    📊 Données FotMob • 🎨 Visualisation mplsoccer • 👤 Photos des joueurs
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
