@@ -675,4 +675,56 @@ def main():
             data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
                 'saison': 'first'
             }).reset_index()
-            data_grouped['Total'] = filtered_data.groupby(['jou
+            data_grouped['Total'] = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).size().values
+        elif display_type == "Meilleurs Buteurs":
+            goals_data = filtered_data[filtered_data['type_evenement'] == 'Goal']
+            data_grouped = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
+                'saison': 'first'
+            }).reset_index()
+            data_grouped['Total'] = goals_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).size().values
+        else:
+            data_grouped = filtered_data.groupby(['joueur_id', 'joueur', 'equipe_id', 'equipe_joueur']).agg({
+                'xg': 'sum',
+                'saison': 'first'
+            }).reset_index()
+            data_grouped.rename(columns={'xg': 'Total'}, inplace=True)
+        
+        data_grouped = data_grouped.sort_values(by='Total', ascending=False).head(num_players)
+        
+        if len(data_grouped) == 0:
+            st.warning("Aucun joueur ne correspond aux critères sélectionnés.")
+            return
+        
+        if "Large" in display_size:
+            cols_per_row = 1
+            size = 'large'
+        elif "Compact" in display_size:
+            cols_per_row = 2
+            size = 'normal'
+        else:
+            cols_per_row = 3
+            size = 'normal'
+        
+        rows = (num_players + cols_per_row - 1) // cols_per_row
+        
+        for row in range(rows):
+            cols = st.columns(cols_per_row)
+            for col_idx in range(cols_per_row):
+                player_idx = row * cols_per_row + col_idx
+                if player_idx < len(data_grouped):
+                    player_id = data_grouped['joueur_id'].iloc[player_idx]
+                    player_info = {
+                        'joueur': data_grouped['joueur'].iloc[player_idx],
+                        'equipe_joueur': data_grouped['equipe_joueur'].iloc[player_idx],
+                        'saison': data_grouped['saison'].iloc[player_idx]
+                    }
+                    with cols[col_idx]:
+                        with st.spinner("Génération..."):
+                            fig = create_shotmap(filtered_data, player_id, theme, player_info, size=size)
+                            st.pyplot(fig, use_container_width=True)
+                            plt.close(fig)
+        
+        st.markdown("<div class='footer-text'>Données FotMob • Visualisation mplsoccer</div>", unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
