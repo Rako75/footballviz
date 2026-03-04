@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Milieux PL - D3.js</title>
+    <!-- Chargement de la police Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0E1117;
+            --surface-color: #0E1117;
+            --text-color: #C9D1D9;
+            --subtext-color: #8B949E;
+            --grid-color: rgba(255, 255, 255, 0.2);
+            --median-line: #FFFFFF;
+            --target-color: #FDE047;
+            --other-color: #8B949E;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 1.5rem 3rem;
+            transition: background-color 0.4s ease;
+        }
+
+        /* --- CONTROLES INTERACTIFS --- */
+        .controls-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .controls-container label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .controls-container select {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+            border: 1px solid var(--grid-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .controls-container select:hover {
+            border-color: #FFFFFF;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .controls-container select option {
+            background-color: #0E1117;
+            color: #C9D1D9;
+        }
+
+        /* --- HEADER REPLIQUE MATPLOTLIB --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+
+        .team-logo {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+            display: none;
+            margin-bottom: 5px;
+        }
+
+        .player-photo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            display: none; 
+        }
+
+        .header-left-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-bottom: 8px;
+            margin-left: 0.5rem;
+        }
+
+        .header-left h1 {
+            font-size: 3.4rem;
+            font-weight: 300;
+            margin: 0 0 0.1rem 0;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: var(--text-color);
+            line-height: 1;
+        }
+
+        .header-left p {
+            color: var(--text-color);
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+
+        .header-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 100px;
+            padding-bottom: 8px;
+        }
+
+        .header-right h2 {
+            font-size: 1.8rem;
+            font-weight: 400;
+            margin: 0 0 0.3rem 0;
+            color: var(--text-color);
+        }
+
+        .header-right p {
+            color: var(--text-color);
+            opacity: 0.8;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* --- GRID --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            row-gap: 3.5rem;
+            column-gap: 2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-weight: 300;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            text-align: left;
+            margin-bottom: 1rem;
+            margin-left: 10%;
+            color: var(--text-color);
+        }
+
+        svg {
+            width: 100%;
+            height: 260px;
+            overflow: visible;
+        }
+
+        .domain { display: block; stroke: var(--grid-color); }
+        
+        .tick line { 
+            stroke: var(--grid-color); 
+            stroke-dasharray: 4, 4; 
+        }
+        
+        .tick text {
+            fill: var(--text-color);
+            opacity: 0.7;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+        }
+
+        /* --- TOOLTIP --- */
+        #tooltip {
+            position: absolute;
+            opacity: 0;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            pointer-events: none;
+            font-size: 0.85rem;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+        .tt-name { font-weight: bold; margin-bottom: 4px;}
+        .tt-val { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- Barre de contrôles -->
+    <div class="controls-container">
+        <div>
+            <label for="team-select">CLUB : </label>
+            <select id="team-select">
+                <option value="">Chargement...</option>
+            </select>
+        </div>
+        <div>
+            <label for="player-select">JOUEUR : </label>
+            <select id="player-select" disabled>
+                <option value="">Sélectionnez d'abord un club</option>
+            </select>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-left">
+            <img id="team-logo-img" class="team-logo" alt="Logo Equipe">
+            <img id="player-photo-img" class="player-photo" alt="Photo Joueur">
+            <div class="header-left-text">
+                <h1 id="player-name">CHARGEMENT...</h1>
+                <p>Profil Analytique & Comparaison Sectorielle - Premier League</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <h2 id="player-count">...</h2>
+            <p>Données ramenées à la moyenne par match (p90)</p>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="chart-container">
+            <div class="chart-title">VOLUME DE JEU</div>
+            <div id="chart-passes"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">SÉCURITÉ TECHNIQUE (%)</div>
+            <div id="chart-acc"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">COURSES PROGRESSIVES</div>
+            <div id="chart-carries"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">PASSES PROGRESSIVES (Casseurs de Lignes)</div>
+            <div id="chart-prog"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">IMPACT DANS LE DERNIER TIERS</div>
+            <div id="chart-final"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">VOLUME DÉFENSIF</div>
+            <div id="chart-def"></div>
+        </div>
+    </div>
+
+    <div id="tooltip"></div>
+
+    <script>
+        const tooltip = d3.select("#tooltip");
+        let globalStats = [];
+
+        // 🛠️ AJOUTS MANUELS (Joueurs)
+        const customPlayerPhotos = {
+            "Martin Ødegaard": "https://resources.premierleague.com/premierleague25/photos/players/110x140/184029.png",
+            "Junior Kroupi": "https://resources.premierleague.com/premierleague25/photos/players/110x140/560262.png",
+            "Rayan": "https://resources.premierleague.com/premierleague25/photos/players/110x140/499604.png",
+            "Álex Jiménez": "https://resources.premierleague.com/premierleague25/photos/players/110x140/551483.png",
+            "Fábio Carvalho": "https://resources.premierleague.com/premierleague25/photos/players/110x140/244858.png",
+            "Florentino": "https://resources.premierleague.com/premierleague25/photos/players/110x140/216055.png",
+            "Estêvão": "https://resources.premierleague.com/premierleague25/photos/players/110x140/624773.png",
+            "João Pedro": "https://resources.premierleague.com/premierleague25/photos/players/110x140/475168.png",
+            "Reece James": "https://resources.premierleague.com/premierleague25/photos/players/110x140/225796.png",
+            "Daniel Muñoz": "https://resources.premierleague.com/premierleague25/photos/players/110x140/247348.png",
+            "Charly Alcaraz": "https://resources.premierleague.com/premierleague25/photos/players/110x140/502697.png",
+            "Merlin Röhl": "https://resources.premierleague.com/premierleague25/photos/players/110x140/513466.png",
+            "Rodri": "https://resources.premierleague.com/premierleague25/photos/players/110x140/220566.png",
+            "Savinho": "https://resources.premierleague.com/premierleague25/photos/players/110x140/510281.png",
+            "Diogo Dalot": "https://resources.premierleague.com/premierleague25/photos/players/110x140/216051.png",
+            "Bruno Guimarães": "https://resources.premierleague.com/premierleague25/photos/players/110x140/208706.png",
+            "Joelinton": "https://resources.premierleague.com/premierleague25/photos/players/110x140/180974.png",
+            "Enzo Le Fée": "https://resources.premierleague.com/premierleague25/photos/players/110x140/484420.png",
+            "João Palhinha": "https://resources.premierleague.com/premierleague25/photos/players/110x140/154296.png",
+            "El Hadji Malick Diouf": "https://resources.premierleague.com/premierleague25/photos/players/110x140/613804.png",
+            "Mateus Fernandes": "https://resources.premierleague.com/premierleague25/photos/players/110x140/551226.png",
+            "Pablo": "https://resources.premierleague.com/premierleague25/photos/players/110x140/530335.png",
+            "André": "https://resources.premierleague.com/premierleague25/photos/players/110x140/509291.png",
+            "David Møller Wolfe": "https://resources.premierleague.com/premierleague25/photos/players/110x140/497949.png",
+            "Fer López": "https://resources.premierleague.com/premierleague25/photos/players/110x140/643135.png",
+            "João Gomes": "https://resources.premierleague.com/premierleague25/photos/players/110x140/448089.png",
+            "Ladislav Krejcí": "https://resources.premierleague.com/premierleague25/photos/players/110x140/431248.png",
+            "Pape Matar Sarr": "https://resources.premierleague.com/premierleague25/photos/players/110x140/482442.png",
+            "Bertrand Traoré": "https://resources.premierleague.com/premierleague25/photos/players/110x140/110504.png",
+            "Nicolò Savona": "https://resources.premierleague.com/premierleague25/photos/players/110x140/500151.png",
+            "Pascal Groß": "https://resources.premierleague.com/premierleague25/photos/players/110x140/60307.png"
+        };
+
+        const defaultAvatar = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzhCOTQ5RSI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==";
+
+        // 🛠️ NOUVEAU : BASE DE DONNÉES DES LOGOS OFFICIELS PREMIER LEAGUE
+        const teamLogos = {
+            "Arsenal": "https://resources.premierleague.com/premierleague25/badges-alt/3.svg",
+            "Aston Villa": "https://resources.premierleague.com/premierleague/badges/t7.svg",
+            "Bournemouth": "https://resources.premierleague.com/premierleague/badges/t91.svg",
+            "Brentford": "https://resources.premierleague.com/premierleague25/badges-alt/94.svg",
+            "Brighton": "https://resources.premierleague.com/premierleague/badges/t36.svg",
+            "Burnley": "https://resources.premierleague.com/premierleague/badges/t90.svg",
+            "Chelsea": "https://resources.premierleague.com/premierleague25/badges-alt/8.svg",
+            "Crystal Palace": "https://resources.premierleague.com/premierleague/badges/t31.svg",
+            "Everton": "https://resources.premierleague.com/premierleague/badges/t11.svg",
+            "Fulham": "https://resources.premierleague.com/premierleague/badges/t54.svg",
+            "Leeds": "https://resources.premierleague.com/premierleague/badges/t2.svg",
+            "Liverpool": "https://resources.premierleague.com/premierleague/badges/t14.svg",
+            "Man City": "https://resources.premierleague.com/premierleague25/badges-alt/43.svg",
+            "Man Utd": "https://resources.premierleague.com/premierleague25/badges-alt/1.svg",
+            "Newcastle": "https://resources.premierleague.com/premierleague/badges/t4.svg",
+            "Nottingham Forest": "https://resources.premierleague.com/premierleague25/badges-alt/17.svg",
+            "Sunderland": "https://resources.premierleague.com/premierleague/badges/t56.svg",
+            "Tottenham": "https://resources.premierleague.com/premierleague/badges/t6.svg",
+            "West Ham": "https://resources.premierleague.com/premierleague/badges/t21.svg",
+            "Wolves": "https://resources.premierleague.com/premierleague/badges/t39.svg"
+        };
+
+        const teamColors = {
+            "Arsenal": "#E20613", "Aston Villa": "#480024", "Bournemouth": "#CE0A17",
+            "Brentford": "#C10000", "Brighton": "#0054A5", "Burnley": "#81204C", "Chelsea": "#001489",
+            "Crystal Palace": "#EE2E24", "Everton": "#014593", "Fulham": "#000000",
+            "Leeds": "#FFD600", "Liverpool": "#D10011", 
+            "Man City": "#7AB2E1", "Man Utd": "#B90006", "Newcastle": "#231F20", 
+            "Nottingham Forest": "#EB0024", 
+            "Sunderland": "#DC0714", "Tottenham": "#000A3C", "West Ham": "#7C2C3B", "Wolves": "#FAB900"
+        };
+
+        function applyTheme(hexColor) {
+            if (!hexColor) return;
+            
+            let hex = hexColor.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            
+            let r = parseInt(hex.substring(0,2), 16);
+            let g = parseInt(hex.substring(2,4), 16);
+            let b = parseInt(hex.substring(4,6), 16);
+            
+            let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+            let isDark = luminance < 0.55;
+            
+            document.documentElement.style.setProperty('--bg-color', hexColor);
+            
+            if (isDark) {
+                document.documentElement.style.setProperty('--text-color', '#FFFFFF');
+                document.documentElement.style.setProperty('--grid-color', 'rgba(255, 255, 255, 0.25)');
+                document.documentElement.style.setProperty('--median-line', '#FFFFFF');
+                document.documentElement.style.setProperty('--target-color', '#FDE047');
+                document.documentElement.style.setProperty('--other-color', '#F8FAFC'); 
+            } else {
+                document.documentElement.style.setProperty('--text-color', '#000000');
+                document.documentElement.style.setProperty('--grid-color', 'rgba(0, 0, 0, 0.2)');
+                document.documentElement.style.setProperty('--median-line', '#000000');
+                document.documentElement.style.setProperty('--target-color', '#FDE047'); 
+                document.documentElement.style.setProperty('--other-color', '#0F172A');
+            }
+        }
+
+        // Configuration des menus déroulants
+        function initDropdowns() {
+            const teams = [...new Set(globalStats.map(d => d.team))].sort();
+            const teamSelect = document.getElementById("team-select");
+            const playerSelect = document.getElementById("player-select");
+
+            teamSelect.innerHTML = '<option value="">Tous les clubs...</option>';
+            teams.forEach(t => {
+                let opt = document.createElement("option");
+                opt.value = t; opt.textContent = t;
+                teamSelect.appendChild(opt);
+            });
+
+            teamSelect.addEventListener("change", function() {
+                const selectedTeam = this.value;
+                playerSelect.innerHTML = "";
+                
+                if(!selectedTeam) {
+                    playerSelect.disabled = true;
+                    playerSelect.innerHTML = '<option value="">Sélectionnez d\'abord un club</option>';
+                    return;
+                }
+
+                playerSelect.disabled = false;
+                const players = globalStats.filter(d => d.team === selectedTeam).map(d => d.name).sort();
+                playerSelect.innerHTML = '<option value="">Choisir un joueur...</option>';
+                players.forEach(p => {
+                    let opt = document.createElement("option");
+                    opt.value = p; opt.textContent = p;
+                    playerSelect.appendChild(opt);
+                });
+            });
+
+            playerSelect.addEventListener("change", function() {
+                if(this.value) {
+                    updateDashboardForPlayer(this.value);
+                }
+            });
+        }
+
+        function updateDashboardForPlayer(playerName) {
+            globalStats.forEach(d => { d.Is_Target = (d.name === playerName); });
+            const targetPlayer = globalStats.find(d => d.Is_Target);
+            
+            if (targetPlayer) {
+                document.getElementById("player-name").textContent = targetPlayer.name.toUpperCase();
+                
+                let newColor = targetPlayer.player_bg_color || teamColors[targetPlayer.team] || "#0E1117";
+                applyTheme(newColor);
+
+                const imgTeam = document.getElementById("team-logo-img");
+                const imgPlayer = document.getElementById("player-photo-img");
+                
+                // 🛠️ NOUVEAU LOGIQUE : On utilise en priorité l'URL officielle du CDN
+                // Si l'équipe n'est pas dans le dictionnaire, on utilise la base64 Python en secours
+                let finalTeamLogoUrl = teamLogos[targetPlayer.team] || targetPlayer.team_logo_b64;
+
+                if (finalTeamLogoUrl) {
+                    imgTeam.src = finalTeamLogoUrl;
+                    imgTeam.style.display = "block";
+                } else {
+                    imgTeam.style.display = "none";
+                }
+
+                // GESTION INTELLIGENTE DE LA PHOTO
+                let finalPhotoUrl = customPlayerPhotos[playerName] || targetPlayer.player_photo_b64 || defaultAvatar;
+                
+                imgPlayer.src = finalPhotoUrl;
+                imgPlayer.style.display = "block";
+            }
+
+            drawAllCharts();
+        }
+
+        function drawBeeswarm(selector, data, metric, xlabel, format = d3.format(".1f")) {
+            const container = d3.select(selector);
+            container.selectAll("*").remove(); 
+
+            const width = 450;
+            const height = 250;
+            const margin = { top: 30, right: 30, bottom: 40, left: 30 };
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const svg = container.append("svg")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const xExtent = d3.extent(data, d => d[metric]);
+            const padding = (xExtent[1] - xExtent[0]) * 0.1; 
+            
+            const x = d3.scaleLinear()
+                .domain([Math.max(0, xExtent[0] - padding), xExtent[1] + padding])
+                .range([0, innerWidth]);
+
+            const xAxis = d3.axisBottom(x)
+                .ticks(6)
+                .tickFormat(format)
+                .tickSizeInner(-innerHeight - 20) 
+                .tickSizeOuter(0)
+                .tickPadding(10);
+
+            const xAxisGroup = g.append("g")
+                .attr("transform", `translate(0, ${innerHeight})`)
+                .call(xAxis);
+                
+            xAxisGroup.selectAll(".tick line").attr("transform", "translate(0, 15)"); 
+
+            g.append("text")
+                .attr("class", "x-axis-label")
+                .attr("x", innerWidth / 2)
+                .attr("y", innerHeight + 35)
+                .attr("text-anchor", "middle")
+                .attr("fill", "var(--text-color)")
+                .style("font-size", "11px")
+                .style("font-weight", "400")
+                .style("opacity", 0.9)
+                .text(xlabel);
+
+            const medianVal = d3.median(data, d => d[metric]);
+
+            g.append("line")
+                .attr("x1", x(medianVal)).attr("x2", x(medianVal))
+                .attr("y1", -20).attr("y2", innerHeight)
+                .attr("stroke", "var(--median-line)")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "5,5")
+                .attr("opacity", 0.7);
+
+            g.append("text")
+                .attr("x", x(medianVal))
+                .attr("y", -25)
+                .attr("text-anchor", "middle")
+                .attr("fill", "var(--text-color)")
+                .style("font-size", "9px")
+                .style("font-weight", "400")
+                .style("opacity", 0.9)
+                .text(`Médiane: ${format(medianVal)}`);
+
+            const simulation = d3.forceSimulation(data)
+                .force("x", d3.forceX(d => x(d[metric])).strength(2.5)) 
+                .force("y", d3.forceY(innerHeight / 2).strength(0.2)) 
+                .force("collide", d3.forceCollide(d => d.Is_Target ? 4.5 : 3.2).iterations(2)) 
+                .stop();
+
+            for (let i = 0; i < 300; ++i) simulation.tick();
+
+            const nodes = g.selectAll("circle.point")
+                .data(data)
+                .enter().append("circle")
+                .attr("class", "point")
+                .attr("cx", d => d.x).attr("cy", d => d.y)
+                .attr("r", d => d.Is_Target ? 4 : 3)
+                .attr("fill", d => d.Is_Target ? "var(--target-color)" : "var(--other-color)")
+                .attr("opacity", d => d.Is_Target ? 1 : 0.4) 
+                .attr("stroke", d => d.Is_Target ? "rgba(0,0,0,0.4)" : "none") 
+                .attr("stroke-width", d => d.Is_Target ? 1 : 0);
+
+            nodes.on("mouseover", function(event, d) {
+                d3.select(this)
+                  .attr("stroke", "var(--text-color)")
+                  .attr("stroke-width", 1)
+                  .attr("opacity", 1);
+                  
+                tooltip.transition().duration(200).style("opacity", 1);
+                tooltip.html(`
+                    <div class="tt-name" style="color: ${d.Is_Target ? 'var(--target-color)' : '#fff'}">${d.name}</div>
+                    <div class="tt-val">${format(d[metric])}</div>
+                `).style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(event, d) {
+                d3.select(this)
+                  .attr("stroke", d.Is_Target ? "rgba(0,0,0,0.4)" : "none")
+                  .attr("stroke-width", d.Is_Target ? 1 : 0)
+                  .attr("opacity", d.Is_Target ? 1 : 0.4);
+                tooltip.transition().duration(500).style("opacity", 0);
+            });
+        }
+
+        const formatPercent = d => d3.format(".1f")(d) + "%";
+        const formatDecimal = d => d3.format(".1f")(d);
+
+        function drawAllCharts() {
+            drawBeeswarm("#chart-passes", globalStats, "Passes_90", "Passes tentées par match", formatDecimal);
+            drawBeeswarm("#chart-acc", globalStats, "Pass_Acc", "Pourcentage de passes réussies", formatPercent);
+            drawBeeswarm("#chart-carries", globalStats, "Prog_Carries_90", "Courses vers l'avant (>10m) par match", formatDecimal);
+            drawBeeswarm("#chart-prog", globalStats, "Prog_Passes_90", "Passes vers l'avant (>15% de terrain) par match", formatDecimal);
+            drawBeeswarm("#chart-final", globalStats, "Final_Third_90", "Passes entrant dans les 30 derniers mètres par match", formatDecimal);
+            drawBeeswarm("#chart-def", globalStats, "Def_Actions_90", "Tacles, Interceptions & Récupérations par match", formatDecimal);
+
+            d3.selectAll("circle").filter(d => d && d.Is_Target).raise();
+        }
+
+        const cacheBuster = new Date().getTime();
+        d3.json(`milieux_data.json?v=${cacheBuster}`).then(data => {
+            console.log("Fichier JSON chargé", data);
+            
+            globalStats = data.stats;
+            document.getElementById("player-count").textContent = `${globalStats.length} Milieux analysés`;
+
+            initDropdowns();
+            
+            if(data.target_player) {
+                const initialPlayer = globalStats.find(d => d.name === data.target_player);
+                if (initialPlayer) {
+                    const teamSelect = document.getElementById("team-select");
+                    teamSelect.value = initialPlayer.team;
+                    teamSelect.dispatchEvent(new Event('change')); 
+                    
+                    const playerSelect = document.getElementById("player-select");
+                    playerSelect.value = initialPlayer.name;
+                }
+                updateDashboardForPlayer(data.target_player);
+            }
+
+        }).catch(error => {
+            console.error("Erreur JSON:", error);
+            document.getElementById("chart-passes").innerHTML = "<p style='color:red;'>Fichier milieux_data.json non trouvé ou invalide.</p>";
+        });
+
+    </script>
+</body>
+</html>
